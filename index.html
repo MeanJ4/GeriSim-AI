@@ -92,6 +92,14 @@
         const SYSTEM_PROMPT = `คุณคือ "คุณยายสมศรี" ผู้สูงอายุชาวไทย อายุ 75 ปี อาศัยอยู่กับลูกสาว มีอาการนอนไม่หลับและเบื่ออาหารมาเป็นระยะเวลาหลายเดือน มีโรคประจำตัวคือความดันโลหิตสูงและปวดเข่าจากข้อเสื่อม พูดภาษาไทยสำเนียงภาคใต้ปนภาษากลาง ใจดี แต่บางครั้งขี้กังวล ตอบประโยคสั้นๆ เป็นธรรมชาติแบบผู้สูงอายุ ไม่ใช้ศัพท์วิชาการ`;
 
         // ============================================================
+        // iApp TTS API — Thai neural voice (primary engine)
+        // ============================================================
+        const IAPP_TTS_URL    = 'https://api.iapp.co.th/tts/v3/generate';
+        const IAPP_TTS_APIKEY = 'H88zJchvB873YEXmZHzwJgMkUKE0BBWP';
+        const IAPP_TTS_VOICE  = 'khaitom_v3';   // natural Thai female voice model
+        const IAPP_TTS_SPEED  = 0.8;            // slower pace → elderly simulation
+
+        // ============================================================
         // STATIC DATA
         // ============================================================
         const mockPatients = [
@@ -161,6 +169,7 @@
           const recognitionRef = useRef(null);
           const isLoadingRef   = useRef(false);   // avoids stale-closure race in STT callback
           const chatTurnsRef   = useRef([]);       // [{user, ai}] → compiled into q1-q15 on save
+          const audioRef       = useRef(null);     // currently playing iApp Audio object
 
           // Auto-scroll chat to bottom
           useEffect(() => {
@@ -170,16 +179,17 @@
           const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
 
           // ============================================================
-          // TEXT-TO-SPEECH  (rate 0.75 → elderly pacing)
+          // TEXT-TO-SPEECH — Fallback: native Web Speech API
+          // Used when iApp TTS fetch fails or returns an error.
           // ============================================================
-          const speakText = (text) => {
+          const speakNative = (text) => {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
 
             const utter = new SpeechSynthesisUtterance(text);
             utter.lang   = 'th-TH';
-            utter.rate   = 0.75;   // 0.75 < 0.8 → slower than spec → better elderly pacing
-            utter.pitch  = 0.7;    // 0.7 → deeper, older-sounding voice
+            utter.rate   = 0.75;   // slightly below 0.8 → more natural elderly pacing
+            utter.pitch  = 0.7;    // deeper pitch → older-sounding voice
             utter.volume = 1.0;
 
             utter.onstart = () => setIsSpeaking(true);
@@ -187,17 +197,74 @@
             utter.onerror = () => setIsSpeaking(false);
 
             const doSpeak = () => {
-              const voices    = window.speechSynthesis.getVoices();
-              const thaiVoice = voices.find(v => v.lang && v.lang.startsWith('th'));
+              const thaiVoice = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith('th'));
               if (thaiVoice) utter.voice = thaiVoice;
               window.speechSynthesis.speak(utter);
             };
 
-            // getVoices() may be empty until voiceschanged fires (Chrome quirk)
+            // Chrome loads voices asynchronously — wait for voiceschanged if needed
             if (window.speechSynthesis.getVoices().length > 0) {
               doSpeak();
             } else {
               window.speechSynthesis.addEventListener('voiceschanged', doSpeak, { once: true });
+            }
+          };
+
+          // ============================================================
+          // TEXT-TO-SPEECH — Primary: iApp TTS API (Thai neural voice)
+          // Falls back to speakNative() on any network / API error so
+          // the simulation is never left silent for the nursing student.
+          // ============================================================
+          const speakText = async (text) => {
+            // Stop any currently playing audio before starting a new one
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current = null;
+            }
+            window.speechSynthesis?.cancel();
+            setIsSpeaking(false);
+
+            try {
+              const res = await fetch(IAPP_TTS_URL, {
+                method  : 'POST',
+                headers : {
+                  'Content-Type' : 'application/json',
+                  'apikey'       : IAPP_TTS_APIKEY
+                },
+                body: JSON.stringify({
+                  text  : text,
+                  voice : IAPP_TTS_VOICE,
+                  speed : IAPP_TTS_SPEED
+                })
+              });
+
+              if (!res.ok) throw new Error(`iApp TTS HTTP ${res.status}`);
+
+              const blob     = await res.blob();
+              const audioURL = URL.createObjectURL(blob);
+              const audio    = new Audio(audioURL);
+
+              // Sync avatar lip-sync animation with actual playback events
+              audio.onplay  = () => setIsSpeaking(true);
+              audio.onended = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioURL);   // release blob memory
+                audioRef.current = null;
+              };
+              audio.onerror = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioURL);
+                audioRef.current = null;
+                console.warn('[GeriSim] iApp audio playback error — falling back to native TTS');
+                speakNative(text);
+              };
+
+              audioRef.current = audio;
+              audio.play();
+
+            } catch (err) {
+              console.warn('[GeriSim] iApp TTS failed — falling back to native TTS:', err.message);
+              speakNative(text);
             }
           };
 
