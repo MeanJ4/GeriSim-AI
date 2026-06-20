@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GeriSim AI</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Prompt', sans-serif;
+            background-color: #111827;
+        }
+        #root { width: 100%; height: 100%; }
+
+        @keyframes breathe {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes headBob {
+          0%, 100% { transform: rotate(0deg) translateY(0); }
+          25% { transform: rotate(-3deg) translateY(-2px); }
+          75% { transform: rotate(3deg) translateY(2px); }
+        }
+        @keyframes talkMouth {
+          0%, 100% { height: 4px; width: 24px; border-radius: 4px; }
+          33% { height: 16px; width: 14px; border-radius: 8px; }
+          66% { height: 10px; width: 20px; border-radius: 10px; }
+        }
+        @keyframes blink {
+          0%, 93%, 97%, 100% { transform: scaleY(1); }
+          95% { transform: scaleY(0.1); }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        @keyframes dotBounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+          40% { transform: translateY(-7px); opacity: 1; }
+        }
+
+        .animate-breathe  { animation: breathe 4s ease-in-out infinite; }
+        .animate-headBob  { animation: headBob 6s ease-in-out infinite; }
+        .animate-talk     { animation: talkMouth 0.3s infinite; }
+        .animate-blink    { animation: blink 5s infinite; transform-origin: center; }
+        .animate-slideUp  { animation: slideUp 0.3s ease-out forwards; }
+        .dot-bounce       { animation: dotBounce 1.2s ease-in-out infinite; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react">
+        /* @jsx React.createElement */
+        /* @jsxFrag React.Fragment */
+
+        const { useState, useEffect, useRef } = React;
+
+        // ============================================================
+        // CONFIGURATION — Google Apps Script Web App URL (Student App)
+        // ============================================================
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4nc37Vr6M1R1Y4p9XgVRzhF2WsDSv9xgc0csnX4bRKVwMQ2BzwZofZ99Q7J4MYSgA9g/exec';
+
+        // ============================================================
+        // SYSTEM PROMPT — Persona for คุณยายสมศรี (Gemini 1.5 Flash)
+        // ============================================================
+        const SYSTEM_PROMPT = `คุณคือ "คุณยายสมศรี" ผู้สูงอายุชาวไทย อายุ 75 ปี อาศัยอยู่กับลูกสาว มีอาการนอนไม่หลับและเบื่ออาหารมาเป็นระยะเวลาหลายเดือน มีโรคประจำตัวคือความดันโลหิตสูงและปวดเข่าจากข้อเสื่อม พูดภาษาไทยสำเนียงภาคใต้ปนภาษากลาง ใจดี แต่บางครั้งขี้กังวล ตอบประโยคสั้นๆ เป็นธรรมชาติแบบผู้สูงอายุ ไม่ใช้ศัพท์วิชาการ`;
+
+        // ============================================================
+        // STATIC DATA
+        // ============================================================
+        const mockPatients = [
+          {
+            id: 1,
+            name: 'คุณยายสมศรี',
+            age: 75,
+            condition: 'นอนไม่หลับ, เบื่ออาหาร',
+            skinColor: '#FFBFA3',
+            hairColor: '#64748B',
+            shirtColor: '#DB2777'
+          },
+        ];
+
+        const assessmentTools = {
+          'ADL': {
+            name: 'ADL (กิจวัตรประจำวัน)',
+            questions: ['ลุกจากเตียงเองได้ไหม?', 'ทานอาหารเองได้ไหม?', 'อาบน้ำแต่งตัวเองได้ไหม?'],
+            recommendations: ['จัดสภาพแวดล้อมให้ปลอดภัย', 'แนะนำอุปกรณ์ช่วยเดิน', 'ฝึกทำกายภาพบำบัดเบื้องต้น']
+          },
+          'IADL': {
+            name: 'IADL (กิจวัตรประจำวันขั้นสูง)',
+            questions: ['ไปซื้อของเองได้ไหม?', 'จัดการเรื่องเงินเองได้ไหม?', 'ทานยาตามแพทย์สั่งเองได้ไหม?'],
+            recommendations: ['จัดยามื้อสัปดาห์ให้', 'มีญาติช่วยดูแลเรื่องการเงิน', 'แนะนำบริการส่งอาหาร']
+          },
+          'GDS': {
+            name: 'GDS (ภาวะซึมเศร้า)',
+            questions: ['รู้สึกเบื่อหน่ายหรือไม่?', 'รู้สึกชีวิตว่างเปล่าหรือไม่?', 'อารมณ์ดีเป็นส่วนใหญ่หรือไม่?'],
+            recommendations: ['หากิจกรรมนันทนาการทำ', 'ให้ญาติมีเวลาพูดคุยมากขึ้น', 'ปรึกษาจิตแพทย์หากจำเป็น']
+          }
+        };
+
+        // ============================================================
+        // APP COMPONENT
+        // ============================================================
+        function App() {
+
+          // ── Pages & UI ──────────────────────────────────────────────
+          const [currentPage, setCurrentPage]     = useState('welcome');
+          const [activePatient]                   = useState(mockPatients[0]);
+          const [selectedTool, setSelectedTool]   = useState(null);
+          const [activeModal, setActiveModal]     = useState(null);
+          const [isCalling, setIsCalling]         = useState(false);
+          const [showReport, setShowReport]       = useState(false);
+
+          // ── Student identity (captured at login) ────────────────────
+          const [studentId, setStudentId]         = useState('');
+          const [password, setPassword]           = useState('');
+          const [studentName, setStudentName]     = useState('');
+
+          // ── Chat & AI ───────────────────────────────────────────────
+          const [chatLog, setChatLog] = useState([
+            { text: 'เริ่มการสนทนาประเมินสุขภาพ', sender: 'system' }
+          ]);
+          const [inputText, setInputText]         = useState('');
+          const [isSpeaking, setIsSpeaking]       = useState(false);
+          const [isLoading, setIsLoading]         = useState(false);   // waiting for AI reply
+          const [isListening, setIsListening]     = useState(false);   // STT active
+
+          // ── Assessment ──────────────────────────────────────────────
+          const [scores, setScores]               = useState({ tool: 0, assessment: 0, recommendation: 0 });
+          const [assessmentAnswers, setAssessmentAnswers]             = useState({});
+          const [selectedRecommendations, setSelectedRecommendations] = useState([]);
+
+          // ── Refs ────────────────────────────────────────────────────
+          const chatEndRef     = useRef(null);
+          const recognitionRef = useRef(null);
+          const isLoadingRef   = useRef(false);   // avoids stale-closure race in STT callback
+          const chatTurnsRef   = useRef([]);       // [{user, ai}] → compiled into q1-q15 on save
+
+          // Auto-scroll chat to bottom
+          useEffect(() => {
+            chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, [chatLog, isLoading]);
+
+          const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
+
+          // ============================================================
+          // TEXT-TO-SPEECH  (rate 0.75 → elderly pacing)
+          // ============================================================
+          const speakText = (text) => {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang   = 'th-TH';
+            utter.rate   = 0.75;   // slower — simulates elderly speech
+            utter.pitch  = 0.9;
+            utter.volume = 1.0;
+
+            utter.onstart = () => setIsSpeaking(true);
+            utter.onend   = () => setIsSpeaking(false);
+            utter.onerror = () => setIsSpeaking(false);
+
+            const doSpeak = () => {
+              const voices    = window.speechSynthesis.getVoices();
+              const thaiVoice = voices.find(v => v.lang && v.lang.startsWith('th'));
+              if (thaiVoice) utter.voice = thaiVoice;
+              window.speechSynthesis.speak(utter);
+            };
+
+            // getVoices() may be empty until voiceschanged fires (Chrome quirk)
+            if (window.speechSynthesis.getVoices().length > 0) {
+              doSpeak();
+            } else {
+              window.speechSynthesis.addEventListener('voiceschanged', doSpeak, { once: true });
+            }
+          };
+
+          // ============================================================
+          // LOGIN — POST action:"login" to GAS, verify credentials
+          // ============================================================
+          const handleLogin = async () => {
+            if (!studentId.trim()) { alert('กรุณากรอกรหัสนักศึกษา'); return; }
+            if (!password.trim()) { alert('กรุณากรอกรหัสผ่าน'); return; }
+
+            isLoadingRef.current = true;
+            setIsLoading(true);
+
+            try {
+              const res  = await fetch(GAS_URL, {
+                method : 'POST',
+                // Omit Content-Type → browser sends as text/plain → avoids CORS preflight
+                body   : JSON.stringify({
+                  action   : 'login',
+                  username : studentId.trim(),
+                  password : password.trim()
+                })
+              });
+              const data = await res.json();
+
+              if (data.status === 'success') {
+                setStudentName(data.student_name || studentId);
+                navigate('home');
+              } else {
+                alert(data.message || 'รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่');
+              }
+            } catch (err) {
+              console.error('[GeriSim] Login error:', err);
+              alert('ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+            } finally {
+              isLoadingRef.current = false;
+              setIsLoading(false);
+            }
+          };
+
+          // ============================================================
+          // API INTEGRATION — POST action:"chat" to GAS → Gemini 1.5 Flash
+          // ============================================================
+          const sendToAI = async (messageText) => {
+            if (!messageText.trim() || isLoadingRef.current) return;
+
+            isLoadingRef.current = true;
+            setIsLoading(true);
+            setChatLog(prev => [...prev, { text: messageText, sender: 'user' }]);
+            setInputText('');
+
+            try {
+              const res  = await fetch(GAS_URL, {
+                method : 'POST',
+                // Omit Content-Type → text/plain → avoids CORS preflight with GAS
+                body   : JSON.stringify({
+                  action       : 'chat',
+                  message      : messageText,
+                  systemPrompt : SYSTEM_PROMPT,
+                  studentId    : studentId || 'anonymous'
+                })
+              });
+
+              const data  = await res.json();
+              const reply = data.reply || 'ขออภัยค่ะ ยายไม่ได้ยินที่ถาม ลองถามใหม่อีกทีนะลูก';
+
+              // Track Q&A turn for q1-q15 save payload (cap at 15 turns)
+              if (chatTurnsRef.current.length < 15) {
+                chatTurnsRef.current.push({ user: messageText, ai: reply });
+              }
+
+              setChatLog(prev => [...prev, { text: reply, sender: 'ai' }]);
+              speakText(reply);
+
+            } catch (err) {
+              console.error('[GeriSim] Chat error:', err);
+              const errMsg = 'ไม่สามารถเชื่อมต่อ AI ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต';
+              setChatLog(prev => [...prev, { text: errMsg, sender: 'ai' }]);
+            } finally {
+              isLoadingRef.current = false;
+              setIsLoading(false);
+            }
+          };
+
+          const handleSendMessage = () => {
+            if (!inputText.trim()) return;
+            sendToAI(inputText);
+          };
+
+          // ============================================================
+          // SPEECH-TO-TEXT  (Web Speech API — Chrome / Edge)
+          // ============================================================
+          const startListening = () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+              alert('เบราว์เซอร์นี้ไม่รองรับการรับเสียง\nกรุณาใช้ Google Chrome แล้วลองใหม่');
+              return;
+            }
+
+            // Stop TTS before listening to avoid capturing our own output
+            window.speechSynthesis?.cancel();
+            setIsSpeaking(false);
+
+            const recognition          = new SpeechRecognition();
+            recognition.lang           = 'th-TH';
+            recognition.continuous     = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => setIsListening(true);
+
+            recognition.onresult = (event) => {
+              let transcript = '';
+              for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+              }
+              setInputText(transcript);
+
+              // Auto-send when the engine signals a final (confident) result
+              if (event.results[event.results.length - 1].isFinal) {
+                setIsListening(false);
+                recognitionRef.current = null;
+                sendToAI(transcript);
+              }
+            };
+
+            recognition.onerror = (e) => {
+              console.error('[GeriSim] STT error:', e.error);
+              setIsListening(false);
+              recognitionRef.current = null;
+            };
+
+            recognition.onend = () => {
+              setIsListening(false);
+              recognitionRef.current = null;
+            };
+
+            recognitionRef.current = recognition;
+            recognition.start();
+          };
+
+          const stopListening = () => {
+            recognitionRef.current?.stop();
+            recognitionRef.current = null;
+            setIsListening(false);
+          };
+
+          const toggleListening = () => {
+            if (isListening) stopListening();
+            else startListening();
+          };
+
+          // ============================================================
+          // SESSION LIFECYCLE
+          // ============================================================
+          const resetSession = () => {
+            stopListening();
+            window.speechSynthesis?.cancel();
+            setScores({ tool: 0, assessment: 0, recommendation: 0 });
+            setSelectedTool(null);
+            setAssessmentAnswers({});
+            setSelectedRecommendations([]);
+            setChatLog([{ text: 'เริ่มการสนทนาประเมินสุขภาพ', sender: 'system' }]);
+            setShowReport(false);
+            setIsLoading(false);
+            setIsSpeaking(false);
+            chatTurnsRef.current = [];   // clear Q&A turns for new session
+          };
+
+          const startVdoCall = () => {
+            setIsCalling(true);
+            setTimeout(() => {
+              setIsCalling(false);
+              navigate('simulation');
+              const greeting = 'ฮัลโหลวว ได้ยินไหมลูก ยายรอนานแล้วนะ';
+              setChatLog([
+                { text: 'เริ่มการสนทนาประเมินสุขภาพ', sender: 'system' },
+                { text: greeting, sender: 'ai' }
+              ]);
+              speakText(greeting);
+            }, 1500);
+          };
+
+          // ============================================================
+          // 4-STEP CLINICAL REASONING HANDLERS
+          // ============================================================
+          const handleToolSelect = (toolKey) => {
+            setSelectedTool(toolKey);
+            setAssessmentAnswers({});
+            setSelectedRecommendations([]);
+            setScores(prev => ({ ...prev, tool: 100 }));
+            setActiveModal(null);
+            setChatLog(prev => [...prev, {
+              text: `ระบบ: คุณเลือกเครื่องมือประเมิน ${assessmentTools[toolKey].name}`,
+              sender: 'system'
+            }]);
+          };
+
+          const handleAnswerSelect = (questionIndex, answer) => {
+            setAssessmentAnswers(prev => ({ ...prev, [questionIndex]: answer }));
+          };
+
+          const handleRecommendationToggle = (rec) => {
+            setSelectedRecommendations(prev =>
+              prev.includes(rec) ? prev.filter(r => r !== rec) : [...prev, rec]
+            );
+          };
+
+          const submitAssessment = () => {
+            const totalQ = assessmentTools[selectedTool].questions.length;
+            if (Object.keys(assessmentAnswers).length < totalQ) {
+              alert('กรุณาประเมินให้ครบทุกข้อก่อนบันทึก');
+              return;
+            }
+            const yesCount = Object.values(assessmentAnswers).filter(a => a === 'yes').length;
+            const score    = Math.round((yesCount / totalQ) * 100);
+            setScores(prev => ({ ...prev, assessment: Math.max(score, 10) }));
+            setActiveModal(null);
+            setChatLog(prev => [...prev, {
+              text: `ระบบ: บันทึกผลการประเมิน ${assessmentTools[selectedTool].name} (คะแนน ${score}%)`,
+              sender: 'system'
+            }]);
+          };
+
+          const submitRecommendation = () => {
+            if (selectedRecommendations.length === 0) {
+              alert('กรุณาเลือกคำแนะนำอย่างน้อย 1 ข้อ');
+              return;
+            }
+            setScores(prev => ({ ...prev, recommendation: 90 }));
+            setActiveModal(null);
+            setChatLog(prev => [...prev, {
+              text: `ระบบ: บันทึกคำแนะนำ: ${selectedRecommendations.join(', ')}`,
+              sender: 'system'
+            }]);
+          };
+
+          // ── Step 4: Compile payload → POST action:'save' to GAS ─────
+          // Payload matches GAS doPost save schema exactly:
+          //   student_id, case_name, assessment_tool, assessment_score,
+          //   nursing_intervention, system_feedback, q1…q15
+          const handleSubmitSession = () => {
+            if (scores.tool === 0 || scores.assessment === 0 || scores.recommendation === 0) {
+              alert('กรุณาทำขั้นตอน 1-3 ให้ครบก่อนส่งข้อมูล');
+              return;
+            }
+
+            const totalScore = Math.round((scores.tool + scores.assessment + scores.recommendation) / 3);
+
+            // Build q1-q15: each slot = one Q&A exchange (user → AI)
+            const qPayload = {};
+            chatTurnsRef.current.slice(0, 15).forEach((turn, i) => {
+              qPayload[`q${i + 1}`] = `[นักศึกษา] ${turn.user} | [ผู้ป่วย] ${turn.ai}`;
+            });
+
+            const payload = {
+              action              : 'save',
+              student_id          : studentId || 'ไม่ระบุ',
+              case_name           : activePatient.name,
+              assessment_tool     : selectedTool,
+              assessment_score    : scores.assessment,
+              nursing_intervention: selectedRecommendations.join(' | '),
+              system_feedback     : `เครื่องมือ: ${assessmentTools[selectedTool]?.name} | คะแนนรวม: ${totalScore}%`,
+              ...qPayload
+            };
+
+            // Fire-and-forget — navigate immediately, log in background
+            fetch(GAS_URL, {
+              method : 'POST',
+              body   : JSON.stringify(payload)
+            }).catch(err => console.error('[GeriSim] Save error:', err));
+
+            navigate('summary');
+          };
+
+          // ============================================================
+          // AVATAR  (Flat / Corporate Memphis style)
+          // ============================================================
+          const renderAvatar = (patient, speaking, scaleClass = 'scale-100') => (
+            <div className={`relative flex flex-col items-center justify-end w-full h-full pt-4 transition-transform duration-300 ${scaleClass}`}>
+              <div className="absolute top-10 left-4 w-32 h-32 bg-[#FDE68A] rounded-full mix-blend-multiply opacity-80 z-0"></div>
+              <div className="absolute bottom-10 right-0 w-40 h-48 bg-[#FBCFE8] rounded-[5rem] mix-blend-multiply opacity-80 transform rotate-12 z-0"></div>
+              <div className="absolute top-1/4 right-8 w-16 h-16 bg-[#A7F3D0] rounded-full mix-blend-multiply opacity-80 z-0"></div>
+
+              <div className="relative z-20 flex justify-center w-full animate-headBob">
+                <div className="absolute top-4 right-[25%] w-20 h-20 rounded-full z-0 shadow-sm" style={{ backgroundColor: patient.hairColor }}></div>
+                <div className="relative w-32 h-32 rounded-full flex flex-col items-center justify-start overflow-hidden z-10 border border-black/5" style={{ backgroundColor: patient.skinColor }}>
+                  <div className="absolute top-0 w-[120%] h-11 z-10 rounded-b-[40%]" style={{ backgroundColor: patient.hairColor }}></div>
+                  <div className="absolute top-6 left-[-10px] w-12 h-8 rounded-br-full z-10 transform -rotate-12" style={{ backgroundColor: patient.hairColor }}></div>
+                  <div className="absolute top-6 right-[-10px] w-12 h-8 rounded-bl-full z-10 transform rotate-12" style={{ backgroundColor: patient.hairColor }}></div>
+                  <div className="absolute top-12 flex space-x-1 items-center z-20">
+                     <div className="w-12 h-12 border-[4px] border-[#1F2937] rounded-full flex items-center justify-center bg-white/20">
+                        <div className="w-2.5 h-2.5 bg-[#1F2937] rounded-full animate-blink ml-2"></div>
+                     </div>
+                     <div className="w-3 h-[4px] bg-[#1F2937] -mt-2"></div>
+                     <div className="w-12 h-12 border-[4px] border-[#1F2937] rounded-full flex items-center justify-center bg-white/20">
+                        <div className="w-2.5 h-2.5 bg-[#1F2937] rounded-full animate-blink mr-2"></div>
+                     </div>
+                  </div>
+                  <div className="w-2 h-2 border-b-2 border-r-2 border-black/20 rounded-br-sm absolute top-[5.5rem] transform rotate-45 z-20"></div>
+                  <div className={`absolute bottom-5 bg-[#1F2937] transition-all duration-75 z-20 ${speaking ? 'animate-talk' : 'h-[3px] w-6 rounded-full'}`}></div>
+                </div>
+              </div>
+
+              <div className="w-[140%] max-w-[380px] h-44 rounded-t-[10rem] z-10 relative flex justify-center pt-1 animate-breathe" style={{ backgroundColor: patient.shirtColor }}>
+                <div className="w-14 h-10 rounded-b-3xl absolute -top-4 shadow-sm" style={{ backgroundColor: patient.skinColor }}></div>
+                <div className="w-20 h-4 border-b-4 border-black/10 rounded-b-full absolute -top-1"></div>
+              </div>
+            </div>
+          );
+
+          // ============================================================
+          // PAGE: WELCOME (Login)
+          // ============================================================
+          const renderWelcome = () => (
+            <div className="flex flex-col justify-center items-center p-8 h-full bg-white w-full max-w-md mx-auto relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#FDE68A] rounded-bl-[10rem] opacity-30"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#A7F3D0] rounded-tr-[8rem] opacity-30"></div>
+
+              <div className="w-24 h-24 bg-[#E0E7FF] rounded-full flex items-center justify-center mb-6 z-10">
+                <i className="fas fa-brain text-[#4F46E5] text-4xl"></i>
+              </div>
+              <h2 className="text-xs text-center text-gray-500 mb-2 leading-relaxed z-10">
+                โปรแกรมการฝึกโดยใช้เทคโนโลยีปัญญาประดิษฐ์สำหรับนักศึกษาพยาบาล<br/>
+                เพื่อเสริมสร้างสมรรถนะการประเมินสุขภาพของผู้สูงอายุ
+              </h2>
+              <h1 className="text-4xl font-black text-[#4F46E5] mb-10 tracking-tight z-10">GeriSim AI</h1>
+
+              <div className="w-full space-y-4 z-10">
+                <div className="relative">
+                  <span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-user"></i></span>
+                  <input
+                    type="text"
+                    placeholder="รหัสนักศึกษา / ชื่อผู้ใช้งาน"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    className="w-full bg-white border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"
+                  />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-lock"></i></span>
+                  <input
+                    type="password"
+                    placeholder="รหัสผ่าน"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    className="w-full bg-white border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="w-full mt-8 flex flex-col gap-3 z-10">
+                <button
+                  onClick={handleLogin}
+                  disabled={isLoading}
+                  className="w-full bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 text-white font-bold py-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-2"
+                >
+                  {isLoading
+                    ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
+                    : 'เข้าสู่ระบบ (Login)'
+                  }
+                </button>
+              </div>
+            </div>
+          );
+
+          // ============================================================
+          // PAGE: HOME
+          // ============================================================
+          const renderHome = () => (
+            <div className="flex flex-col h-full bg-[#F8FAFC] w-full max-w-md mx-auto relative pb-20 overflow-hidden">
+              {isCalling && (
+                <div className="absolute inset-0 bg-[#1a1c23] z-50 flex flex-col items-center justify-center text-white">
+                  <div className="w-32 h-32 rounded-full border-4 border-white/10 flex items-center justify-center mb-8 relative">
+                     <div className="absolute inset-0 rounded-full border-4 border-[#06C755] border-t-transparent animate-spin"></div>
+                     <i className="fas fa-phone text-[#06C755] animate-pulse text-4xl"></i>
+                  </div>
+                  <h2 className="text-2xl font-medium mb-2">{activePatient.name}</h2>
+                  <p className="text-gray-400">กำลังเชื่อมต่อ...</p>
+                </div>
+              )}
+
+              <div className="bg-white px-6 pt-10 pb-4 rounded-b-3xl z-10 relative flex justify-between items-center border-b border-gray-100">
+                <div>
+                  <h2 className="font-bold text-gray-800 text-lg">ยินดีต้อนรับ, {studentName || studentId || 'นักศึกษาพยาบาล'}</h2>
+                  <p className="text-xs text-gray-500">พร้อมสำหรับการฝึกประเมินวันนี้หรือยัง?</p>
+                </div>
+                <div className="w-10 h-10 bg-[#E0E7FF] rounded-full flex items-center justify-center text-xl">👩‍⚕️</div>
+              </div>
+
+              <div className="flex-1 p-6 flex flex-col items-center justify-center">
+                <div className="relative w-64 h-64 flex items-center justify-center mb-8 overflow-hidden rounded-[2rem] bg-white border-2 border-gray-100">
+                  {renderAvatar(activePatient, false, 'scale-[0.8] translate-y-6')}
+                  <div className="absolute bottom-4 right-4 bg-[#06C755] text-white text-[10px] px-3 py-1 rounded-full font-bold z-20 flex items-center">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse"></div> Online
+                  </div>
+                </div>
+
+                <div className="text-center mb-10">
+                  <h2 className="text-2xl font-black text-gray-800">{activePatient.name}</h2>
+                  <p className="text-sm font-medium text-gray-500">อายุ {activePatient.age} ปี • กรณีศึกษาจำลอง</p>
+                </div>
+
+                <button onClick={startVdoCall} className="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20 flex items-center justify-center text-lg transition transform hover:scale-[1.02]">
+                  <i className="fas fa-video mr-2"></i> VDO Call
+                </button>
+              </div>
+
+              <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-12 py-3 flex justify-between items-center z-40 pb-safe">
+                <button className="text-[#06C755] flex flex-col items-center"><i className="fas fa-home text-xl"></i><span className="text-[9px] mt-1 font-bold">หน้าหลัก</span></button>
+                <button className="text-gray-400 hover:text-gray-600 transition flex flex-col items-center"><i className="fas fa-list text-xl"></i><span className="text-[9px] mt-1 font-medium">ประวัติ</span></button>
+                <button className="text-gray-400 hover:text-gray-600 transition flex flex-col items-center"><i className="fas fa-user text-xl"></i><span className="text-[9px] mt-1 font-medium">โปรไฟล์</span></button>
+              </div>
+            </div>
+          );
+
+          // ============================================================
+          // PAGE: SIMULATION (VDO Call)
+          // ============================================================
+          const renderSimulation = () => (
+            <div className="flex flex-col h-full bg-[#111827] w-full max-w-md mx-auto relative overflow-hidden">
+
+              {/* ── Top bar ─────────────────────────────────────────── */}
+              <div className="absolute top-0 w-full px-4 pt-10 pb-4 flex items-center justify-between z-40 bg-gradient-to-b from-black/60 to-transparent">
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-lg drop-shadow-md">{activePatient.name}</span>
+                  <span className="text-[#06C755] text-xs font-medium flex items-center drop-shadow-md">
+                    <span className="w-1.5 h-1.5 bg-[#06C755] rounded-full mr-1.5 animate-pulse"></span>
+                    {isSpeaking ? 'กำลังพูด...' : isListening ? 'กำลังฟัง...' : 'กำลังสนทนา'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white">
+                    <i className="fas fa-ellipsis-v"></i>
+                  </button>
+                  <button
+                    onClick={() => { resetSession(); navigate('home'); }}
+                    className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg"
+                  >
+                    <i className="fas fa-phone-slash"></i>
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Avatar background ───────────────────────────────── */}
+              <div className="absolute inset-0 flex flex-col items-center justify-start pt-[12vh] bg-[#F8FAFC]">
+                <div className="w-full h-[400px]">
+                  {renderAvatar(activePatient, isSpeaking, isSpeaking ? 'scale-[1.15]' : 'scale-[1.1]')}
+                </div>
+              </div>
+
+              {/* ── Self-view thumbnail ─────────────────────────────── */}
+              <div className="absolute top-28 right-4 w-24 h-36 bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border-[3px] border-[#111827] z-30 flex items-center justify-center">
+                 <span className="text-4xl opacity-80">👩‍⚕️</span>
+              </div>
+
+              {/* ── Bottom panel ────────────────────────────────────── */}
+              <div className="absolute bottom-0 w-full flex flex-col justify-end bg-gradient-to-t from-[#111827] via-[#111827]/90 to-transparent z-40 pt-20 pb-safe">
+
+                {/* Chat log */}
+                <div className="max-h-48 overflow-y-auto px-4 space-y-3 no-scrollbar flex flex-col mb-4">
+                  {chatLog.map((msg, idx) => (
+                    <div key={idx} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : msg.sender === 'ai' ? 'items-start' : 'items-center'}`}>
+                      {msg.sender === 'system' ? (
+                        <span className="text-[10px] bg-white/10 text-gray-300 px-3 py-1 rounded-full my-1 backdrop-blur-sm font-medium">{msg.text}</span>
+                      ) : (
+                        <div className={`max-w-[85%] px-4 py-2.5 text-sm font-medium shadow-sm backdrop-blur-md ${msg.sender === 'user' ? 'bg-[#06C755] text-white rounded-2xl rounded-tr-sm' : 'bg-gray-800/90 text-white rounded-2xl rounded-tl-sm border border-gray-700/50'}`}>
+                          {msg.text}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* AI typing indicator */}
+                  {isLoading && (
+                    <div className="flex items-start">
+                      <div className="bg-gray-800/90 rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-700/50 flex items-center space-x-1.5">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full dot-bounce" style={{animationDelay:'0ms'}}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full dot-bounce" style={{animationDelay:'200ms'}}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full dot-bounce" style={{animationDelay:'400ms'}}></span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* 4-step buttons */}
+                <div className="flex justify-around items-center px-4 mb-4">
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => setActiveModal('tool')}
+                      className={`w-14 h-14 rounded-full backdrop-blur-md flex items-center justify-center text-white mb-1.5 transition border text-lg ${scores.tool > 0 ? 'bg-[#4F46E5] border-[#4F46E5] shadow-[0_0_12px_rgba(79,70,229,0.5)]' : 'bg-gray-800/80 border-gray-700 hover:bg-[#4F46E5]'}`}
+                    >
+                      <i className="fas fa-clipboard-list"></i>
+                    </button>
+                    <span className="text-[10px] text-gray-300 font-medium">1. เลือกแบบ</span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => { if (selectedTool) setActiveModal('assessment'); else alert('กรุณาเลือกแบบประเมินก่อน (ปุ่ม 1)'); }}
+                      className={`w-14 h-14 rounded-full backdrop-blur-md flex items-center justify-center text-white mb-1.5 transition border text-lg ${scores.assessment > 0 ? 'bg-[#8B5CF6] border-[#8B5CF6] shadow-[0_0_12px_rgba(139,92,246,0.5)]' : selectedTool ? 'bg-[#8B5CF6]/80 border-gray-700 hover:bg-[#7C3AED]' : 'bg-gray-800/50 opacity-50 border-gray-700'}`}
+                    >
+                      <i className="fas fa-heartbeat"></i>
+                    </button>
+                    <span className="text-[10px] text-gray-300 font-medium">2. ประเมิน</span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => { if (selectedTool) setActiveModal('recommendation'); else alert('กรุณาเลือกแบบประเมินก่อน (ปุ่ม 1)'); }}
+                      className={`w-14 h-14 rounded-full backdrop-blur-md flex items-center justify-center text-white mb-1.5 transition border text-lg ${scores.recommendation > 0 ? 'bg-[#F97316] border-[#F97316] shadow-[0_0_12px_rgba(249,115,22,0.5)]' : selectedTool ? 'bg-[#F97316]/80 border-gray-700 hover:bg-[#EA580C]' : 'bg-gray-800/50 opacity-50 border-gray-700'}`}
+                    >
+                      <i className="fas fa-hand-holding-heart"></i>
+                    </button>
+                    <span className="text-[10px] text-gray-300 font-medium">3. คำแนะนำ</span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={handleSubmitSession}
+                      className={`w-14 h-14 rounded-full backdrop-blur-md flex items-center justify-center text-white mb-1.5 transition border text-lg ${scores.recommendation > 0 ? 'bg-[#4F46E5] border-[#4F46E5] shadow-[0_0_15px_rgba(79,70,229,0.6)]' : 'bg-gray-800/50 opacity-50 border-gray-700'}`}
+                    >
+                      <i className="fas fa-check-circle"></i>
+                    </button>
+                    <span className="text-[10px] text-gray-300 font-medium">4. ส่งข้อมูล</span>
+                  </div>
+                </div>
+
+                {/* Push-to-Talk / STT button */}
+                <div className="flex justify-center mb-3 z-50 relative">
+                  <button
+                    onClick={toggleListening}
+                    disabled={isLoading}
+                    className={`flex items-center justify-center space-x-2 px-6 py-3 rounded-full backdrop-blur-md transition-all border shadow-lg ${
+                      isListening
+                        ? 'bg-[#06C755] border-green-400 text-white'
+                        : isLoading
+                        ? 'bg-gray-700/80 border-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-800/90 border-gray-700 text-gray-200 hover:bg-gray-700'
+                    }`}
+                  >
+                    {isListening ? (
+                      <>
+                        <i className="fas fa-circle text-white text-xs animate-pulse"></i>
+                        <span className="text-[11px] font-bold">กำลังฟัง... (แตะเพื่อหยุด)</span>
+                      </>
+                    ) : isLoading ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin text-gray-400"></i>
+                        <span className="text-[11px] font-bold">AI กำลังตอบ...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-microphone text-[#06C755]"></i>
+                        <span className="text-[11px] font-bold">แตะเพื่อพูด</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Text input (typed fallback / supplement to voice) */}
+                <div className="px-4 pb-4 pt-1 relative z-50">
+                  <div className="w-full bg-gray-800/90 backdrop-blur-md rounded-full px-4 py-2.5 flex items-center border border-gray-700">
+                    {isListening
+                      ? <i className="fas fa-circle mr-3 text-[#06C755] animate-pulse text-xs"></i>
+                      : <i className="fas fa-microphone mr-3 text-gray-400"></i>
+                    }
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && !isLoading && !isListening && handleSendMessage()}
+                      placeholder={isListening ? 'กำลังรับเสียง...' : 'พูดหรือพิมพ์เพื่อโต้ตอบ...'}
+                      disabled={isListening || isLoading}
+                      className="bg-transparent border-none focus:outline-none w-full text-sm text-white placeholder-gray-400 font-medium disabled:opacity-50"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={isLoading || isListening || !inputText.trim()}
+                      className="ml-2 text-[#06C755] hover:scale-110 transition disabled:opacity-30"
+                    >
+                      <i className="fas fa-paper-plane text-lg"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Bottom-sheet Modal ──────────────────────────────── */}
+              {activeModal && (
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col justify-end">
+                  <div className="bg-white w-full rounded-t-[2rem] p-6 shadow-2xl flex flex-col max-h-[85vh] animate-slideUp">
+                    <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
+                    <div className="flex justify-between items-center mb-4 pb-2">
+                      <h3 className="font-bold text-gray-800 text-lg">
+                        {activeModal === 'tool'           && '1. เลือกประเภทแบบประเมิน'}
+                        {activeModal === 'assessment'     && `2. ประเมิน: ${assessmentTools[selectedTool].name}`}
+                        {activeModal === 'recommendation' && `3. คำแนะนำ: ${assessmentTools[selectedTool].name}`}
+                      </h3>
+                      <button onClick={() => setActiveModal(null)} className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition">
+                        <i className="fas fa-times text-gray-600"></i>
+                      </button>
+                    </div>
+
+                    <div className="overflow-y-auto flex-1 no-scrollbar space-y-3 pb-4">
+
+                      {/* Tool picker */}
+                      {activeModal === 'tool' && Object.keys(assessmentTools).map(key => (
+                        <button key={key} onClick={() => handleToolSelect(key)}
+                          className={`w-full text-left py-4 px-5 rounded-2xl border-2 font-bold transition ${selectedTool === key ? 'border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]' : 'border-gray-100 text-gray-700 hover:border-[#4F46E5] hover:bg-[#EEF2FF]'}`}
+                        >
+                          {assessmentTools[key].name}
+                        </button>
+                      ))}
+
+                      {/* Assessment questions */}
+                      {activeModal === 'assessment' && assessmentTools[selectedTool].questions.map((q, i) => (
+                        <div key={i} className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                          <p className="text-sm font-bold text-gray-800 mb-3">{i + 1}. {q}</p>
+                          <div className="flex space-x-2">
+                            <button onClick={() => handleAnswerSelect(i, 'yes')}
+                              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition ${assessmentAnswers[i] === 'yes' ? 'bg-[#8B5CF6] text-white border-[#8B5CF6]' : 'border-gray-200 text-gray-600 hover:bg-[#F5F3FF] hover:border-[#8B5CF6] hover:text-[#8B5CF6]'}`}
+                            >ทำได้</button>
+                            <button onClick={() => handleAnswerSelect(i, 'no')}
+                              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition ${assessmentAnswers[i] === 'no' ? 'bg-[#8B5CF6] text-white border-[#8B5CF6]' : 'border-gray-200 text-gray-600 hover:bg-[#F5F3FF] hover:border-[#8B5CF6] hover:text-[#8B5CF6]'}`}
+                            >ทำไม่ได้</button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Recommendations */}
+                      {activeModal === 'recommendation' && assessmentTools[selectedTool].recommendations.map((r, i) => (
+                        <label key={i}
+                          className={`flex items-center space-x-3 p-4 rounded-2xl border cursor-pointer transition ${selectedRecommendations.includes(r) ? 'bg-[#FFF7ED] border-[#F97316]' : 'bg-gray-50 border-gray-100 hover:bg-[#FFF7ED] hover:border-[#F97316]'}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRecommendations.includes(r)}
+                            onChange={() => handleRecommendationToggle(r)}
+                            className="w-5 h-5 text-[#F97316] rounded border-gray-300 focus:ring-[#F97316]"
+                          />
+                          <span className="text-sm font-bold text-gray-700">{r}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {activeModal === 'assessment' && (
+                      <button onClick={submitAssessment} className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold py-4 rounded-2xl shadow-lg mt-2 transition">
+                        บันทึกผลประเมิน
+                      </button>
+                    )}
+                    {activeModal === 'recommendation' && (
+                      <button onClick={submitRecommendation} className="w-full bg-[#F97316] hover:bg-[#EA580C] text-white font-bold py-4 rounded-2xl shadow-lg mt-2 transition">
+                        ยืนยันคำแนะนำ ({selectedRecommendations.length} ข้อ)
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+
+          // ============================================================
+          // PAGE: SUMMARY
+          // ============================================================
+          const renderSummary = () => {
+            const totalScore = Math.round((scores.tool + scores.assessment + scores.recommendation) / 3);
+
+            const mockMistakes = [
+              {
+                topic  : 'การประเมินภาวะสุขภาพ',
+                mistake: 'ไม่ได้ประเมินปัญหาด้านการนอนหลับเพิ่มเติม',
+                correct: 'ผู้ป่วยให้ข้อมูลว่า "นอนไม่หลับ" ควรประเมินสภาพแวดล้อม หรือซักประวัติการปวดเข่าที่ทำให้ตื่นกลางดึกร่วมด้วย'
+              },
+              {
+                topic  : 'การให้คำแนะนำการพยาบาล',
+                mistake: 'ไม่ได้ให้คำแนะนำเรื่องการจัดการสภาพแวดล้อมยามวิกาล',
+                correct: 'ควรแนะนำการเปิดไฟทางเดิน หรือเตรียมกระโถนข้างเตียง เพื่อลดความเสี่ยงหกล้มตอนกลางคืน'
+              }
+            ];
+
+            return (
+              <div className="flex flex-col h-full bg-[#4F46E5] w-full max-w-md mx-auto relative overflow-y-auto p-6 no-scrollbar">
+                <div className="absolute top-10 left-[-2rem] w-32 h-32 bg-[#A7F3D0] rounded-full mix-blend-multiply opacity-50 z-0"></div>
+                <div className="absolute bottom-20 right-[-2rem] w-48 h-48 bg-[#FBCFE8] rounded-[4rem] mix-blend-multiply opacity-50 transform rotate-45 z-0"></div>
+
+                <div className="bg-white p-8 rounded-[2rem] shadow-2xl w-full flex flex-col items-center z-10 text-center mt-6">
+                  <div className="w-20 h-20 bg-[#DCFCE7] rounded-full flex items-center justify-center mb-4">
+                    <i className="fas fa-award text-[#10B981] text-4xl"></i>
+                  </div>
+                  <h2 className="text-3xl font-black text-gray-800 mb-1">ยอดเยี่ยมมาก!</h2>
+                  <p className="text-sm font-medium text-gray-500 mb-1">สรุปผลการประเมินสุขภาพผู้สูงอายุจำลอง</p>
+                  <p className="text-xs text-[#6366F1] font-bold mb-6">รหัสนักศึกษา: {studentId || 'ไม่ระบุ'}</p>
+
+                  <div className="w-full bg-[#EEF2FF] rounded-2xl p-5 mb-8 border border-[#E0E7FF]">
+                    <p className="text-xs text-[#6366F1] font-bold uppercase tracking-wider mb-2">คะแนนรวมของคุณ</p>
+                    <div className="text-6xl font-black text-[#4F46E5]">{totalScore}<span className="text-xl text-[#A5B4FC] font-bold">/100</span></div>
+                  </div>
+
+                  <div className="w-full space-y-5 mb-10 text-left px-2">
+                    <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-3">
+                      <span className="text-gray-600 font-bold flex items-center"><i className="fas fa-clipboard-list mr-3 text-[#4F46E5] text-lg"></i> 1. การเลือกเครื่องมือ</span>
+                      <span className="font-black text-gray-800 text-lg">{scores.tool}%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm border-b border-gray-100 pb-3">
+                      <span className="text-gray-600 font-bold flex items-center"><i className="fas fa-heartbeat mr-3 text-[#8B5CF6] text-lg"></i> 2. การประเมินภาวะสุขภาพ</span>
+                      <span className="font-black text-gray-800 text-lg">{scores.assessment}%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm pb-2">
+                      <span className="text-gray-600 font-bold flex items-center"><i className="fas fa-hand-holding-heart mr-3 text-[#F97316] text-lg"></i> 3. การให้คำแนะนำ</span>
+                      <span className="font-black text-gray-800 text-lg">{scores.recommendation}%</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => { resetSession(); navigate('home'); }}
+                    className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold py-4 rounded-2xl shadow-lg transition"
+                  >
+                    กลับสู่หน้าหลัก
+                  </button>
+                </div>
+
+                <div className="w-full mt-8 flex flex-col items-center pb-8 z-10">
+                  <button
+                    onClick={() => setShowReport(!showReport)}
+                    className="text-white hover:text-[#FDE68A] text-sm font-bold flex items-center border-2 border-white/40 px-6 py-3 rounded-full hover:bg-white/10 transition backdrop-blur-sm"
+                  >
+                    <i className="fas fa-heartbeat mr-2"></i>
+                    {showReport ? 'ซ่อนรายงาน (Hide Report)' : 'ดูรายงานข้อผิดพลาด (Show Report)'}
+                  </button>
+
+                  {showReport && (
+                    <div className="w-full mt-6 space-y-4 animate-slideUp">
+                      {mockMistakes.map((item, index) => (
+                        <div key={index} className="bg-white/95 backdrop-blur-md rounded-[1.5rem] p-6 shadow-xl border-l-[6px] border-[#EF4444]">
+                          <h4 className="text-sm font-black text-[#EF4444] mb-3 flex items-center">
+                            <i className="fas fa-times mr-2"></i> {item.topic}
+                          </h4>
+                          <p className="text-sm font-bold text-gray-800 mb-1">สิ่งที่คุณตอบ:</p>
+                          <p className="text-xs font-medium text-gray-600 mb-4 bg-[#FEF2F2] p-3 rounded-xl border border-[#FEE2E2]">{item.mistake}</p>
+                          <p className="text-sm font-bold text-gray-800 mb-1">คำแนะนำ (Feedback):</p>
+                          <p className="text-xs font-medium text-[#047857] bg-[#ECFDF5] p-3 rounded-xl border border-[#D1FAE5]">{item.correct}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          // ============================================================
+          // RENDER
+          // ============================================================
+          return (
+            <div className="h-full w-full bg-[#111827] font-sans text-gray-900 selection:bg-[#E0E7FF] overflow-hidden">
+              {currentPage === 'welcome'    && renderWelcome()}
+              {currentPage === 'home'       && renderHome()}
+              {currentPage === 'simulation' && renderSimulation()}
+              {currentPage === 'summary'    && renderSummary()}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
