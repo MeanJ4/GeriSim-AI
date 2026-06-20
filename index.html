@@ -178,8 +178,8 @@
 
             const utter = new SpeechSynthesisUtterance(text);
             utter.lang   = 'th-TH';
-            utter.rate   = 0.75;   // slower — simulates elderly speech
-            utter.pitch  = 0.9;
+            utter.rate   = 0.75;   // 0.75 < 0.8 → slower than spec → better elderly pacing
+            utter.pitch  = 0.7;    // 0.7 → deeper, older-sounding voice
             utter.volume = 1.0;
 
             utter.onstart = () => setIsSpeaking(true);
