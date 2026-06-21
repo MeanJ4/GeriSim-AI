@@ -75,8 +75,8 @@
           50% { transform: translateY(-5px); }
         }
         .svg-eye-l { animation: svgBlink 4.2s infinite; transform-box: fill-box; transform-origin: center; }
-        .svg-eye-r { animation: svgBlink 4.2s 0.1s infinite; transform-box: fill-box; transform-origin: center; }
-        .svg-float { animation: svgFloat 5s ease-in-out infinite; }
+        .svg-eye-r { animation: svgBlink 4.2s infinite; transform-box: fill-box; transform-origin: center; }
+        .svg-upper-float { animation: svgFloat 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
         .animate-slideUp  { animation: slideUp 0.3s ease-out forwards; }
         .dot-bounce       { animation: dotBounce 1.2s ease-in-out infinite; }
 
@@ -119,11 +119,26 @@
             id: 1,
             name: 'คุณยายสมศรี',
             age: 75,
+            gender: 'หญิง',
             condition: 'นอนไม่หลับ, เบื่ออาหาร',
             skinColor: '#FFBFA3',
             hairColor: '#64748B',
             shirtColor: '#DB2777'
           },
+        ];
+
+        const elderlyPool = [
+          {name:'คุณยายสมศรี',  gender:'หญิง', age:75},
+          {name:'คุณยายวิมล',   gender:'หญิง', age:78},
+          {name:'คุณยายประนอม', gender:'หญิง', age:71},
+          {name:'คุณยายบุญมา',  gender:'หญิง', age:80},
+          {name:'คุณยายมาลี',   gender:'หญิง', age:68},
+          {name:'คุณตาสมชาย',   gender:'ชาย',  age:74},
+          {name:'คุณตาวิชัย',   gender:'ชาย',  age:77},
+          {name:'คุณตาบุญเลิศ', gender:'ชาย',  age:73},
+          {name:'คุณตาอนันต์',  gender:'ชาย',  age:82},
+          {name:'คุณยายทองแดง', gender:'หญิง', age:69},
+          {name:'คุณตาพิชัย',   gender:'ชาย',  age:76},
         ];
 
         const assessmentTools = {
@@ -616,7 +631,10 @@
 
           // ── Pages & UI ──────────────────────────────────────────────
           const [currentPage, setCurrentPage]     = useState('welcome');
-          const [activePatient, setActivePatient] = useState(mockPatients[0]);
+          const [activePatient, setActivePatient] = useState(() => {
+            const p = elderlyPool[Math.floor(Math.random()*elderlyPool.length)];
+            return {...mockPatients[0], name: p.name, gender: p.gender, age: p.age};
+          });
           const [selectedTool, setSelectedTool]   = useState(null);
           const [activeModal, setActiveModal]     = useState(null);
           const [isCalling, setIsCalling]         = useState(false);
@@ -1305,16 +1323,15 @@
                 <div className="absolute bottom-10 right-0 w-40 h-48 bg-[#FBCFE8] rounded-[5rem] mix-blend-multiply opacity-60 transform rotate-12 z-0"></div>
                 <div className="absolute top-1/4 right-8 w-16 h-16 bg-[#A7F3D0] rounded-full mix-blend-multiply opacity-60 z-0"></div>
 
-                <div className="relative z-20 w-full flex justify-center animate-headBob">
+                <div className="relative z-20 w-full flex justify-center">
                   <svg viewBox="0 0 200 295" xmlns="http://www.w3.org/2000/svg" className="w-52 h-auto drop-shadow-lg">
 
-                    {/* ── BODY ── */}
+                    {/* ── BODY (fixed, no float) ── */}
                     {isFemale
                       ? <path d="M62,190 Q36,235 32,295 L168,295 Q164,235 138,190 Q120,179 100,179 Q80,179 62,190 Z" fill={clothColor}/>
                       : <path d="M60,188 Q32,233 28,295 L172,295 Q168,233 140,188 Q121,176 100,176 Q79,176 60,188 Z" fill={clothColor}/>
                     }
-
-                    {/* Shirt / blouse collar */}
+                    {/* Shirt / blouse collar (fixed) */}
                     {isFemale
                       ? <path d="M87,186 Q100,200 113,186" fill="none" stroke="#6D28D9" strokeWidth="2.5" strokeLinecap="round"/>
                       : <>
@@ -1322,108 +1339,101 @@
                           <line x1="100" y1="198" x2="100" y2="240" stroke="#1D4ED8" strokeWidth="1.5" strokeDasharray="3,3"/>
                         </>
                     }
-
-                    {/* Pocket (male only) */}
-                    {!isFemale &&
-                      <rect x="112" y="215" width="22" height="18" rx="3" fill="none" stroke="#1D4ED8" strokeWidth="1.5"/>
-                    }
-
-                    {/* Neck */}
-                    <rect x="88" y="162" width="24" height="26" rx="5" fill={skinColor}/>
-
-                    {/* ── HEAD ── */}
-                    <ellipse cx="100" cy="118" rx={isFemale ? 45 : 47} ry={isFemale ? 50 : 52} fill={skinColor}/>
-
-                    {/* ── HAIR ── */}
-                    {isFemale ? <>
-                      {/* Side hair */}
-                      <ellipse cx="58" cy="103" rx="15" ry="30" fill={hairColor}/>
-                      <ellipse cx="142" cy="103" rx="15" ry="30" fill={hairColor}/>
-                      {/* Top hair */}
-                      <ellipse cx="100" cy="73" rx="45" ry="25" fill={hairColor}/>
-                      {/* Bun */}
-                      <circle cx="100" cy="54" r="20" fill={hairColor}/>
-                      {/* Bun highlight */}
-                      <path d="M90,50 Q100,44 110,50" fill="none" stroke="white" strokeWidth="2" opacity="0.4" strokeLinecap="round"/>
-                      {/* Hair band */}
-                      <ellipse cx="100" cy="70" rx="20" ry="5" fill="#A78BFA" opacity="0.7"/>
-                    </> : <>
-                      {/* Short gray hair */}
-                      <ellipse cx="100" cy="72" rx="47" ry="23" fill={hairColor}/>
-                      <ellipse cx="57" cy="96" rx="14" ry="26" fill={hairColor}/>
-                      <ellipse cx="143" cy="96" rx="14" ry="26" fill={hairColor}/>
-                      {/* Hair highlight lines */}
-                      <path d="M70,78 Q100,66 130,78" fill="none" stroke="#C8C8C8" strokeWidth="1.5" opacity="0.5" strokeLinecap="round"/>
-                    </>}
-
-                    {/* ── EARS ── */}
-                    <ellipse cx="55" cy="120" rx="9" ry="13" fill={skinColor}/>
-                    <ellipse cx="55" cy="120" rx="5" ry="8" fill={isFemale ? '#F5B8A0' : '#E8AA80'} opacity="0.5"/>
-                    <ellipse cx="145" cy="120" rx="9" ry="13" fill={skinColor}/>
-                    <ellipse cx="145" cy="120" rx="5" ry="8" fill={isFemale ? '#F5B8A0' : '#E8AA80'} opacity="0.5"/>
-
-                    {/* ── GLASSES ── */}
-                    <circle cx="83" cy="115" r="16" fill="rgba(200,220,255,0.15)" stroke="#4B3832" strokeWidth="2.5"/>
-                    <circle cx="117" cy="115" r="16" fill="rgba(200,220,255,0.15)" stroke="#4B3832" strokeWidth="2.5"/>
-                    <line x1="99" y1="115" x2="101" y2="115" stroke="#4B3832" strokeWidth="2.5"/>
-                    <line x1="67" y1="113" x2="60" y2="110" stroke="#4B3832" strokeWidth="2"/>
-                    <line x1="133" y1="113" x2="140" y2="110" stroke="#4B3832" strokeWidth="2"/>
-
-                    {/* ── EYEBROWS ── */}
-                    <path d={isFemale ? 'M70,101 Q83,96 95,100' : 'M69,101 Q83,95 95,100'}
-                      fill="none" stroke={isFemale ? '#909090' : '#606060'}
-                      strokeWidth={isFemale ? 2 : 3} strokeLinecap="round"/>
-                    <path d={isFemale ? 'M105,100 Q117,96 130,101' : 'M105,100 Q117,95 131,101'}
-                      fill="none" stroke={isFemale ? '#909090' : '#606060'}
-                      strokeWidth={isFemale ? 2 : 3} strokeLinecap="round"/>
-
-                    {/* ── EYES ── */}
-                    <circle cx="83" cy="115" r="7" fill="#1F2937" className="svg-eye-l"/>
-                    <circle cx="117" cy="115" r="7" fill="#1F2937" className="svg-eye-r"/>
-                    <circle cx="85" cy="113" r="2.5" fill="white"/>
-                    <circle cx="119" cy="113" r="2.5" fill="white"/>
-
-                    {/* ── NOSE ── */}
-                    <path d="M97,123 Q100,132 103,123" fill="none"
-                      stroke={isFemale ? '#D49080' : '#C08060'} strokeWidth="1.5" strokeLinecap="round"/>
-                    <ellipse cx="96" cy="131" rx="3" ry="1.5" fill={isFemale ? '#D49080' : '#C08060'} opacity="0.4"/>
-                    <ellipse cx="104" cy="131" rx="3" ry="1.5" fill={isFemale ? '#D49080' : '#C08060'} opacity="0.4"/>
-
-                    {/* ── WRINKLES ── */}
-                    <path d="M74,106 Q79,111 74,116" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.5"/>
-                    <path d="M126,106 Q121,111 126,116" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.5"/>
-                    <path d="M90,141 Q100,144 110,141" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.4"/>
-                    {!isFemale && <>
-                      <path d="M80,105 Q83,108 80,111" fill="none" stroke="#C08060" strokeWidth="1" opacity="0.4"/>
-                      <path d="M120,105 Q117,108 120,111" fill="none" stroke="#C08060" strokeWidth="1" opacity="0.4"/>
-                    </>}
-
-                    {/* ── MOUTH ── */}
-                    {speaking
-                      ? <ellipse cx="100" cy="143" rx="11" ry="8" fill="#7B241C"/>
-                      : <path d={mouthPath} fill="none" stroke="#7B241C" strokeWidth="2.5" strokeLinecap="round"/>
-                    }
-
-                    {/* ── EARRINGS (female only) ── */}
-                    {isFemale && <>
-                      <circle cx="46" cy="119" r="5" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-                      <ellipse cx="46" cy="128" rx="3.5" ry="5" fill="#F59E0B"/>
-                      <circle cx="154" cy="119" r="5" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
-                      <ellipse cx="154" cy="128" rx="3.5" ry="5" fill="#F59E0B"/>
-                    </>}
-
-                    {/* ── WALKING CANE (ADL) ── */}
+                    {!isFemale && <rect x="112" y="215" width="22" height="18" rx="3" fill="none" stroke="#1D4ED8" strokeWidth="1.5"/>}
+                    {/* Cane (fixed to body) */}
                     {hasCane && <>
                       <path d="M147,186 Q160,177 169,188" fill="none" stroke="#92400E" strokeWidth="4.5" strokeLinecap="round"/>
                       <line x1="163" y1="186" x2="167" y2="293" stroke="#92400E" strokeWidth="4" strokeLinecap="round"/>
                       <ellipse cx="167" cy="293" rx="5" ry="2" fill="#78350F" opacity="0.5"/>
                     </>}
 
-                    {/* ── TEARDROP (GDS / TGDS) ── */}
-                    {isSad && <>
-                      <path d="M90,128 Q87,136 90,142" fill="none" stroke="#60A5FA" strokeWidth="2" opacity="0.85" strokeLinecap="round"/>
-                      <ellipse cx="90" cy="143" rx="3" ry="4" fill="#60A5FA" opacity="0.85"/>
-                    </>}
+                    {/* ── UPPER BODY GROUP (floats: shoulders, neck, head, hair, face) ── */}
+                    <g className="svg-upper-float">
+
+                      {/* Neck */}
+                      <rect x="88" y="162" width="24" height="26" rx="5" fill={skinColor}/>
+
+                      {/* ── HEAD ── */}
+                      <ellipse cx="100" cy="118" rx={isFemale ? 45 : 47} ry={isFemale ? 50 : 52} fill={skinColor}/>
+
+                      {/* ── HAIR ── */}
+                      {isFemale ? <>
+                        <ellipse cx="58" cy="103" rx="15" ry="30" fill={hairColor}/>
+                        <ellipse cx="142" cy="103" rx="15" ry="30" fill={hairColor}/>
+                        <ellipse cx="100" cy="73" rx="45" ry="25" fill={hairColor}/>
+                        <circle cx="100" cy="54" r="20" fill={hairColor}/>
+                        <path d="M90,50 Q100,44 110,50" fill="none" stroke="white" strokeWidth="2" opacity="0.4" strokeLinecap="round"/>
+                        <ellipse cx="100" cy="70" rx="20" ry="5" fill="#A78BFA" opacity="0.7"/>
+                      </> : <>
+                        <ellipse cx="100" cy="72" rx="47" ry="23" fill={hairColor}/>
+                        <ellipse cx="57" cy="96" rx="14" ry="26" fill={hairColor}/>
+                        <ellipse cx="143" cy="96" rx="14" ry="26" fill={hairColor}/>
+                        <path d="M70,78 Q100,66 130,78" fill="none" stroke="#C8C8C8" strokeWidth="1.5" opacity="0.5" strokeLinecap="round"/>
+                      </>}
+
+                      {/* ── EARS ── */}
+                      <ellipse cx="55" cy="120" rx="9" ry="13" fill={skinColor}/>
+                      <ellipse cx="55" cy="120" rx="5" ry="8" fill={isFemale ? '#F5B8A0' : '#E8AA80'} opacity="0.5"/>
+                      <ellipse cx="145" cy="120" rx="9" ry="13" fill={skinColor}/>
+                      <ellipse cx="145" cy="120" rx="5" ry="8" fill={isFemale ? '#F5B8A0' : '#E8AA80'} opacity="0.5"/>
+
+                      {/* ── GLASSES ── */}
+                      <circle cx="83" cy="115" r="16" fill="rgba(200,220,255,0.15)" stroke="#4B3832" strokeWidth="2.5"/>
+                      <circle cx="117" cy="115" r="16" fill="rgba(200,220,255,0.15)" stroke="#4B3832" strokeWidth="2.5"/>
+                      <line x1="99" y1="115" x2="101" y2="115" stroke="#4B3832" strokeWidth="2.5"/>
+                      <line x1="67" y1="113" x2="60" y2="110" stroke="#4B3832" strokeWidth="2"/>
+                      <line x1="133" y1="113" x2="140" y2="110" stroke="#4B3832" strokeWidth="2"/>
+
+                      {/* ── EYEBROWS ── */}
+                      <path d={isFemale ? 'M70,101 Q83,96 95,100' : 'M69,101 Q83,95 95,100'}
+                        fill="none" stroke={isFemale ? '#909090' : '#606060'}
+                        strokeWidth={isFemale ? 2 : 3} strokeLinecap="round"/>
+                      <path d={isFemale ? 'M105,100 Q117,96 130,101' : 'M105,100 Q117,95 131,101'}
+                        fill="none" stroke={isFemale ? '#909090' : '#606060'}
+                        strokeWidth={isFemale ? 2 : 3} strokeLinecap="round"/>
+
+                      {/* ── EYES (both blink simultaneously) ── */}
+                      <circle cx="83" cy="115" r="7" fill="#1F2937" className="svg-eye-l"/>
+                      <circle cx="117" cy="115" r="7" fill="#1F2937" className="svg-eye-r"/>
+                      <circle cx="85" cy="113" r="2.5" fill="white"/>
+                      <circle cx="119" cy="113" r="2.5" fill="white"/>
+
+                      {/* ── NOSE ── */}
+                      <path d="M97,123 Q100,132 103,123" fill="none"
+                        stroke={isFemale ? '#D49080' : '#C08060'} strokeWidth="1.5" strokeLinecap="round"/>
+                      <ellipse cx="96" cy="131" rx="3" ry="1.5" fill={isFemale ? '#D49080' : '#C08060'} opacity="0.4"/>
+                      <ellipse cx="104" cy="131" rx="3" ry="1.5" fill={isFemale ? '#D49080' : '#C08060'} opacity="0.4"/>
+
+                      {/* ── WRINKLES ── */}
+                      <path d="M74,106 Q79,111 74,116" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.5"/>
+                      <path d="M126,106 Q121,111 126,116" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.5"/>
+                      <path d="M90,141 Q100,144 110,141" fill="none" stroke="#D4A090" strokeWidth="1" opacity="0.4"/>
+                      {!isFemale && <>
+                        <path d="M80,105 Q83,108 80,111" fill="none" stroke="#C08060" strokeWidth="1" opacity="0.4"/>
+                        <path d="M120,105 Q117,108 120,111" fill="none" stroke="#C08060" strokeWidth="1" opacity="0.4"/>
+                      </>}
+
+                      {/* ── MOUTH ── */}
+                      {speaking
+                        ? <ellipse cx="100" cy="143" rx="11" ry="8" fill="#7B241C"/>
+                        : <path d={mouthPath} fill="none" stroke="#7B241C" strokeWidth="2.5" strokeLinecap="round"/>
+                      }
+
+                      {/* ── EARRINGS (female only) ── */}
+                      {isFemale && <>
+                        <circle cx="46" cy="119" r="5" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+                        <ellipse cx="46" cy="128" rx="3.5" ry="5" fill="#F59E0B"/>
+                        <circle cx="154" cy="119" r="5" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1"/>
+                        <ellipse cx="154" cy="128" rx="3.5" ry="5" fill="#F59E0B"/>
+                      </>}
+
+                      {/* ── TEARDROP (GDS / TGDS) ── */}
+                      {isSad && <>
+                        <path d="M90,128 Q87,136 90,142" fill="none" stroke="#60A5FA" strokeWidth="2" opacity="0.85" strokeLinecap="round"/>
+                        <ellipse cx="90" cy="143" rx="3" ry="4" fill="#60A5FA" opacity="0.85"/>
+                      </>}
+
+                    </g>{/* end svg-upper-float */}
 
                   </svg>
                 </div>
@@ -1435,95 +1445,89 @@
           // PAGE: WELCOME (Login)
           // ============================================================
           const renderWelcome = () => (
-            <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-hidden" style={{background:'#F5F6FA'}}>
+            <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-hidden" style={{background:'#F0F9FF'}}>
 
-              {/* ── Top panel (flat solid indigo) ── */}
-              <div className="flex flex-col items-center pt-14 pb-8 px-6 flex-none"
-                style={{background:'#5C4EE5',borderBottom:'4px solid #3D31C4'}}>
-                {/* Icon */}
-                <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4"
-                  style={{background:'#fff',border:'3px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
-                  <i className="fas fa-brain text-3xl" style={{color:'#5C4EE5'}}></i>
+              {/* ── Top panel (light blue) ── */}
+              <div className="flex flex-col items-center pt-10 pb-5 px-6 flex-none"
+                style={{background:'#0EA5E9'}}>
+                {/* Elderly person icon */}
+                <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3"
+                  style={{background:'#fff',boxShadow:'0 4px 16px rgba(2,132,199,0.25)'}}>
+                  <i className="fas fa-person-cane text-3xl" style={{color:'#0EA5E9'}}></i>
                 </div>
-                <h1 className="text-4xl font-black text-white tracking-tight mb-1">GeriSim AI</h1>
-                <p className="text-xs text-center font-medium" style={{color:'#C4BCF9'}}>
-                  ฝึกทักษะประเมินสุขภาพผู้สูงอายุ ✦ นักศึกษาพยาบาล
+                <h1 className="text-3xl font-black text-white tracking-tight mb-1">GeriSim AI</h1>
+                <p className="text-[11px] text-center font-medium leading-relaxed" style={{color:'#BAE6FD'}}>
+                  ฝึกสมรรถนะการประเมินสุขภาพผู้สูงอายุ
                 </p>
-                {/* XP decorative bar */}
-                <div className="flex items-center gap-2 mt-4 px-4 py-2 rounded-xl"
-                  style={{background:'#3D31C4',border:'2px solid #2A21A0'}}>
-                  <i className="fas fa-gamepad text-xs" style={{color:'#C4BCF9'}}></i>
-                  <span className="text-xs font-bold" style={{color:'#C4BCF9'}}>ระบบฝึกซ้อมแบบ Interactive</span>
-                </div>
               </div>
 
-              {/* ── Login card ── */}
-              <div className="flex-1 px-5 pt-6 pb-8 flex flex-col overflow-y-auto no-scrollbar">
-                <div className="bg-white rounded-2xl p-5 mb-4"
-                  style={{border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+              {/* ── Login card (no scroll — all fits) ── */}
+              <div className="flex-1 px-5 pt-5 pb-5 flex flex-col justify-between">
+                <div className="bg-white rounded-3xl p-5 mb-3"
+                  style={{boxShadow:'0 4px 20px rgba(0,0,0,0.07)'}}>
 
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                    <i className="fas fa-sign-in-alt" style={{color:'#5C4EE5'}}></i> เข้าสู่ระบบ
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <i className="fas fa-sign-in-alt" style={{color:'#0EA5E9'}}></i> เข้าสู่ระบบ
                   </p>
 
                   {/* Info banner */}
-                  <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 mb-4"
-                    style={{background:'#EEF0FF',border:'2px solid #C7CAF5'}}>
-                    <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#5C4EE5'}}></i>
-                    <p className="text-xs leading-relaxed text-gray-700">
-                      ใช้ <span className="font-black" style={{color:'#5C4EE5'}}>รหัสนักศึกษา</span> และ
-                      <span className="font-black" style={{color:'#5C4EE5'}}> รหัสผ่าน</span> ที่ได้รับจากอาจารย์
+                  <div className="flex items-start gap-2 rounded-2xl px-3 py-2 mb-3"
+                    style={{background:'#F0F9FF',border:'1.5px solid #BAE6FD'}}>
+                    <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#0EA5E9'}}></i>
+                    <p className="text-xs leading-relaxed text-gray-600">
+                      ใช้ <span className="font-black" style={{color:'#0EA5E9'}}>รหัสนักศึกษา</span> และ
+                      <span className="font-black" style={{color:'#0EA5E9'}}> รหัสผ่าน</span> ที่ได้รับจากอาจารย์
                     </p>
                   </div>
 
                   {/* Inputs */}
-                  <div className="space-y-3 mb-4">
+                  <div className="space-y-3 mb-3">
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#5C4EE5'}}>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#0EA5E9'}}>
                         <i className="fas fa-id-card text-sm"></i>
                       </span>
                       <input type="text" placeholder="รหัสนักศึกษา (Student ID)"
                         value={studentId} onChange={e=>setStudentId(e.target.value)}
                         onKeyPress={e=>e.key==='Enter'&&handleLogin()}
-                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-xl focus:outline-none bg-white text-gray-800"
-                        style={{border:'2px solid #C7CAF5'}}
-                        onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
-                        onBlur={e=>e.target.style.border='2px solid #C7CAF5'}/>
+                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-2xl focus:outline-none bg-white text-gray-800"
+                        style={{border:'1.5px solid #E5E7EB'}}
+                        onFocus={e=>e.target.style.border='1.5px solid #0EA5E9'}
+                        onBlur={e=>e.target.style.border='1.5px solid #E5E7EB'}/>
                     </div>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#5C4EE5'}}>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#0EA5E9'}}>
                         <i className="fas fa-lock text-sm"></i>
                       </span>
                       <input type="password" placeholder="รหัสผ่าน (Password)"
                         value={password} onChange={e=>setPassword(e.target.value)}
                         onKeyPress={e=>e.key==='Enter'&&handleLogin()}
-                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-xl focus:outline-none bg-white text-gray-800"
-                        style={{border:'2px solid #C7CAF5'}}
-                        onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
-                        onBlur={e=>e.target.style.border='2px solid #C7CAF5'}/>
+                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-2xl focus:outline-none bg-white text-gray-800"
+                        style={{border:'1.5px solid #E5E7EB'}}
+                        onFocus={e=>e.target.style.border='1.5px solid #0EA5E9'}
+                        onBlur={e=>e.target.style.border='1.5px solid #E5E7EB'}/>
                     </div>
                   </div>
 
-                  {/* Login button — flat with offset shadow */}
+                  {/* Login button */}
                   <button onClick={handleLogin} disabled={isLoading}
-                    className="w-full py-4 rounded-xl font-black text-white text-base flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform disabled:opacity-60"
-                    style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
+                    className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 active:opacity-90 transition-opacity disabled:opacity-50"
+                    style={{background:'#0EA5E9',boxShadow:'0 4px 16px rgba(14,165,233,0.35)'}}>
                     {isLoading
                       ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
-                      : <><i className="fas fa-gamepad"></i> เริ่มเลย!</>}
+                      : <><i className="fas fa-arrow-right"></i> เข้าสู่ระบบ</>}
                   </button>
                 </div>
 
                 {/* Register link card */}
-                <div className="bg-white rounded-2xl px-5 py-4 flex items-center justify-between"
-                  style={{border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+                <div className="bg-white rounded-3xl px-5 py-4 flex items-center justify-between"
+                  style={{boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
                   <div>
                     <p className="text-xs font-bold text-gray-700">ยังไม่มีบัญชี?</p>
                     <p className="text-[10px] text-gray-400">ลงทะเบียนกับอาจารย์</p>
                   </div>
                   <button onClick={()=>setShowRegisterModal(true)} disabled={isLoading}
-                    className="px-4 py-2.5 rounded-xl font-bold text-sm active:translate-y-[1px] transition-transform"
-                    style={{background:'#F5F6FA',border:'2px solid #C7CAF5',color:'#5C4EE5',boxShadow:'3px 3px 0px #C7CAF5'}}>
+                    className="px-4 py-2.5 rounded-2xl font-bold text-sm active:opacity-90 transition-opacity"
+                    style={{background:'#F0F9FF',border:'1.5px solid #BAE6FD',color:'#0EA5E9'}}>
                     <i className="fas fa-user-plus mr-1.5"></i>ลงทะเบียน
                   </button>
                 </div>
@@ -1531,19 +1535,18 @@
 
               {/* ── Register bottom sheet ── */}
               {showRegisterModal && (
-                <div className="absolute inset-0 bg-black/60 z-50 flex flex-col justify-end">
+                <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
                   <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
-                    style={{border:'2px solid #E2E4F3',borderBottom:'none'}}>
+                    style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
                     <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
                     <div className="flex justify-between items-center mb-5">
                       <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'#5C4EE5'}}>
+                        <span className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{background:'#0EA5E9'}}>
                           <i className="fas fa-user-plus text-white text-xs"></i>
                         </span>ลงทะเบียนนักศึกษาใหม่
                       </h3>
                       <button onClick={()=>setShowRegisterModal(false)}
-                        className="w-8 h-8 rounded-xl flex items-center justify-center"
-                        style={{background:'#F5F6FA',border:'2px solid #E2E4F3'}}>
+                        className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
                         <i className="fas fa-times text-gray-500 text-xs"></i>
                       </button>
                     </div>
@@ -1555,19 +1558,19 @@
                         {icon:'fa-lock',ph:'ยืนยันรหัสผ่าน *',val:regConfirm,fn:e=>setRegConfirm(e.target.value),type:'password'},
                       ].map((f,i)=>(
                         <div key={i} className="relative">
-                          <span className="absolute left-3.5 top-3.5" style={{color:'#5C4EE5'}}><i className={`fas ${f.icon} text-sm`}></i></span>
+                          <span className="absolute left-3.5 top-3.5" style={{color:'#0EA5E9'}}><i className={`fas ${f.icon} text-sm`}></i></span>
                           <input type={f.type} placeholder={f.ph} value={f.val} onChange={f.fn}
                             onKeyPress={i===3?(e=>e.key==='Enter'&&handleRegister()):undefined}
-                            className="w-full rounded-xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800 bg-white"
-                            style={{border:'2px solid #E2E4F3'}}
-                            onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
-                            onBlur={e=>e.target.style.border='2px solid #E2E4F3'}/>
+                            className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800 bg-white"
+                            style={{border:'1.5px solid #E5E7EB'}}
+                            onFocus={e=>e.target.style.border='1.5px solid #0EA5E9'}
+                            onBlur={e=>e.target.style.border='1.5px solid #E5E7EB'}/>
                         </div>
                       ))}
                     </div>
                     <button onClick={handleRegister} disabled={isLoading}
-                      className="w-full py-4 rounded-xl font-black text-white flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform disabled:opacity-60"
-                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
+                      className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 active:opacity-90 transition-opacity disabled:opacity-50"
+                      style={{background:'#0EA5E9',boxShadow:'0 4px 16px rgba(14,165,233,0.35)'}}>
                       {isLoading ? <><i className="fas fa-spinner fa-spin"></i> กำลังลงทะเบียน...</> : <><i className="fas fa-check"></i> ยืนยันการลงทะเบียน</>}
                     </button>
                   </div>
@@ -1594,157 +1597,204 @@
             const xpPct = nextLv ? Math.round(((xp-lvData.min)/(nextLv.min-lvData.min))*100) : 100;
 
             return (
-            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden" style={{background:'#F5F6FA'}}>
+            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden" style={{background:'#5BB8E8'}}>
 
               {/* Calling overlay */}
               {isCalling && (
-                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{background:'#1A1A2E'}}>
-                  <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-6"
-                    style={{background:'#5C4EE5',border:'3px solid #3D31C4',boxShadow:'5px 5px 0px #3D31C4'}}>
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{background:'#E8F5E9'}}>
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
+                    style={{background:'#4CAF50',boxShadow:'0 8px 32px rgba(76,175,80,0.5)'}}>
                     <i className="fas fa-phone text-white text-3xl animate-pulse"></i>
                   </div>
-                  <h2 className="text-xl font-black text-white mb-1">{activePatient.name}</h2>
-                  <p className="text-sm font-medium" style={{color:'#818CF8'}}>กำลังเชื่อมต่อ...</p>
+                  <h2 className="text-xl font-black text-gray-800 mb-1">{activePatient.name}</h2>
+                  <p className="text-sm font-medium text-gray-400">กำลังเชื่อมต่อ...</p>
                 </div>
               )}
 
-              {/* ── Flat header ── */}
-              <div className="flex-shrink-0 pt-12 pb-4 px-5"
-                style={{background:'#5C4EE5',borderBottom:'3px solid #3D31C4'}}>
+              {/* ── SKY + AVATAR AREA ── */}
+              <div className="relative flex-none" style={{height:'52%',background:'linear-gradient(180deg,#4AA8D8 0%,#7EC8EE 40%,#A8DDA0 72%,#6DB85A 100%)'}}>
 
-                {/* Greeting + action icons */}
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <p className="text-xs font-bold mb-0.5" style={{color:'#C4BCF9'}}>สวัสดี 👋</p>
-                    <h2 className="font-black text-white text-lg leading-tight"
-                      style={{maxWidth:'190px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                      {studentName || studentId || 'นักศึกษาพยาบาล'}
-                    </h2>
+                {/* Top status row */}
+                <div className="absolute top-0 left-0 right-0 pt-12 px-5 flex justify-between items-start z-20">
+                  {/* Streak badge */}
+                  <div className="flex flex-col items-center rounded-2xl px-3 py-2" style={{background:'rgba(255,255,255,0.9)',minWidth:'60px',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                    <i className="fas fa-fire text-base mb-0.5" style={{color:'#F97316'}}></i>
+                    <p className="text-xl font-black leading-none text-gray-800">{Math.min(99,Math.floor(xp/20))}</p>
+                    <p className="text-[8px] font-bold text-gray-400 leading-tight text-center">Days<br/>Streaks</p>
                   </div>
-                  <div className="flex gap-2">
+                  {/* Action buttons */}
+                  <div className="flex flex-col gap-1.5">
                     {[{fn:fetchHistory,ic:'fa-history'},{fn:fetchProfile,ic:'fa-user'}].map((b,i)=>(
                       <button key={i} onClick={b.fn}
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white active:translate-y-[2px] transition-transform"
-                        style={{background:'#3D31C4',border:'2px solid #2A21A0',boxShadow:'3px 3px 0px #2A21A0'}}>
-                        <i className={`fas ${b.ic} text-xs`}></i>
+                        className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                        style={{background:'rgba(255,255,255,0.9)',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                        <i className={`fas ${b.ic} text-xs text-gray-600`}></i>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Level badge + XP bar */}
-                <div className="rounded-xl p-3" style={{background:'#3D31C4',border:'2px solid #2A21A0'}}>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-black"
-                        style={{background:lvData.color,color:'#fff',border:`2px solid rgba(0,0,0,0.2)`,boxShadow:'2px 2px 0px rgba(0,0,0,0.2)'}}>
-                        Lv.{lvData.lv}
-                      </span>
-                      <span className="text-xs font-bold" style={{color:'#C4BCF9'}}>{lvData.name}</span>
-                    </div>
-                    <span className="text-xs font-black text-white">{xp} <span style={{color:'#C4BCF9'}}>XP</span></span>
+                {/* Cloud left */}
+                <div className="absolute z-10" style={{top:'90px',left:'12px'}}>
+                  <div style={{background:'white',borderRadius:'50px',width:'72px',height:'22px',opacity:0.9,position:'absolute',top:0,left:0}}></div>
+                  <div style={{background:'white',borderRadius:'50px',width:'50px',height:'18px',opacity:0.9,position:'absolute',top:'-8px',left:'12px'}}></div>
+                </div>
+                {/* Cloud right */}
+                <div className="absolute z-10" style={{top:'72px',right:'16px'}}>
+                  <div style={{background:'white',borderRadius:'50px',width:'56px',height:'18px',opacity:0.85,position:'absolute',top:0,left:0}}></div>
+                  <div style={{background:'white',borderRadius:'50px',width:'38px',height:'14px',opacity:0.85,position:'absolute',top:'-6px',left:'10px'}}></div>
+                </div>
+
+                {/* Hills */}
+                <svg style={{position:'absolute',bottom:0,left:0,width:'100%',display:'block'}} viewBox="0 0 400 80" preserveAspectRatio="none">
+                  <ellipse cx="200" cy="95" rx="260" ry="62" fill="#5CB85C"/>
+                  <ellipse cx="15" cy="105" rx="130" ry="48" fill="#4CAF50"/>
+                  <ellipse cx="385" cy="105" rx="130" ry="48" fill="#66BB6A"/>
+                </svg>
+
+                {/* Avatar on hills */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center z-10">
+                  <div style={{width:'200px',height:'260px'}}>
+                    {renderAvatar(activePatient, false, 'scale-[0.9]')}
                   </div>
-                  {/* XP bar */}
-                  <div className="w-full rounded-full h-2.5" style={{background:'#2A21A0',border:'1.5px solid #1E178A'}}>
-                    <div className="h-full rounded-full transition-all" style={{width:`${xpPct}%`,background:'#F1C40F'}}></div>
-                  </div>
-                  {nextLv && (
-                    <p className="text-[9px] mt-1 text-right font-medium" style={{color:'#C4BCF9'}}>
-                      {nextLv.min - xp} XP → Lv.{nextLv.lv} {nextLv.name}
-                    </p>
-                  )}
                 </div>
               </div>
 
-              {/* ── Body ── */}
-              <div className="flex-1 flex flex-col px-4 pt-4 pb-5 overflow-y-auto no-scrollbar gap-3">
-
-                {/* Avatar card (flat) */}
-                <div className="relative rounded-2xl overflow-hidden bg-white"
-                  style={{height:'185px',border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
-                  {renderAvatar(activePatient, false, 'scale-[0.8] translate-y-1')}
-                  <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex justify-between items-end"
-                    style={{background:'#5C4EE5',borderTop:'2px solid #3D31C4'}}>
-                    <div>
-                      <p className="text-white font-black text-sm leading-tight">{activePatient.name}</p>
-                      <p className="text-[10px] font-medium" style={{color:'#C4BCF9'}}>อายุ {activePatient.age} ปี • กรณีศึกษาจำลอง</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold text-[10px] text-white"
-                      style={{background:'#16A34A',border:'2px solid #15803D',boxShadow:'2px 2px 0px #15803D'}}>
-                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Online
-                    </div>
-                  </div>
+              {/* ── WHITE BOTTOM PANEL ── */}
+              <div className="flex-1 bg-white overflow-y-auto no-scrollbar pb-24"
+                style={{borderRadius:'28px 28px 0 0',marginTop:'-20px',position:'relative',zIndex:10}}>
+                {/* Pull handle */}
+                <div className="flex justify-center pt-3 pb-1">
+                  <div className="w-10 h-1 rounded-full bg-gray-200"></div>
                 </div>
+                <div className="px-5 pt-2 pb-4">
 
-                {/* Mission card (case chip) */}
-                {caseLoading ? (
-                  <div className="flex items-center gap-2 rounded-xl px-4 py-3 bg-white"
-                    style={{border:'2px solid #E2E4F3',borderLeft:'4px solid #5C4EE5'}}>
-                    <i className="fas fa-spinner fa-spin text-sm" style={{color:'#5C4EE5'}}></i>
-                    <span className="text-xs font-medium text-gray-500">กำลังโหลดภารกิจ...</span>
-                  </div>
-                ) : activeCaseId ? (
-                  <div className="flex items-center gap-3 rounded-xl px-4 py-3 bg-white"
-                    style={{border:'2px solid #E2E4F3',borderLeft:'4px solid #5C4EE5',boxShadow:'3px 3px 0px #D1D5F0'}}>
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
-                      <i className="fas fa-scroll text-white text-xs"></i>
+                  {/* Chips: level + mission */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+                      style={{background:lvData.bg,border:`1.5px solid ${lvData.border}`}}>
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{background:lvData.color}}>
+                        <i className="fas fa-star text-white" style={{fontSize:'6px'}}></i>
+                      </div>
+                      <span className="text-[11px] font-black" style={{color:lvData.color}}>Lv.{lvData.lv} {lvData.name}</span>
                     </div>
+                    <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{background:'#FFFBEB',border:'1.5px solid #FDE68A'}}>
+                      <i className="fas fa-phone-alt text-xs" style={{color:'#D97706'}}></i>
+                      <span className="text-[11px] font-black" style={{color:'#D97706'}}>มีคนคอยคุณอยู่</span>
+                    </div>
+                  </div>
+
+                  {/* Patient info row */}
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider mb-0.5" style={{color:'#5C4EE5'}}>✦ ภารกิจวันนี้</p>
-                      <p className="text-sm font-black text-gray-800 leading-tight">{activePatient.condition}</p>
+                      <p className="text-base font-black text-gray-900">{activePatient.name}</p>
+                      <p className="text-xs text-gray-400">อายุ {activePatient.age} ปี</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                      style={{background:'#F0F9FF',border:'1.5px solid #BAE6FD'}}>
+                      <span className="w-2 h-2 rounded-full animate-pulse" style={{background:'#0EA5E9'}}></span>
+                      <span className="text-xs font-bold" style={{color:'#0EA5E9'}}>Online</span>
                     </div>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 rounded-xl px-4 py-3 bg-white"
-                    style={{border:'2px solid #FDE68A',borderLeft:'4px solid #D97706'}}>
-                    <i className="fas fa-exclamation-triangle text-sm" style={{color:'#D97706'}}></i>
-                    <p className="text-xs font-medium text-gray-600">ยังไม่มีภารกิจ กรุณาให้อาจารย์เพิ่มข้อมูล</p>
-                  </div>
-                )}
 
-                {/* CTA button */}
-                <button onClick={startVdoCall}
-                  className="w-full py-5 rounded-2xl font-black text-white text-xl flex items-center justify-center gap-3 active:translate-y-[3px] transition-transform"
-                  style={{background:'#16A34A',border:'3px solid #15803D',boxShadow:'5px 5px 0px #15803D'}}>
-                  <i className="fas fa-video text-2xl"></i> รับภารกิจ!
-                </button>
+                  {/* XP Milestone list */}
+                  <div className="space-y-2 mb-4">
+                    {[
+                      {score:30, desc:'ผ่านด่านเริ่มต้น', xp:100, coin:10, icon:'fa-seedling',  col:'#6B7280'},
+                      {score:50, desc:'ระดับกำลังพัฒนา',  xp:200, coin:20, icon:'fa-award',     col:'#2563EB'},
+                      {score:70, desc:'ระดับชำนาญการ',     xp:300, coin:30, icon:'fa-shield-alt',col:'#16A34A'},
+                      {score:90, desc:'ระดับยอดเยี่ยม',    xp:400, coin:40, icon:'fa-crown',     col:'#D97706'},
+                    ].map((m,i)=>{
+                      const earned = profileBestScore!==null && profileBestScore>=m.score;
+                      return (
+                      <div key={i} className="flex items-center justify-between rounded-2xl px-4 py-3"
+                        style={{background:earned?'#F0FDF4':'#FAFAFA',border:`1.5px solid ${earned?'#BBF7D0':'#F3F4F6'}`}}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                            style={{background:earned?m.col:'#E5E7EB'}}>
+                            <i className={`fas ${m.icon} text-xs`} style={{color:earned?'white':'#9CA3AF'}}></i>
+                          </div>
+                          <div>
+                            <p className="text-xs font-black" style={{color:earned?'#1A1A1A':'#6B7280'}}>{m.desc}</p>
+                            <p className="text-[10px] text-gray-400">คะแนน {m.score}%+</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-black rounded-full px-2 py-0.5" style={{background:'#FFF7E6',color:'#D97706'}}>C{m.coin}</span>
+                          <span className="text-[10px] font-black rounded-full px-2 py-0.5" style={{background:'#EFF6FF',color:'#2563EB'}}>+{m.xp}XP</span>
+                          <i className={`fas ${earned?'fa-check-circle':'fa-play-circle'} text-sm`}
+                            style={{color:earned?'#16A34A':'#D1D5DB'}}></i>
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
 
-                {/* Stats row */}
-                <div className="flex gap-3">
-                  {/* Best score */}
-                  <div className="flex-1 rounded-xl p-4 bg-white" style={{border:'2px solid #E2E4F3',boxShadow:'3px 3px 0px #D1D5F0'}}>
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
-                      style={{background:'#D97706',border:'2px solid #B45309',boxShadow:'2px 2px 0px #B45309'}}>
-                      <i className="fas fa-trophy text-white text-xs"></i>
+                  {/* Stats mini row */}
+                  <div className="flex gap-3 mb-4">
+                    <div className="flex-1 rounded-2xl p-3 bg-white" style={{boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">คะแนนสูงสุด</p>
+                      <p className="text-xl font-black text-gray-800">
+                        {profileBestScore!==null?profileBestScore:'—'}{profileBestScore!==null&&<span className="text-xs text-gray-400">%</span>}
+                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <i className="fas fa-trophy text-xs" style={{color:'#D97706'}}></i>
+                        <span className="text-[10px] font-bold" style={{color:'#D97706'}}>{xp} XP</span>
+                      </div>
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">คะแนนสูงสุด</p>
-                    <p className="text-2xl font-black" style={{color:'#1A1A2E'}}>
-                      {profileBestScore !== null ? profileBestScore : '—'}
-                      {profileBestScore !== null && <span className="text-sm font-medium text-gray-400">%</span>}
-                    </p>
-                  </div>
-                  {/* Tool type */}
-                  <div className="flex-1 rounded-xl p-4 bg-white" style={{border:'2px solid #E2E4F3',boxShadow:'3px 3px 0px #D1D5F0'}}>
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
-                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
-                      <i className="fas fa-stethoscope text-white text-xs"></i>
+                    <div className="flex-1 rounded-2xl p-3 bg-white" style={{boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">เครื่องมือ</p>
+                      <p className="text-sm font-black text-gray-800">{correctTool||'ADL/IADL'}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">GDS / TGDS</p>
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">เครื่องมือ</p>
-                    <p className="text-sm font-black" style={{color:'#1A1A2E'}}>{correctTool || 'ADL/IADL'}</p>
-                    <p className="text-[10px] text-gray-400">GDS / TGDS</p>
                   </div>
+
+                  {/* Yellow CTA */}
+                  <button onClick={startVdoCall}
+                    className="w-full py-4 rounded-full font-black text-lg flex items-center justify-center gap-3 active:opacity-90 transition-opacity"
+                    style={{background:'#FBBF24',color:'#78350F',boxShadow:'0 6px 20px rgba(251,191,36,0.5)'}}>
+                    <i className="fas fa-phone-alt text-xl"></i> โทรหาฉัน
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Bottom Nav ── */}
+              <div className="absolute bottom-0 left-0 right-0 z-20 px-5 pb-5">
+                <div className="flex items-center justify-around bg-white rounded-full px-4"
+                  style={{height:'62px',boxShadow:'0 4px 24px rgba(0,0,0,0.12)'}}>
+                  <button className="flex flex-col items-center gap-0.5 w-10">
+                    <i className="fas fa-home text-xl" style={{color:'#4CAF50'}}></i>
+                    <span className="text-[8px] font-bold" style={{color:'#4CAF50'}}>หน้าหลัก</span>
+                  </button>
+                  <button onClick={fetchHistory} className="flex flex-col items-center gap-0.5 w-10">
+                    <i className="fas fa-chart-bar text-xl text-gray-300"></i>
+                    <span className="text-[8px] font-bold text-gray-300">ผลลัพธ์</span>
+                  </button>
+                  {/* Big center call button */}
+                  <button onClick={startVdoCall}
+                    className="w-14 h-14 rounded-full flex items-center justify-center"
+                    style={{background:'linear-gradient(145deg,#4CAF50,#2E7D32)',boxShadow:'0 4px 16px rgba(76,175,80,0.6)',marginTop:'-28px'}}>
+                    <i className="fas fa-phone-alt text-xl text-white"></i>
+                  </button>
+                  <button className="flex flex-col items-center gap-0.5 w-10">
+                    <i className="fas fa-images text-xl text-gray-300"></i>
+                    <span className="text-[8px] font-bold text-gray-300">คลัง</span>
+                  </button>
+                  <button onClick={fetchProfile} className="flex flex-col items-center gap-0.5 w-10">
+                    <i className="fas fa-user text-xl text-gray-300"></i>
+                    <span className="text-[8px] font-bold text-gray-300">โปรไฟล์</span>
+                  </button>
                 </div>
               </div>
 
               {/* ── History Modal ─────────────────────────────────────── */}
               {showHistoryModal && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end">
-                  <div className="bg-white w-full rounded-t-[2rem] shadow-2xl flex flex-col animate-slideUp" style={{maxHeight:'85vh'}}>
+                <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
+                  <div className="bg-white w-full rounded-t-3xl flex flex-col animate-slideUp" style={{maxHeight:'85vh',boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
                     <div className="px-6 pt-5 pb-3 border-b border-gray-100 flex justify-between items-center">
                       <div>
                         <h3 className="font-black text-gray-800 text-lg flex items-center gap-2">
-                          <i className="fas fa-history text-[#4F46E5]"></i> ประวัติการใช้งาน
+                          <i className="fas fa-history" style={{color:'#16A34A'}}></i> ประวัติการใช้งาน
                         </h3>
                         <p className="text-xs text-gray-400 mt-0.5">รหัสนักศึกษา: {studentId}</p>
                       </div>
@@ -1809,14 +1859,14 @@
 
               {/* ── Profile Modal ──────────────────────────────────────── */}
               {showProfileModal && (
-                <div className="absolute inset-0 bg-black/60 z-50 flex flex-col justify-end">
+                <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
                   <div className="bg-white w-full rounded-t-3xl flex flex-col animate-slideUp"
-                    style={{border:'2px solid #E2E4F3',borderBottom:'none'}}>
+                    style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
                     <div className="px-5 pt-5 pb-4 flex justify-between items-center"
                       style={{borderBottom:'2px solid #E2E4F3'}}>
                       <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-xl flex items-center justify-center"
-                          style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
+                        <span className="w-8 h-8 rounded-2xl flex items-center justify-center"
+                          style={{background:'#16A34A'}}>
                           <i className="fas fa-user text-white text-xs"></i>
                         </span>โปรไฟล์ของฉัน
                       </h3>
@@ -1828,14 +1878,14 @@
                     </div>
                     <div className="px-5 py-5 space-y-3">
                       {/* Level card */}
-                      <div className="flex items-center gap-3 rounded-xl p-4"
-                        style={{background:'#EEF0FF',border:'2px solid #C7CAF5',boxShadow:'3px 3px 0px #C7CAF5'}}>
+                      <div className="flex items-center gap-3 rounded-2xl p-4"
+                        style={{background:'#F0FDF4',border:'1.5px solid #BBF7D0'}}>
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                          style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'3px 3px 0px #3D31C4'}}>
+                          style={{background:'#16A34A',boxShadow:'0 4px 12px rgba(22,163,74,0.3)'}}>
                           <i className="fas fa-user-nurse text-white text-xl"></i>
                         </div>
                         <div className="flex-1">
-                          <p className="text-[10px] font-black uppercase tracking-wide mb-0.5" style={{color:'#5C4EE5'}}>นักศึกษาพยาบาล</p>
+                          <p className="text-[10px] font-black uppercase tracking-wide mb-0.5" style={{color:'#16A34A'}}>นักศึกษาพยาบาล</p>
                           <p className="text-sm font-black text-gray-800">{studentName || '(ยังไม่ระบุชื่อ)'}</p>
                         </div>
                       </div>
@@ -2189,14 +2239,14 @@
             const curLv = [...lvls].reverse().find(l=>xpEarned>=l.min) || lvls[0];
 
             return (
-              <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-y-auto no-scrollbar" style={{background:'#F5F6FA'}}>
+              <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-y-auto no-scrollbar" style={{background:'#F9FBF6'}}>
 
-                {/* ── Flat top banner ── */}
+                {/* ── Top banner (green) ── */}
                 <div className="px-5 pt-14 pb-6 flex flex-col items-center"
-                  style={{background:'#5C4EE5',borderBottom:'3px solid #3D31C4'}}>
+                  style={{background:'#16A34A'}}>
                   <p className="text-5xl mb-3">{emoji}</p>
                   <h2 className="text-3xl font-black text-white mb-1">{headline}</h2>
-                  <p className="text-xs font-bold" style={{color:'#C4BCF9'}}>สรุปผลการฝึกประเมินสุขภาพผู้สูงอายุ</p>
+                  <p className="text-xs font-bold" style={{color:'#BBF7D0'}}>สรุปผลการฝึกประเมินสุขภาพผู้สูงอายุ</p>
 
                   {/* Big flat score badge */}
                   <div className="mt-5 px-8 py-4 rounded-2xl flex items-baseline gap-1"
@@ -2242,53 +2292,48 @@
                             {row.score}%
                           </span>
                         </div>
-                        <div className="w-full rounded-lg h-3 overflow-hidden" style={{background:'#F5F6FA',border:'2px solid #E2E4F3'}}>
-                          <div className="h-full rounded" style={{width:`${row.score}%`,background:row.color,transition:'width 1s ease-out'}}></div>
+                        <div className="w-full rounded-full h-2" style={{background:'#E2E4F3'}}>
+                          <div className="h-full rounded-full" style={{width:`${row.score}%`,background:row.color}}></div>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-xs text-center font-medium text-gray-400">รหัสนักศึกษา: {studentId || 'ไม่ระบุ'}</p>
-
+                  {/* Buttons */}
                   <button onClick={()=>{resetSession();navigate('home');}}
-                    className="w-full py-4 rounded-xl font-black text-white text-base flex items-center justify-center gap-2 active:translate-y-[3px] transition-transform"
-                    style={{background:'#5C4EE5',border:'3px solid #3D31C4',boxShadow:'5px 5px 0px #3D31C4'}}>
+                    className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 active:opacity-90 transition-opacity"
+                    style={{background:'#16A34A',boxShadow:'0 4px 20px rgba(22,163,74,0.35)'}}>
                     <i className="fas fa-home"></i> กลับสู่หน้าหลัก
                   </button>
 
                   <button onClick={()=>setShowReport(!showReport)}
-                    className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform"
-                    style={{background:'#F5F6FA',border:'2px solid #E2E4F3',color:'#5C4EE5',boxShadow:'3px 3px 0px #D1D5F0'}}>
-                    <i className={`fas ${showReport ? 'fa-eye-slash' : 'fa-chart-bar'}`}></i>
-                    {showReport ? 'ซ่อนรายงาน' : 'ดู Feedback รายข้อ'}
+                    className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 active:opacity-90 transition-opacity"
+                    style={{background:'#F0FDF4',border:'1.5px solid #BBF7D0',color:'#16A34A'}}>
+                    <i className={`fas ${showReport ? 'fa-chevron-up' : 'fa-clipboard-list'}`}></i>
+                    {showReport ? 'ซ่อนรายงาน' : 'ดูรายงานผลการประเมิน'}
                   </button>
 
-                  {showReport && (
-                    <div className="space-y-3 pb-4">
-                      {feedback.length === 0 && !correctTool && (
-                        <div className="rounded-xl p-4 bg-white text-center" style={{border:'2px solid #E2E4F3'}}>
-                          <p className="text-sm font-medium text-gray-400">ยังไม่มีข้อมูลกรณีศึกษา (Proposition_DB ว่าง)</p>
-                        </div>
-                      )}
-                      {feedback.map((item,index) => {
-                        const isOk = item.topic.startsWith('✅');
-                        return (
-                          <div key={index} className="rounded-xl p-4 bg-white"
-                            style={{border:'2px solid #E2E4F3',borderLeft:`4px solid ${isOk?'#16A34A':'#DC2626'}`,boxShadow:'3px 3px 0px #D1D5F0'}}>
-                            <h4 className="text-sm font-black mb-2 flex items-center gap-2"
-                              style={{color:isOk?'#16A34A':'#DC2626'}}>
-                              <i className={`fas ${isOk?'fa-check-square':'fa-times-square'}`}></i>{item.topic}
-                            </h4>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{isOk?'ผลลัพธ์:':'สิ่งที่คุณทำ:'}</p>
-                            <p className="text-xs font-medium p-2.5 rounded-lg mb-2 text-gray-700"
-                              style={{background:'#FEF2F2',border:'1px solid #FECACA'}}>{item.mistake}</p>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Feedback:</p>
-                            <p className="text-xs font-medium p-2.5 rounded-lg text-gray-700"
-                              style={{background:'#F0FDF4',border:'1px solid #BBF7D0'}}>{item.correct}</p>
+                  {/* Feedback report */}
+                  {showReport && feedback.length > 0 && (
+                    <div className="space-y-3">
+                      {feedback.map((fb,i)=>(
+                        <div key={i} className="rounded-2xl p-4 bg-white"
+                          style={{border:'2px solid #E2E4F3',boxShadow:'3px 3px 0px #D1D5F0'}}>
+                          <p className="text-xs font-black text-gray-700 mb-2">{fb.topic}</p>
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-start gap-2 text-xs rounded-xl px-3 py-2"
+                              style={{background:'#FEF2F2',border:'1.5px solid #FECACA'}}>
+                              <i className="fas fa-times-circle text-red-400 mt-0.5 shrink-0"></i>
+                              <span className="text-red-700 font-medium">{fb.mistake}</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-xs rounded-xl px-3 py-2"
+                              style={{background:'#F0FDF4',border:'1.5px solid #BBF7D0'}}>
+                              <i className="fas fa-check-circle mt-0.5 shrink-0" style={{color:'#16A34A'}}></i>
+                              <span className="font-medium" style={{color:'#15803D'}}>{fb.correct}</span>
+                            </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -2297,7 +2342,7 @@
           };
 
           // ============================================================
-          // APP ROOT
+          // ROUTER
           // ============================================================
           const renderApp = () => {
             switch(currentPage) {
@@ -2310,8 +2355,9 @@
           };
 
           return (
-            <div className="flex items-center justify-center w-full h-screen" style={{background:'#0a0a0a'}}>
-              <div className="w-full h-full max-w-md relative overflow-hidden" style={{fontFamily:"'Noto Sans Thai',sans-serif"}}>
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
+              <div className="relative w-full max-w-md h-full max-h-[900px] overflow-hidden shadow-2xl"
+                style={{fontFamily:"'Noto Sans Thai', sans-serif"}}>
                 {renderApp()}
               </div>
             </div>
@@ -2322,4 +2368,4 @@
         root.render(React.createElement(App));
       </script>
     </body>
-    </html>
+</html>
