@@ -1435,112 +1435,140 @@
           // PAGE: WELCOME (Login)
           // ============================================================
           const renderWelcome = () => (
-            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden"
-              style={{background:'linear-gradient(160deg,#0F0F23 0%,#1E1B4B 50%,#2D1B69 100%)'}}>
+            <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-hidden" style={{background:'#F5F6FA'}}>
 
-              {/* Ambient glows */}
-              <div style={{position:'absolute',top:'-15%',right:'-20%',width:'300px',height:'300px',borderRadius:'50%',background:'radial-gradient(circle,rgba(129,140,248,0.35),transparent)',pointerEvents:'none'}}></div>
-              <div style={{position:'absolute',bottom:'-10%',left:'-15%',width:'260px',height:'260px',borderRadius:'50%',background:'radial-gradient(circle,rgba(192,132,252,0.25),transparent)',pointerEvents:'none'}}></div>
-              <div style={{position:'absolute',top:'38%',right:'-5%',width:'150px',height:'150px',borderRadius:'50%',background:'radial-gradient(circle,rgba(52,211,153,0.18),transparent)',pointerEvents:'none'}}></div>
-
-              {/* Hero */}
-              <div className="flex flex-col items-center flex-none pt-14 pb-6 px-8">
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
-                  style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)',boxShadow:'0 20px 60px rgba(99,102,241,0.5)'}}>
-                  <i className="fas fa-brain text-white text-3xl"></i>
+              {/* ── Top panel (flat solid indigo) ── */}
+              <div className="flex flex-col items-center pt-14 pb-8 px-6 flex-none"
+                style={{background:'#5C4EE5',borderBottom:'4px solid #3D31C4'}}>
+                {/* Icon */}
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4"
+                  style={{background:'#fff',border:'3px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
+                  <i className="fas fa-brain text-3xl" style={{color:'#5C4EE5'}}></i>
                 </div>
-                <h1 className="text-5xl font-black mb-2 tracking-tighter"
-                  style={{background:'linear-gradient(135deg,#E0E7FF,#C4B5FD,#818CF8)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-                  GeriSim AI
-                </h1>
-                <p className="text-xs text-center leading-relaxed" style={{color:'rgba(165,180,252,0.8)'}}>
-                  ฝึกทักษะการประเมินสุขภาพผู้สูงอายุด้วย AI 👩‍⚕️<br/>สำหรับนักศึกษาพยาบาล
+                <h1 className="text-4xl font-black text-white tracking-tight mb-1">GeriSim AI</h1>
+                <p className="text-xs text-center font-medium" style={{color:'#C4BCF9'}}>
+                  ฝึกทักษะประเมินสุขภาพผู้สูงอายุ ✦ นักศึกษาพยาบาล
                 </p>
+                {/* XP decorative bar */}
+                <div className="flex items-center gap-2 mt-4 px-4 py-2 rounded-xl"
+                  style={{background:'#3D31C4',border:'2px solid #2A21A0'}}>
+                  <i className="fas fa-gamepad text-xs" style={{color:'#C4BCF9'}}></i>
+                  <span className="text-xs font-bold" style={{color:'#C4BCF9'}}>ระบบฝึกซ้อมแบบ Interactive</span>
+                </div>
               </div>
 
-              {/* Glass card */}
-              <div className="flex-1 px-5 pb-10 flex flex-col justify-start">
-                <div className="rounded-3xl p-6 shadow-2xl"
-                  style={{background:'rgba(255,255,255,0.07)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',border:'1px solid rgba(255,255,255,0.12)'}}>
+              {/* ── Login card ── */}
+              <div className="flex-1 px-5 pt-6 pb-8 flex flex-col overflow-y-auto no-scrollbar">
+                <div className="bg-white rounded-2xl p-5 mb-4"
+                  style={{border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <i className="fas fa-sign-in-alt" style={{color:'#5C4EE5'}}></i> เข้าสู่ระบบ
+                  </p>
 
                   {/* Info banner */}
-                  <div className="flex items-start gap-2.5 rounded-2xl px-4 py-3 mb-5"
-                    style={{background:'rgba(99,102,241,0.2)',border:'1px solid rgba(165,180,252,0.3)'}}>
-                    <i className="fas fa-info-circle text-sm mt-0.5 shrink-0" style={{color:'#A5B4FC'}}></i>
-                    <p className="text-xs leading-relaxed" style={{color:'rgba(199,210,254,0.9)'}}>
-                      ใช้ <span className="font-black text-white">รหัสนักศึกษา</span> และ <span className="font-black text-white">รหัสผ่าน</span> ที่ได้รับจากอาจารย์<br/>
-                      ยังไม่มีบัญชี? กด <span className="font-bold" style={{color:'#A5B4FC'}}>ลงทะเบียน</span> ด้านล่าง
+                  <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 mb-4"
+                    style={{background:'#EEF0FF',border:'2px solid #C7CAF5'}}>
+                    <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#5C4EE5'}}></i>
+                    <p className="text-xs leading-relaxed text-gray-700">
+                      ใช้ <span className="font-black" style={{color:'#5C4EE5'}}>รหัสนักศึกษา</span> และ
+                      <span className="font-black" style={{color:'#5C4EE5'}}> รหัสผ่าน</span> ที่ได้รับจากอาจารย์
                     </p>
                   </div>
 
                   {/* Inputs */}
-                  <div className="space-y-3 mb-5">
+                  <div className="space-y-3 mb-4">
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{color:'#818CF8'}}><i className="fas fa-id-card text-sm"></i></span>
-                  <input type="text" placeholder="รหัสนักศึกษา (Student ID)"
-                    value={studentId} onChange={(e)=>setStudentId(e.target.value)}
-                    onKeyPress={(e)=>e.key==='Enter'&&handleLogin()}
-                    className="w-full rounded-2xl py-4 pl-11 pr-4 text-sm font-medium focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.1)',border:'1.5px solid rgba(165,180,252,0.25)',color:'white'}}
-                    onFocus={e=>{e.target.style.border='1.5px solid rgba(165,180,252,0.8)'}}
-                    onBlur={e=>{e.target.style.border='1.5px solid rgba(165,180,252,0.25)'}}/>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{color:'#818CF8'}}><i className="fas fa-lock text-sm"></i></span>
-                  <input type="password" placeholder="รหัสผ่าน (Password)"
-                    value={password} onChange={(e)=>setPassword(e.target.value)}
-                    onKeyPress={(e)=>e.key==='Enter'&&handleLogin()}
-                    className="w-full rounded-2xl py-4 pl-11 pr-4 text-sm font-medium focus:outline-none"
-                    style={{background:'rgba(255,255,255,0.1)',border:'1.5px solid rgba(165,180,252,0.25)',color:'white'}}
-                    onFocus={e=>{e.target.style.border='1.5px solid rgba(165,180,252,0.8)'}}
-                    onBlur={e=>{e.target.style.border='1.5px solid rgba(165,180,252,0.25)'}}/>
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex flex-col gap-3">
-                <button onClick={handleLogin} disabled={isLoading}
-                  className="w-full py-4 rounded-2xl font-bold text-white text-base transition flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-60"
-                  style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)',boxShadow:'0 8px 32px rgba(99,102,241,0.5)'}}>
-                  {isLoading ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</> : <><i className="fas fa-arrow-right-to-bracket"></i> เข้าสู่ระบบ</>}
-                </button>
-                <button onClick={()=>setShowRegisterModal(true)} disabled={isLoading}
-                  className="w-full py-3.5 rounded-2xl font-semibold text-sm transition flex items-center justify-center gap-2 active:scale-[0.98]"
-                  style={{background:'rgba(255,255,255,0.07)',border:'1.5px solid rgba(255,255,255,0.15)',color:'rgba(199,210,254,0.9)'}}>
-                  <i className="fas fa-user-plus" style={{color:'#A5B4FC'}}></i> ลงทะเบียน (Register)
-                </button>
-              </div>
-
-                </div>{/* end glass card inner */}
-              </div>{/* end glass card wrapper */}
-
-              {/* ── Registration bottom sheet ───────────────────────────── */}
-              {showRegisterModal && (
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm z-50 flex flex-col justify-end">
-                  <div className="bg-white w-full rounded-t-[2rem] p-6 shadow-2xl flex flex-col animate-slideUp">
-                    <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
-                    <div className="flex justify-between items-center mb-5">
-                      <h3 className="font-bold text-gray-800 text-lg"><i className="fas fa-user-plus mr-2 text-[#4F46E5]"></i>ลงทะเบียนนักศึกษาใหม่</h3>
-                      <button onClick={()=>setShowRegisterModal(false)} className="bg-gray-100 p-2.5 rounded-full"><i className="fas fa-times text-gray-600 text-sm"></i></button>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#5C4EE5'}}>
+                        <i className="fas fa-id-card text-sm"></i>
+                      </span>
+                      <input type="text" placeholder="รหัสนักศึกษา (Student ID)"
+                        value={studentId} onChange={e=>setStudentId(e.target.value)}
+                        onKeyPress={e=>e.key==='Enter'&&handleLogin()}
+                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-xl focus:outline-none bg-white text-gray-800"
+                        style={{border:'2px solid #C7CAF5'}}
+                        onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
+                        onBlur={e=>e.target.style.border='2px solid #C7CAF5'}/>
                     </div>
-                    <div className="space-y-3 mb-5">
-                      <div className="relative"><span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-id-card text-sm"></i></span>
-                        <input type="text" placeholder="รหัสนักศึกษา *" value={regId} onChange={(e)=>setRegId(e.target.value)}
-                          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"/></div>
-                      <div className="relative"><span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-user text-sm"></i></span>
-                        <input type="text" placeholder="ชื่อ-นามสกุล *" value={regName} onChange={(e)=>setRegName(e.target.value)}
-                          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"/></div>
-                      <div className="relative"><span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-lock text-sm"></i></span>
-                        <input type="password" placeholder="รหัสผ่าน *" value={regPassword} onChange={(e)=>setRegPassword(e.target.value)}
-                          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"/></div>
-                      <div className="relative"><span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-lock text-sm"></i></span>
-                        <input type="password" placeholder="ยืนยันรหัสผ่าน *" value={regConfirm} onChange={(e)=>setRegConfirm(e.target.value)}
-                          onKeyPress={(e)=>e.key==='Enter'&&handleRegister()}
-                          className="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:border-[#4F46E5] text-sm"/></div>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#5C4EE5'}}>
+                        <i className="fas fa-lock text-sm"></i>
+                      </span>
+                      <input type="password" placeholder="รหัสผ่าน (Password)"
+                        value={password} onChange={e=>setPassword(e.target.value)}
+                        onKeyPress={e=>e.key==='Enter'&&handleLogin()}
+                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-xl focus:outline-none bg-white text-gray-800"
+                        style={{border:'2px solid #C7CAF5'}}
+                        onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
+                        onBlur={e=>e.target.style.border='2px solid #C7CAF5'}/>
+                    </div>
+                  </div>
+
+                  {/* Login button — flat with offset shadow */}
+                  <button onClick={handleLogin} disabled={isLoading}
+                    className="w-full py-4 rounded-xl font-black text-white text-base flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform disabled:opacity-60"
+                    style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
+                    {isLoading
+                      ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
+                      : <><i className="fas fa-gamepad"></i> เริ่มเลย!</>}
+                  </button>
+                </div>
+
+                {/* Register link card */}
+                <div className="bg-white rounded-2xl px-5 py-4 flex items-center justify-between"
+                  style={{border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+                  <div>
+                    <p className="text-xs font-bold text-gray-700">ยังไม่มีบัญชี?</p>
+                    <p className="text-[10px] text-gray-400">ลงทะเบียนกับอาจารย์</p>
+                  </div>
+                  <button onClick={()=>setShowRegisterModal(true)} disabled={isLoading}
+                    className="px-4 py-2.5 rounded-xl font-bold text-sm active:translate-y-[1px] transition-transform"
+                    style={{background:'#F5F6FA',border:'2px solid #C7CAF5',color:'#5C4EE5',boxShadow:'3px 3px 0px #C7CAF5'}}>
+                    <i className="fas fa-user-plus mr-1.5"></i>ลงทะเบียน
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Register bottom sheet ── */}
+              {showRegisterModal && (
+                <div className="absolute inset-0 bg-black/60 z-50 flex flex-col justify-end">
+                  <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
+                    style={{border:'2px solid #E2E4F3',borderBottom:'none'}}>
+                    <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+                    <div className="flex justify-between items-center mb-5">
+                      <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'#5C4EE5'}}>
+                          <i className="fas fa-user-plus text-white text-xs"></i>
+                        </span>ลงทะเบียนนักศึกษาใหม่
+                      </h3>
+                      <button onClick={()=>setShowRegisterModal(false)}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style={{background:'#F5F6FA',border:'2px solid #E2E4F3'}}>
+                        <i className="fas fa-times text-gray-500 text-xs"></i>
+                      </button>
+                    </div>
+                    <div className="space-y-3 mb-4">
+                      {[
+                        {icon:'fa-id-card',ph:'รหัสนักศึกษา *',val:regId,fn:e=>setRegId(e.target.value),type:'text'},
+                        {icon:'fa-user',ph:'ชื่อ-นามสกุล *',val:regName,fn:e=>setRegName(e.target.value),type:'text'},
+                        {icon:'fa-lock',ph:'รหัสผ่าน *',val:regPassword,fn:e=>setRegPassword(e.target.value),type:'password'},
+                        {icon:'fa-lock',ph:'ยืนยันรหัสผ่าน *',val:regConfirm,fn:e=>setRegConfirm(e.target.value),type:'password'},
+                      ].map((f,i)=>(
+                        <div key={i} className="relative">
+                          <span className="absolute left-3.5 top-3.5" style={{color:'#5C4EE5'}}><i className={`fas ${f.icon} text-sm`}></i></span>
+                          <input type={f.type} placeholder={f.ph} value={f.val} onChange={f.fn}
+                            onKeyPress={i===3?(e=>e.key==='Enter'&&handleRegister()):undefined}
+                            className="w-full rounded-xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800 bg-white"
+                            style={{border:'2px solid #E2E4F3'}}
+                            onFocus={e=>e.target.style.border='2px solid #5C4EE5'}
+                            onBlur={e=>e.target.style.border='2px solid #E2E4F3'}/>
+                        </div>
+                      ))}
                     </div>
                     <button onClick={handleRegister} disabled={isLoading}
-                      className="w-full bg-[#4F46E5] disabled:opacity-60 text-white font-bold py-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
-                      {isLoading ? <><i className="fas fa-spinner fa-spin"></i> กำลังลงทะเบียน...</> : <><i className="fas fa-check-circle"></i> ยืนยันการลงทะเบียน</>}
+                      className="w-full py-4 rounded-xl font-black text-white flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform disabled:opacity-60"
+                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'4px 4px 0px #3D31C4'}}>
+                      {isLoading ? <><i className="fas fa-spinner fa-spin"></i> กำลังลงทะเบียน...</> : <><i className="fas fa-check"></i> ยืนยันการลงทะเบียน</>}
                     </button>
                   </div>
                 </div>
@@ -1551,114 +1579,159 @@
           // ============================================================
           // PAGE: HOME
           // ============================================================
-          const renderHome = () => (
-            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden" style={{background:'#F0F4FF'}}>
+          const renderHome = () => {
+            // ── Level / XP system ──
+            const xp = profileBestScore !== null ? profileBestScore * 10 : 0;
+            const levels = [
+              {lv:1,name:'มือใหม่',    min:0,   max:299,  color:'#6B7280', bg:'#F3F4F6', border:'#D1D5DB'},
+              {lv:2,name:'กำลังพัฒนา',min:300, max:499,  color:'#2563EB', bg:'#EFF6FF', border:'#BFDBFE'},
+              {lv:3,name:'ชำนาญการ',  min:500, max:699,  color:'#16A34A', bg:'#F0FDF4', border:'#BBF7D0'},
+              {lv:4,name:'เชี่ยวชาญ', min:700, max:899,  color:'#9333EA', bg:'#FAF5FF', border:'#E9D5FF'},
+              {lv:5,name:'ยอดเยี่ยม', min:900, max:1000, color:'#D97706', bg:'#FFFBEB', border:'#FDE68A'},
+            ];
+            const lvData = levels.find(l=>xp>=l.min&&xp<=l.max) || levels[0];
+            const nextLv = levels.find(l=>l.lv===lvData.lv+1);
+            const xpPct = nextLv ? Math.round(((xp-lvData.min)/(nextLv.min-lvData.min))*100) : 100;
+
+            return (
+            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden" style={{background:'#F5F6FA'}}>
 
               {/* Calling overlay */}
               {isCalling && (
-                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white" style={{background:'#0F0F23'}}>
-                  <div className="w-32 h-32 rounded-full flex items-center justify-center mb-8 relative" style={{border:'4px solid rgba(255,255,255,0.1)'}}>
-                    <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-[#06C755] animate-spin"></div>
-                    <i className="fas fa-phone text-[#06C755] animate-pulse text-4xl"></i>
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{background:'#1A1A2E'}}>
+                  <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-6"
+                    style={{background:'#5C4EE5',border:'3px solid #3D31C4',boxShadow:'5px 5px 0px #3D31C4'}}>
+                    <i className="fas fa-phone text-white text-3xl animate-pulse"></i>
                   </div>
-                  <h2 className="text-2xl font-medium mb-2">{activePatient.name}</h2>
-                  <p style={{color:'rgba(156,163,175,1)'}}>กำลังเชื่อมต่อ...</p>
+                  <h2 className="text-xl font-black text-white mb-1">{activePatient.name}</h2>
+                  <p className="text-sm font-medium" style={{color:'#818CF8'}}>กำลังเชื่อมต่อ...</p>
                 </div>
               )}
 
-              {/* ── Gradient hero header ── */}
-              <div className="relative pt-12 pb-4 px-5 rounded-b-[2.5rem] shadow-xl flex-shrink-0 overflow-hidden"
-                style={{background:'linear-gradient(135deg,#4F46E5 0%,#7C3AED 60%,#6D28D9 100%)'}}>
-                <div style={{position:'absolute',top:'-30%',right:'-10%',width:'200px',height:'200px',borderRadius:'50%',background:'radial-gradient(circle,rgba(196,181,253,0.4),transparent)',pointerEvents:'none'}}></div>
+              {/* ── Flat header ── */}
+              <div className="flex-shrink-0 pt-12 pb-4 px-5"
+                style={{background:'#5C4EE5',borderBottom:'3px solid #3D31C4'}}>
 
-                {/* Greeting row */}
-                <div className="flex justify-between items-center mb-4 relative z-10">
+                {/* Greeting + action icons */}
+                <div className="flex justify-between items-center mb-4">
                   <div>
-                    <p className="text-xs font-medium" style={{color:'rgba(165,180,252,1)'}}>สวัสดี 👋</p>
-                    <h2 className="font-black text-white text-xl leading-tight" style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{studentName || studentId || 'นักศึกษาพยาบาล'}</h2>
+                    <p className="text-xs font-bold mb-0.5" style={{color:'#C4BCF9'}}>สวัสดี 👋</p>
+                    <h2 className="font-black text-white text-lg leading-tight"
+                      style={{maxWidth:'190px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                      {studentName || studentId || 'นักศึกษาพยาบาล'}
+                    </h2>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={fetchHistory} className="w-10 h-10 rounded-2xl flex items-center justify-center text-white active:scale-90 transition"
-                      style={{background:'rgba(255,255,255,0.15)'}}>
-                      <i className="fas fa-history text-sm"></i>
-                    </button>
-                    <button onClick={fetchProfile} className="w-10 h-10 rounded-2xl flex items-center justify-center text-white active:scale-90 transition"
-                      style={{background:'rgba(255,255,255,0.15)'}}>
-                      <i className="fas fa-user text-sm"></i>
-                    </button>
+                    {[{fn:fetchHistory,ic:'fa-history'},{fn:fetchProfile,ic:'fa-user'}].map((b,i)=>(
+                      <button key={i} onClick={b.fn}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white active:translate-y-[2px] transition-transform"
+                        style={{background:'#3D31C4',border:'2px solid #2A21A0',boxShadow:'3px 3px 0px #2A21A0'}}>
+                        <i className={`fas ${b.ic} text-xs`}></i>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Avatar card */}
-                <div className="relative rounded-3xl overflow-hidden z-10"
-                  style={{height:'210px',background:'rgba(255,255,255,0.12)',border:'1px solid rgba(255,255,255,0.2)'}}>
-                  {renderAvatar(activePatient, false, 'scale-[0.82] translate-y-2')}
-                  <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
-                    <div>
-                      <p className="text-white font-black text-base drop-shadow-sm leading-tight">{activePatient.name}</p>
-                      <p className="text-[11px] font-medium" style={{color:'rgba(199,210,254,0.9)'}}>อายุ {activePatient.age} ปี • กรณีศึกษาจำลอง</p>
+                {/* Level badge + XP bar */}
+                <div className="rounded-xl p-3" style={{background:'#3D31C4',border:'2px solid #2A21A0'}}>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-black"
+                        style={{background:lvData.color,color:'#fff',border:`2px solid rgba(0,0,0,0.2)`,boxShadow:'2px 2px 0px rgba(0,0,0,0.2)'}}>
+                        Lv.{lvData.lv}
+                      </span>
+                      <span className="text-xs font-bold" style={{color:'#C4BCF9'}}>{lvData.name}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-full px-3 py-1 font-bold text-[10px] text-white" style={{background:'#06C755'}}>
-                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Online
-                    </div>
+                    <span className="text-xs font-black text-white">{xp} <span style={{color:'#C4BCF9'}}>XP</span></span>
                   </div>
+                  {/* XP bar */}
+                  <div className="w-full rounded-full h-2.5" style={{background:'#2A21A0',border:'1.5px solid #1E178A'}}>
+                    <div className="h-full rounded-full transition-all" style={{width:`${xpPct}%`,background:'#F1C40F'}}></div>
+                  </div>
+                  {nextLv && (
+                    <p className="text-[9px] mt-1 text-right font-medium" style={{color:'#C4BCF9'}}>
+                      {nextLv.min - xp} XP → Lv.{nextLv.lv} {nextLv.name}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* ── Body ── */}
-              <div className="flex-1 flex flex-col px-5 pt-5 pb-6 overflow-y-auto no-scrollbar">
+              <div className="flex-1 flex flex-col px-4 pt-4 pb-5 overflow-y-auto no-scrollbar gap-3">
 
-                {/* Case chip */}
+                {/* Avatar card (flat) */}
+                <div className="relative rounded-2xl overflow-hidden bg-white"
+                  style={{height:'185px',border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+                  {renderAvatar(activePatient, false, 'scale-[0.8] translate-y-1')}
+                  <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex justify-between items-end"
+                    style={{background:'#5C4EE5',borderTop:'2px solid #3D31C4'}}>
+                    <div>
+                      <p className="text-white font-black text-sm leading-tight">{activePatient.name}</p>
+                      <p className="text-[10px] font-medium" style={{color:'#C4BCF9'}}>อายุ {activePatient.age} ปี • กรณีศึกษาจำลอง</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold text-[10px] text-white"
+                      style={{background:'#16A34A',border:'2px solid #15803D',boxShadow:'2px 2px 0px #15803D'}}>
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Online
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mission card (case chip) */}
                 {caseLoading ? (
-                  <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4 bg-white border border-indigo-100">
-                    <i className="fas fa-spinner fa-spin text-indigo-400 text-sm"></i>
-                    <span className="text-xs text-indigo-500 font-medium">กำลังโหลดกรณีศึกษา...</span>
+                  <div className="flex items-center gap-2 rounded-xl px-4 py-3 bg-white"
+                    style={{border:'2px solid #E2E4F3',borderLeft:'4px solid #5C4EE5'}}>
+                    <i className="fas fa-spinner fa-spin text-sm" style={{color:'#5C4EE5'}}></i>
+                    <span className="text-xs font-medium text-gray-500">กำลังโหลดภารกิจ...</span>
                   </div>
                 ) : activeCaseId ? (
-                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 mb-4 bg-white border border-indigo-100 shadow-sm">
+                  <div className="flex items-center gap-3 rounded-xl px-4 py-3 bg-white"
+                    style={{border:'2px solid #E2E4F3',borderLeft:'4px solid #5C4EE5',boxShadow:'3px 3px 0px #D1D5F0'}}>
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                      style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)'}}>
-                      <i className="fas fa-file-medical-alt text-white text-xs"></i>
+                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
+                      <i className="fas fa-scroll text-white text-xs"></i>
                     </div>
                     <div>
-                      <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">กรณีศึกษาวันนี้</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider mb-0.5" style={{color:'#5C4EE5'}}>✦ ภารกิจวันนี้</p>
                       <p className="text-sm font-black text-gray-800 leading-tight">{activePatient.condition}</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4 bg-amber-50 border border-amber-200">
-                    <i className="fas fa-exclamation-triangle text-amber-500 text-sm"></i>
-                    <p className="text-xs text-amber-700 font-medium">ยังไม่มีกรณีศึกษา กรุณาให้อาจารย์เพิ่มข้อมูล</p>
+                  <div className="flex items-center gap-2 rounded-xl px-4 py-3 bg-white"
+                    style={{border:'2px solid #FDE68A',borderLeft:'4px solid #D97706'}}>
+                    <i className="fas fa-exclamation-triangle text-sm" style={{color:'#D97706'}}></i>
+                    <p className="text-xs font-medium text-gray-600">ยังไม่มีภารกิจ กรุณาให้อาจารย์เพิ่มข้อมูล</p>
                   </div>
                 )}
 
-                {/* VDO Call CTA */}
+                {/* CTA button */}
                 <button onClick={startVdoCall}
-                  className="w-full py-5 rounded-3xl font-black text-white text-xl flex items-center justify-center gap-3 mb-5 active:scale-[0.97] transition"
-                  style={{background:'linear-gradient(135deg,#06C755,#059669)',boxShadow:'0 10px 40px rgba(6,199,85,0.4)'}}>
-                  <i className="fas fa-video text-2xl"></i> เริ่มการฝึก
+                  className="w-full py-5 rounded-2xl font-black text-white text-xl flex items-center justify-center gap-3 active:translate-y-[3px] transition-transform"
+                  style={{background:'#16A34A',border:'3px solid #15803D',boxShadow:'5px 5px 0px #15803D'}}>
+                  <i className="fas fa-video text-2xl"></i> รับภารกิจ!
                 </button>
 
                 {/* Stats row */}
                 <div className="flex gap-3">
-                  <div className="flex-1 rounded-2xl p-4 bg-white border border-gray-100 shadow-sm">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5"
-                      style={{background:'linear-gradient(135deg,#FCD34D,#F97316)'}}>
+                  {/* Best score */}
+                  <div className="flex-1 rounded-xl p-4 bg-white" style={{border:'2px solid #E2E4F3',boxShadow:'3px 3px 0px #D1D5F0'}}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+                      style={{background:'#D97706',border:'2px solid #B45309',boxShadow:'2px 2px 0px #B45309'}}>
                       <i className="fas fa-trophy text-white text-xs"></i>
                     </div>
-                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">คะแนนสูงสุด</p>
-                    <p className="text-2xl font-black text-gray-800">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">คะแนนสูงสุด</p>
+                    <p className="text-2xl font-black" style={{color:'#1A1A2E'}}>
                       {profileBestScore !== null ? profileBestScore : '—'}
-                      {profileBestScore !== null && <span className="text-sm text-gray-400 font-medium">%</span>}
+                      {profileBestScore !== null && <span className="text-sm font-medium text-gray-400">%</span>}
                     </p>
                   </div>
-                  <div className="flex-1 rounded-2xl p-4 bg-white border border-gray-100 shadow-sm">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5"
-                      style={{background:'linear-gradient(135deg,#8B5CF6,#6366F1)'}}>
+                  {/* Tool type */}
+                  <div className="flex-1 rounded-xl p-4 bg-white" style={{border:'2px solid #E2E4F3',boxShadow:'3px 3px 0px #D1D5F0'}}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+                      style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
                       <i className="fas fa-stethoscope text-white text-xs"></i>
                     </div>
-                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide mb-0.5">เครื่องมือ</p>
-                    <p className="text-sm font-black text-gray-800">{correctTool || 'ADL/IADL'}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">เครื่องมือ</p>
+                    <p className="text-sm font-black" style={{color:'#1A1A2E'}}>{correctTool || 'ADL/IADL'}</p>
                     <p className="text-[10px] text-gray-400">GDS / TGDS</p>
                   </div>
                 </div>
@@ -1736,63 +1809,57 @@
 
               {/* ── Profile Modal ──────────────────────────────────────── */}
               {showProfileModal && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end">
-                  <div className="bg-white w-full rounded-t-[2rem] shadow-2xl flex flex-col animate-slideUp">
-                    <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex justify-between items-center">
-                      <h3 className="font-black text-gray-800 text-lg flex items-center gap-2">
-                        <i className="fas fa-user-circle text-[#4F46E5]"></i> โปรไฟล์ของฉัน
+                <div className="absolute inset-0 bg-black/60 z-50 flex flex-col justify-end">
+                  <div className="bg-white w-full rounded-t-3xl flex flex-col animate-slideUp"
+                    style={{border:'2px solid #E2E4F3',borderBottom:'none'}}>
+                    <div className="px-5 pt-5 pb-4 flex justify-between items-center"
+                      style={{borderBottom:'2px solid #E2E4F3'}}>
+                      <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-xl flex items-center justify-center"
+                          style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'2px 2px 0px #3D31C4'}}>
+                          <i className="fas fa-user text-white text-xs"></i>
+                        </span>โปรไฟล์ของฉัน
                       </h3>
-                      <button onClick={() => setShowProfileModal(false)} className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition">
-                        <i className="fas fa-times text-gray-600"></i>
+                      <button onClick={()=>setShowProfileModal(false)}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style={{background:'#F5F6FA',border:'2px solid #E2E4F3'}}>
+                        <i className="fas fa-times text-gray-500 text-xs"></i>
                       </button>
                     </div>
-
-                    <div className="px-6 py-6 space-y-4">
-                      {/* Avatar */}
-                      <div className="flex items-center gap-4 bg-[#EEF2FF] rounded-2xl p-4">
-                        <div className="w-14 h-14 bg-[#4F46E5] rounded-full flex items-center justify-center shrink-0">
-                          <i className="fas fa-user-nurse text-white text-2xl"></i>
+                    <div className="px-5 py-5 space-y-3">
+                      {/* Level card */}
+                      <div className="flex items-center gap-3 rounded-xl p-4"
+                        style={{background:'#EEF0FF',border:'2px solid #C7CAF5',boxShadow:'3px 3px 0px #C7CAF5'}}>
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                          style={{background:'#5C4EE5',border:'2px solid #3D31C4',boxShadow:'3px 3px 0px #3D31C4'}}>
+                          <i className="fas fa-user-nurse text-white text-xl"></i>
                         </div>
-                        <div>
-                          <p className="text-xs text-[#6366F1] font-semibold uppercase tracking-wide mb-0.5">นักศึกษาพยาบาล</p>
-                          <p className="text-base font-black text-gray-800 leading-tight">{studentName || '(ยังไม่ระบุชื่อ)'}</p>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-black uppercase tracking-wide mb-0.5" style={{color:'#5C4EE5'}}>นักศึกษาพยาบาล</p>
+                          <p className="text-sm font-black text-gray-800">{studentName || '(ยังไม่ระบุชื่อ)'}</p>
                         </div>
                       </div>
-
                       {/* Info rows */}
-                      <div className="bg-[#F8FAFC] rounded-2xl divide-y divide-gray-100 border border-gray-100">
-                        <div className="flex justify-between items-center px-4 py-3.5">
-                          <span className="text-sm text-gray-500 font-medium flex items-center gap-2">
-                            <i className="fas fa-id-card text-[#8B5CF6] w-4 text-center"></i> รหัสนักศึกษา
-                          </span>
-                          <span className="text-sm font-black text-gray-800">{studentId || '-'}</span>
-                        </div>
-                        <div className="flex justify-between items-center px-4 py-3.5">
-                          <span className="text-sm text-gray-500 font-medium flex items-center gap-2">
-                            <i className="fas fa-user text-[#8B5CF6] w-4 text-center"></i> ชื่อ-นามสกุล
-                          </span>
-                          <span className="text-sm font-black text-gray-800">{studentName || '-'}</span>
-                        </div>
-                        <div className="flex justify-between items-center px-4 py-3.5">
-                          <span className="text-sm text-gray-500 font-medium flex items-center gap-2">
-                            <i className="fas fa-trophy text-[#F97316] w-4 text-center"></i> คะแนนสูงสุด
-                          </span>
-                          <span className="text-sm font-black text-[#4F46E5]">
-                            {profileLoading
-                              ? <i className="fas fa-spinner fa-spin text-gray-400"></i>
-                              : profileBestScore !== null
-                                ? `${profileBestScore}%`
-                                : <span className="text-gray-400 font-medium">-</span>
-                            }
-                          </span>
-                        </div>
+                      <div className="rounded-xl overflow-hidden" style={{border:'2px solid #E2E4F3'}}>
+                        {[
+                          {icon:'fa-id-card',  label:'รหัสนักศึกษา', val:studentId || '-',    color:'#5C4EE5'},
+                          {icon:'fa-user',     label:'ชื่อ-นามสกุล', val:studentName || '-',  color:'#5C4EE5'},
+                          {icon:'fa-trophy',   label:'คะแนนสูงสุด',
+                            val: profileLoading ? '...' : profileBestScore !== null ? `${profileBestScore}%` : '-',
+                            color:'#D97706'},
+                        ].map((row,i,arr)=>(
+                          <div key={i} className="flex justify-between items-center px-4 py-3.5"
+                            style={{borderBottom: i<arr.length-1 ? '2px solid #E2E4F3' : 'none'}}>
+                            <span className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                              <i className={`fas ${row.icon} w-4 text-center text-xs`} style={{color:row.color}}></i>{row.label}
+                            </span>
+                            <span className="text-sm font-black" style={{color:row.color}}>{row.val}</span>
+                          </div>
+                        ))}
                       </div>
-
-                      {/* Logout */}
-                      <button
-                        onClick={() => { setShowProfileModal(false); navigate('welcome'); }}
-                        className="w-full border-2 border-red-100 text-red-500 hover:bg-red-50 font-bold py-3.5 rounded-2xl transition flex items-center justify-center gap-2"
-                      >
+                      <button onClick={()=>{setShowProfileModal(false);navigate('welcome');}}
+                        className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform"
+                        style={{background:'#FEF2F2',border:'2px solid #FECACA',color:'#DC2626',boxShadow:'3px 3px 0px #FECACA'}}>
                         <i className="fas fa-sign-out-alt"></i> ออกจากระบบ
                       </button>
                     </div>
@@ -1800,16 +1867,18 @@
                 </div>
               )}
             </div>
-          );
+            );
+          };
 
           // ============================================================
           // PAGE: SIMULATION (VDO Call)
           // ============================================================
           const renderSimulation = () => (
-            <div className="flex flex-col h-full bg-[#111827] w-full max-w-md mx-auto relative overflow-hidden">
+            <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-hidden" style={{background:'#1A1A2E'}}>
 
               {/* ── Top bar ─────────────────────────────────────────── */}
-              <div className="absolute top-0 w-full px-4 pt-10 pb-4 flex items-center justify-between z-40 bg-gradient-to-b from-black/60 to-transparent">
+              <div className="absolute top-0 w-full px-4 pt-10 pb-4 flex items-center justify-between z-40"
+                style={{background:'#1A1A2E',borderBottom:'2px solid #2D2D4E'}}>
                 <div className="flex flex-col">
                   <span className="text-white font-bold text-lg drop-shadow-md">{activePatient.name}</span>
                   <span className="text-[#06C755] text-xs font-medium flex items-center drop-shadow-md">
@@ -1875,37 +1944,43 @@
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* ── Step progress bar ── */}
+                {/* ── Step progress bar (flat numbered badges) ── */}
                 <div className="px-4 mb-3">
-                  <div className="flex items-stretch gap-1.5">
+                  <div className="flex items-center gap-1">
                     {[
-                      {label:'เลือกแบบ', icon:'fa-clipboard-list', color:'#6366F1', score:scores.tool,
+                      {label:'เลือกแบบ', color:'#5C4EE5', border:'#3D31C4', score:scores.tool,
                         onClick:()=>setActiveModal('tool'), enabled:true},
-                      {label:'ประเมิน',  icon:'fa-heartbeat',       color:'#8B5CF6', score:scores.assessment,
+                      {label:'ประเมิน',  color:'#9333EA', border:'#7E22CE', score:scores.assessment,
                         onClick:()=>{ if(selectedTool) setActiveModal('assessment'); else alert('กรุณาเลือกแบบประเมินก่อน (ขั้นตอน 1)'); }, enabled:!!selectedTool},
-                      {label:'แนะนำ',   icon:'fa-hand-holding-heart',color:'#F97316',score:scores.recommendation,
+                      {label:'แนะนำ',   color:'#D97706', border:'#B45309', score:scores.recommendation,
                         onClick:()=>{ if(selectedTool) setActiveModal('recommendation'); else alert('กรุณาเลือกแบบประเมินก่อน (ขั้นตอน 1)'); }, enabled:!!selectedTool},
-                      {label:'ส่งผล',   icon:'fa-paper-plane',      color:'#06C755', score:null,
+                      {label:'ส่งผล',   color:'#16A34A', border:'#15803D', score:null,
                         onClick:handleSubmitSession, enabled:scores.recommendation > 0},
                     ].map((step, i) => {
                       const done = step.score > 0 || (i === 3 && scores.recommendation > 0);
                       return (
-                        <button key={i} onClick={step.onClick}
-                          className="flex flex-col items-center gap-1 flex-1 py-2.5 rounded-2xl transition active:scale-95"
-                          style={{
-                            background: done ? `${step.color}22` : 'rgba(255,255,255,0.06)',
-                            border: `1.5px solid ${done ? step.color : 'rgba(255,255,255,0.1)'}`,
-                            opacity: step.enabled ? 1 : 0.45,
-                          }}>
-                          <i className={`fas ${step.icon} text-base`} style={{color: done ? step.color : 'rgba(255,255,255,0.55)'}}></i>
-                          <span className="text-[9px] font-bold leading-none" style={{color: done ? step.color : 'rgba(255,255,255,0.45)'}}>{step.label}</span>
-                          {done && step.score !== null && (
-                            <span className="text-[9px] font-black leading-none" style={{color: step.color}}>{step.score}%</span>
+                        <React.Fragment key={i}>
+                          <button onClick={step.onClick}
+                            className="flex flex-col items-center gap-1 flex-1 py-2 rounded-xl active:translate-y-[2px] transition-transform"
+                            style={{
+                              background: done ? step.color : '#2D2D4E',
+                              border: `2px solid ${done ? step.border : '#3D3D5E'}`,
+                              boxShadow: done ? `3px 3px 0px ${step.border}` : '3px 3px 0px #3D3D5E',
+                              opacity: step.enabled ? 1 : 0.4,
+                            }}>
+                            <span className="text-[11px] font-black" style={{color: done ? '#fff' : '#6B7280'}}>{i+1}</span>
+                            <span className="text-[8px] font-bold leading-none" style={{color: done ? 'rgba(255,255,255,0.85)' : '#4B5563'}}>{step.label}</span>
+                            {done && step.score !== null && (
+                              <span className="text-[9px] font-black" style={{color:'#FDE68A'}}>{step.score}%</span>
+                            )}
+                            {done && step.score === null && (
+                              <i className="fas fa-check text-[9px] text-white"></i>
+                            )}
+                          </button>
+                          {i < 3 && (
+                            <div className="w-4 h-0.5 shrink-0" style={{background: done ? step.color : '#2D2D4E'}}></div>
                           )}
-                          {done && step.score === null && (
-                            <i className="fas fa-check text-[8px]" style={{color: step.color}}></i>
-                          )}
-                        </button>
+                        </React.Fragment>
                       );
                     })}
                   </div>
@@ -2103,89 +2178,114 @@
             const emoji = totalScore >= 80 ? '🏆' : totalScore >= 60 ? '⭐' : '💪';
             const headline = totalScore >= 80 ? 'ยอดเยี่ยม!' : totalScore >= 60 ? 'ทำได้ดี!' : 'สู้ต่อไป!';
 
-            return (
-              <div className="flex flex-col h-full w-full max-w-md mx-auto relative overflow-y-auto no-scrollbar"
-                style={{background:'linear-gradient(160deg,#0F0F23 0%,#1E1B4B 55%,#312E81 100%)'}}>
-                <div style={{position:'absolute',top:'-10%',right:'-15%',width:'250px',height:'250px',borderRadius:'50%',background:'radial-gradient(circle,rgba(129,140,248,0.3),transparent)',pointerEvents:'none'}}></div>
-                <div style={{position:'absolute',bottom:'10%',left:'-10%',width:'180px',height:'180px',borderRadius:'50%',background:'radial-gradient(circle,rgba(52,211,153,0.2),transparent)',pointerEvents:'none'}}></div>
+            const xpEarned = totalScore * 10;
+            const lvls = [
+              {lv:1,name:'มือใหม่',    min:0,   color:'#6B7280',border:'#4B5563'},
+              {lv:2,name:'กำลังพัฒนา',min:300, color:'#2563EB',border:'#1D4ED8'},
+              {lv:3,name:'ชำนาญการ',  min:500, color:'#16A34A',border:'#15803D'},
+              {lv:4,name:'เชี่ยวชาญ', min:700, color:'#9333EA',border:'#7E22CE'},
+              {lv:5,name:'ยอดเยี่ยม', min:900, color:'#D97706',border:'#B45309'},
+            ];
+            const curLv = [...lvls].reverse().find(l=>xpEarned>=l.min) || lvls[0];
 
-                <div className="px-5 pt-14 pb-10 flex flex-col items-center relative z-10">
+            return (
+              <div className="flex flex-col h-full w-full max-w-md mx-auto overflow-y-auto no-scrollbar" style={{background:'#F5F6FA'}}>
+
+                {/* ── Flat top banner ── */}
+                <div className="px-5 pt-14 pb-6 flex flex-col items-center"
+                  style={{background:'#5C4EE5',borderBottom:'3px solid #3D31C4'}}>
                   <p className="text-5xl mb-3">{emoji}</p>
                   <h2 className="text-3xl font-black text-white mb-1">{headline}</h2>
-                  <p className="text-sm font-medium mb-8" style={{color:'rgba(165,180,252,0.8)'}}>สรุปผลการฝึกประเมินสุขภาพผู้สูงอายุ</p>
+                  <p className="text-xs font-bold" style={{color:'#C4BCF9'}}>สรุปผลการฝึกประเมินสุขภาพผู้สูงอายุ</p>
 
-                  {/* SVG Score ring */}
-                  <div className="relative w-44 h-44 mb-8">
-                    <svg viewBox="0 0 100 100" className="w-full h-full" style={{transform:'rotate(-90deg)'}}>
-                      <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="9"/>
-                      <circle cx="50" cy="50" r="45" fill="none" stroke={ringColor} strokeWidth="9"
-                        strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
-                        style={{transition:'stroke-dashoffset 1.2s ease-out'}}/>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-4xl font-black text-white">{totalScore}</span>
-                      <span className="text-xs font-medium" style={{color:'rgba(165,180,252,0.7)'}}>/100</span>
+                  {/* Big flat score badge */}
+                  <div className="mt-5 px-8 py-4 rounded-2xl flex items-baseline gap-1"
+                    style={{background:'#fff',border:`3px solid ${ringColor}`,boxShadow:`5px 5px 0px ${ringColor}`}}>
+                    <span className="text-6xl font-black" style={{color:ringColor}}>{totalScore}</span>
+                    <span className="text-xl font-black text-gray-400">/100</span>
+                  </div>
+                </div>
+
+                <div className="px-5 pt-5 pb-8 flex flex-col gap-4">
+
+                  {/* XP earned card */}
+                  <div className="rounded-2xl p-4 flex items-center gap-4"
+                    style={{background:'#FFFBEB',border:'2px solid #FDE68A',borderLeft:'4px solid #D97706',boxShadow:'4px 4px 0px #FDE68A'}}>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                      style={{background:'#D97706',border:'2px solid #B45309',boxShadow:'3px 3px 0px #B45309'}}>
+                      <i className="fas fa-star text-white text-lg"></i>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-0.5">XP ที่ได้รับ</p>
+                      <p className="text-2xl font-black" style={{color:'#D97706'}}>+{xpEarned} <span className="text-sm font-bold text-gray-400">XP</span></p>
+                    </div>
+                    <div className="px-3 py-1.5 rounded-xl font-black text-xs text-white"
+                      style={{background:curLv.color,border:`2px solid ${curLv.border}`,boxShadow:`2px 2px 0px ${curLv.border}`}}>
+                      Lv.{curLv.lv} {curLv.name}
                     </div>
                   </div>
 
-                  {/* Score breakdown with progress bars */}
-                  <div className="w-full rounded-3xl p-5 mb-5 space-y-4"
-                    style={{background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)'}}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{color:'rgba(165,180,252,0.7)'}}>รายละเอียดคะแนน</p>
+                  {/* Score breakdown */}
+                  <div className="rounded-2xl p-4 bg-white space-y-3"
+                    style={{border:'2px solid #E2E4F3',boxShadow:'4px 4px 0px #D1D5F0'}}>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">รายละเอียดคะแนน</p>
                     {[
-                      {label:'1. การเลือกเครื่องมือ', score:scores.tool,           color:'#6366F1', icon:'fa-clipboard-list'},
-                      {label:'2. การประเมินภาวะสุขภาพ',score:scores.assessment,     color:'#8B5CF6', icon:'fa-heartbeat'},
-                      {label:'3. การให้คำแนะนำ',       score:scores.recommendation, color:'#F97316', icon:'fa-hand-holding-heart'},
-                    ].map((row, i) => (
+                      {label:'1. การเลือกเครื่องมือ', score:scores.tool,           color:'#5C4EE5',border:'#3D31C4'},
+                      {label:'2. การประเมินภาวะสุขภาพ',score:scores.assessment,     color:'#9333EA',border:'#7E22CE'},
+                      {label:'3. การให้คำแนะนำ',       score:scores.recommendation, color:'#D97706',border:'#B45309'},
+                    ].map((row,i)=>(
                       <div key={i}>
                         <div className="flex justify-between items-center mb-1.5">
-                          <span className="text-xs font-medium text-white flex items-center gap-2">
-                            <i className={`fas ${row.icon} text-xs`} style={{color:row.color}}></i>{row.label}
+                          <span className="text-xs font-bold text-gray-700">{row.label}</span>
+                          <span className="text-sm font-black px-2 py-0.5 rounded-lg text-white"
+                            style={{background:row.color,border:`2px solid ${row.border}`,boxShadow:`2px 2px 0px ${row.border}`}}>
+                            {row.score}%
                           </span>
-                          <span className="text-sm font-black" style={{color:row.color}}>{row.score}%</span>
                         </div>
-                        <div className="w-full rounded-full h-2" style={{background:'rgba(255,255,255,0.1)'}}>
-                          <div className="h-2 rounded-full" style={{width:`${row.score}%`,background:row.color,transition:'width 1s ease-out'}}></div>
+                        <div className="w-full rounded-lg h-3 overflow-hidden" style={{background:'#F5F6FA',border:'2px solid #E2E4F3'}}>
+                          <div className="h-full rounded" style={{width:`${row.score}%`,background:row.color,transition:'width 1s ease-out'}}></div>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-xs font-medium mb-5" style={{color:'rgba(165,180,252,0.6)'}}>รหัสนักศึกษา: {studentId || 'ไม่ระบุ'}</p>
+                  <p className="text-xs text-center font-medium text-gray-400">รหัสนักศึกษา: {studentId || 'ไม่ระบุ'}</p>
 
                   <button onClick={()=>{resetSession();navigate('home');}}
-                    className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 mb-4 active:scale-[0.98] transition"
-                    style={{background:'linear-gradient(135deg,#6366F1,#8B5CF6)',boxShadow:'0 8px 32px rgba(99,102,241,0.45)'}}>
+                    className="w-full py-4 rounded-xl font-black text-white text-base flex items-center justify-center gap-2 active:translate-y-[3px] transition-transform"
+                    style={{background:'#5C4EE5',border:'3px solid #3D31C4',boxShadow:'5px 5px 0px #3D31C4'}}>
                     <i className="fas fa-home"></i> กลับสู่หน้าหลัก
                   </button>
 
                   <button onClick={()=>setShowReport(!showReport)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition"
-                    style={{background:'rgba(99,102,241,0.15)',border:'1px solid rgba(165,180,252,0.3)',color:'rgba(165,180,252,0.9)'}}>
+                    className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:translate-y-[2px] transition-transform"
+                    style={{background:'#F5F6FA',border:'2px solid #E2E4F3',color:'#5C4EE5',boxShadow:'3px 3px 0px #D1D5F0'}}>
                     <i className={`fas ${showReport ? 'fa-eye-slash' : 'fa-chart-bar'}`}></i>
-                    {showReport ? 'ซ่อนรายงาน' : 'ดูรายงาน Feedback'}
+                    {showReport ? 'ซ่อนรายงาน' : 'ดู Feedback รายข้อ'}
                   </button>
 
                   {showReport && (
-                    <div className="w-full mt-5 space-y-4 pb-6">
+                    <div className="space-y-3 pb-4">
                       {feedback.length === 0 && !correctTool && (
-                        <div className="rounded-2xl p-5" style={{background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)'}}>
-                          <p className="text-sm font-medium text-center" style={{color:'rgba(165,180,252,0.7)'}}>ยังไม่มีข้อมูลกรณีศึกษา (Proposition_DB ว่าง)</p>
+                        <div className="rounded-xl p-4 bg-white text-center" style={{border:'2px solid #E2E4F3'}}>
+                          <p className="text-sm font-medium text-gray-400">ยังไม่มีข้อมูลกรณีศึกษา (Proposition_DB ว่าง)</p>
                         </div>
                       )}
-                      {feedback.map((item, index) => {
+                      {feedback.map((item,index) => {
                         const isOk = item.topic.startsWith('✅');
                         return (
-                          <div key={index} className="rounded-2xl p-5"
-                            style={{background: isOk ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-                                    border: `1px solid ${isOk ? 'rgba(52,211,153,0.3)' : 'rgba(252,165,165,0.3)'}`}}>
-                            <h4 className="text-sm font-black mb-3 flex items-center gap-2" style={{color: isOk ? '#34D399' : '#FC8181'}}>
-                              <i className={`fas ${isOk ? 'fa-check-circle' : 'fa-times-circle'}`}></i>{item.topic}
+                          <div key={index} className="rounded-xl p-4 bg-white"
+                            style={{border:'2px solid #E2E4F3',borderLeft:`4px solid ${isOk?'#16A34A':'#DC2626'}`,boxShadow:'3px 3px 0px #D1D5F0'}}>
+                            <h4 className="text-sm font-black mb-2 flex items-center gap-2"
+                              style={{color:isOk?'#16A34A':'#DC2626'}}>
+                              <i className={`fas ${isOk?'fa-check-square':'fa-times-square'}`}></i>{item.topic}
                             </h4>
-                            <p className="text-xs font-medium mb-2" style={{color:'rgba(199,210,254,0.7)'}}>{isOk ? 'ผลลัพธ์:' : 'สิ่งที่คุณทำ:'}</p>
-                            <p className="text-xs font-medium p-3 rounded-xl mb-3" style={{background:'rgba(0,0,0,0.25)',color:'rgba(252,165,165,0.9)'}}>{item.mistake}</p>
-                            <p className="text-xs font-medium mb-2" style={{color:'rgba(199,210,254,0.7)'}}>Feedback:</p>
-                            <p className="text-xs font-medium p-3 rounded-xl" style={{background:'rgba(52,211,153,0.12)',color:'#6EE7B7'}}>{item.correct}</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{isOk?'ผลลัพธ์:':'สิ่งที่คุณทำ:'}</p>
+                            <p className="text-xs font-medium p-2.5 rounded-lg mb-2 text-gray-700"
+                              style={{background:'#FEF2F2',border:'1px solid #FECACA'}}>{item.mistake}</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Feedback:</p>
+                            <p className="text-xs font-medium p-2.5 rounded-lg text-gray-700"
+                              style={{background:'#F0FDF4',border:'1px solid #BBF7D0'}}>{item.correct}</p>
                           </div>
                         );
                       })}
