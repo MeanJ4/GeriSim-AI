@@ -99,9 +99,48 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwTgYwJqHExPbTxrUrCRINd_oqUhsvGdxMEFg20u5gjVdDs9jQAWlI8babLru2d-7cl4A/exec';
 
         // ============================================================
-        // SYSTEM PROMPT — Persona for คุณยายสมศรี (Gemini 1.5 Flash)
+        // AGENTIC SYSTEM PROMPT BUILDER
+        // Builds a rich persona from 17 case fields:
+        // gender, symptom_group, q1–q15
         // ============================================================
-        const SYSTEM_PROMPT = `คุณคือ "คุณยายสมศรี" ผู้สูงอายุชาวไทย อายุ 75 ปี อาศัยอยู่กับลูกสาว มีอาการนอนไม่หลับและเบื่ออาหารมาเป็นระยะเวลาหลายเดือน มีโรคประจำตัวคือความดันโลหิตสูงและปวดเข่าจากข้อเสื่อม พูดภาษาไทยสำเนียงภาคใต้ปนภาษากลาง ใจดี แต่บางครั้งขี้กังวล ตอบประโยคสั้นๆ เป็นธรรมชาติแบบผู้สูงอายุ ไม่ใช้ศัพท์วิชาการ`;
+        const FALLBACK_PROMPT = `คุณคือผู้สูงอายุชาวไทย ตอบเป็นภาษาไทยแบบเป็นธรรมชาติ ไม่ใช้ศัพท์วิชาการ`;
+
+        const buildAgenticPrompt = (name, age, gender, symptomGroup, traits) => {
+          const isMale    = (gender || '').includes('ชาย');
+          const selfWord  = isMale ? 'ตา' : 'ยาย';
+          const genderTxt = isMale ? 'ชาย' : 'หญิง';
+
+          // Build trait block — skip empty entries
+          const traitBlock = traits
+            .map((v, i) => v ? `  • ลักษณะที่ ${i+1}: ${v}` : null)
+            .filter(Boolean)
+            .join('\n');
+
+          return `คุณคือ "${name}" ผู้สูงอายุชาวไทย อายุ ${age} ปี เพศ${genderTxt}
+
+══════════════════════════════════════
+อาการและกลุ่มอาการสุขภาพ
+══════════════════════════════════════
+${symptomGroup || 'ไม่ระบุ'}
+
+══════════════════════════════════════
+ลักษณะนิสัย บุคลิกภาพ และประวัติส่วนตัว
+(ใช้ข้อมูลทั้ง 15 ข้อนี้ในการแสดงบทบาท)
+══════════════════════════════════════
+${traitBlock || '  • (ยังไม่ได้กำหนดลักษณะเพิ่มเติม)'}
+
+══════════════════════════════════════
+คำสั่ง Agentic AI — ปฏิบัติตามทุกข้อ
+══════════════════════════════════════
+1. แสดงบทบาทเป็น "${name}" อย่างสมจริงและสม่ำเสมอตลอดการสนทนา
+2. ตอบเป็นภาษาไทยเสมอ ใช้คำพูดแบบผู้สูงอายุไทย เรียกตัวเองว่า "${selfWord}"
+3. ตอบสั้น เป็นธรรมชาติ บางครั้งอาจพูดนอกเรื่องเล็กน้อยแบบผู้สูงอายุ
+4. แสดงอาการ ความรู้สึก และพฤติกรรมตามลักษณะทั้ง 15 ข้อข้างต้นทุกครั้ง
+5. หากถูกถามเกี่ยวกับอาการ ตอบตาม "กลุ่มอาการสุขภาพ" ที่ระบุ
+6. จดจำบริบทการสนทนาก่อนหน้าและตอบสนองอย่างต่อเนื่องแบบ Agentic AI
+7. ห้ามออกนอกบทบาท ห้ามบอกว่าตนเองเป็น AI หรือโปรแกรมคอมพิวเตอร์
+8. หากไม่เข้าใจคำถาม ให้ถามกลับในแบบผู้สูงอายุ เช่น "หา? พูดดังๆ หน่อยได้ไหมลูก"`;
+        };
 
         // ============================================================
         // iApp TTS API — Thai neural voice (primary engine)
@@ -688,6 +727,7 @@
           const [caseScoreMax, setCaseScoreMax]                   = useState(100);
           const [expectedInterventions, setExpectedInterventions] = useState([]);
           const [caseLoading, setCaseLoading]                     = useState(false);
+          const [caseTraits,  setCaseTraits]                       = useState([]);  // q1–q15 from Proposition_DB
           // Raw assessment pct stored after submitAssessment (used in save payload & summary)
           const [assessmentPct, setAssessmentPct]   = useState(0);
           const [assessmentRawVal, setAssessmentRawVal] = useState(0);
@@ -771,6 +811,14 @@
                 setCaseScoreMax(Number(c.score_max) || 100);
                 setExpectedInterventions(Array.isArray(c.expected_interventions) ? c.expected_interventions : []);
                 // Update active patient display with case symptom group
+                // Extract q1–q15 personality/characteristic traits
+                const traits = [
+                  c.q1||'', c.q2||'', c.q3||'', c.q4||'', c.q5||'',
+                  c.q6||'', c.q7||'', c.q8||'', c.q9||'', c.q10||'',
+                  c.q11||'', c.q12||'', c.q13||'', c.q14||'', c.q15||''
+                ];
+                setCaseTraits(traits);
+                // Update active patient display
                 setActivePatient(prev => ({
                   ...prev,
                   condition: c.symptom_group || prev.condition,
@@ -1042,7 +1090,15 @@
                 body   : JSON.stringify({
                   action       : 'chat',
                   message      : messageText,
-                  systemPrompt : caseSystemPrompt || SYSTEM_PROMPT,
+                  systemPrompt : activeCaseId
+                    ? buildAgenticPrompt(
+                        activePatient.name,
+                        activePatient.age,
+                        activePatient.gender || 'หญิง',
+                        activePatient.condition || '',
+                        caseTraits
+                      )
+                    : (caseSystemPrompt || FALLBACK_PROMPT),
                   studentId    : studentId || 'anonymous'
                 })
               });
