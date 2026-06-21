@@ -135,6 +135,29 @@
                             </div>
                         </div>
 
+                        <!-- Answer Key: Expected Score Range -->
+                        <div class="mt-6 p-5 bg-amber-50 border border-amber-200 rounded-xl">
+                            <h4 class="font-bold text-amber-800 mb-1 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                กำหนดช่วงคะแนนที่คาดหวัง (Answer Key — %)
+                            </h4>
+                            <p class="text-xs text-amber-700 mb-4">ระบุช่วงเปอร์เซ็นต์คะแนนที่นักศึกษาควรได้รับสำหรับผู้ป่วยรายนี้ (0–100%)</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="score_min" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">คะแนนขั้นต่ำ (%)</label>
+                                    <input type="number" id="score_min" name="score_min" min="0" max="100" value="0"
+                                        class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"
+                                        required>
+                                </div>
+                                <div>
+                                    <label for="score_max" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">คะแนนสูงสุด (%)</label>
+                                    <input type="number" id="score_max" name="score_max" min="0" max="100" value="100"
+                                        class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Dynamic Assessment Form Container -->
                         <div id="dynamicAssessmentForm" class="hidden mt-8 pt-8 border-t border-slate-200">
                             <!-- Injected via JS based on selection -->
@@ -215,8 +238,10 @@
         /* ==========================================
            CONFIGURATION
            ========================================== */
-        // Expert App GAS URL — receives JSON via e.postData.contents
-        const EXPERT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxoZqJGusf4b6tLdy34qtdv8Z2wJPgk3eXWUUwZow-LdYavG-1pQLc3lxyBWng1AwbC/exec';
+        // Unified GAS URL — same backend as index.html, routes by action field
+        // action:'submitCase' → Proposition_DB  (this form)
+        // action:'login'/'chat'/'save' → student flow  (index.html)
+        const EXPERT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyD6ZpMo9wMc0iEQ-_2nllTuCBci3VEhNFz6KEctvXPID7ebXhfhnsh-umuKPjO0akf8Q/exec';
 
         /* ==========================================
            DATA STRUCTURES
@@ -565,7 +590,7 @@
             btn.disabled = true;
 
             // Collect all form fields into a flat JSON object
-            const payload = {};
+            const payload = { action: 'submitCase' };  // ← routes to Proposition_DB in Code.gs
             new FormData(form).forEach((value, key) => {
                 // Skip nursing_interventions here — handled separately below
                 if (key !== 'nursing_interventions') {
@@ -573,7 +598,7 @@
                 }
             });
 
-            // Collect all checked interventions as newline-separated string
+            // Collect all checked interventions as pipe-separated string (Code.gs joins with ' | ')
             const selectedInterventions = Array.from(
                 document.querySelectorAll('input[name="nursing_interventions"]:checked')
             ).map(cb => cb.value);
