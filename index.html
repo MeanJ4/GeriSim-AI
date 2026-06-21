@@ -84,7 +84,7 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4nc37Vr6M1R1Y4p9XgVRzhF2WsDSv9xgc0csnX4bRKVwMQ2BzwZofZ99Q7J4MYSgA9g/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyD6ZpMo9wMc0iEQ-_2nllTuCBci3VEhNFz6KEctvXPID7ebXhfhnsh-umuKPjO0akf8Q/exec';
 
         // ============================================================
         // SYSTEM PROMPT — Persona for คุณยายสมศรี (Gemini 1.5 Flash)
@@ -604,7 +604,7 @@
 
           // ── Pages & UI ──────────────────────────────────────────────
           const [currentPage, setCurrentPage]     = useState('welcome');
-          const [activePatient]                   = useState(mockPatients[0]);
+          const [activePatient, setActivePatient] = useState(mockPatients[0]);
           const [selectedTool, setSelectedTool]   = useState(null);
           const [activeModal, setActiveModal]     = useState(null);
           const [isCalling, setIsCalling]         = useState(false);
@@ -649,6 +649,18 @@
           const [scores, setScores]               = useState({ tool: 0, assessment: 0, recommendation: 0 });
           const [assessmentAnswers, setAssessmentAnswers]             = useState({});
           const [selectedRecommendations, setSelectedRecommendations] = useState([]);
+
+          // ── Case data (fetched from Proposition_DB on login) ─────────
+          const [activeCaseId, setActiveCaseId]                   = useState(null);
+          const [caseSystemPrompt, setCaseSystemPrompt]           = useState(null);
+          const [correctTool, setCorrectTool]                     = useState(null);
+          const [caseScoreMin, setCaseScoreMin]                   = useState(0);
+          const [caseScoreMax, setCaseScoreMax]                   = useState(100);
+          const [expectedInterventions, setExpectedInterventions] = useState([]);
+          const [caseLoading, setCaseLoading]                     = useState(false);
+          // Raw assessment pct stored after submitAssessment (used in save payload & summary)
+          const [assessmentPct, setAssessmentPct]   = useState(0);
+          const [assessmentRawVal, setAssessmentRawVal] = useState(0);
 
           // ── Refs ────────────────────────────────────────────────────
           const chatEndRef     = useRef(null);
@@ -703,6 +715,43 @@
               setShowHistoryModal(false);
             } finally {
               setHistoryLoading(false);
+            }
+          };
+
+          // ============================================================
+          // GET CASE — POST action:"getCase" → random Proposition_DB row
+          // Called immediately after successful login. Hydrates:
+          //   caseSystemPrompt, correctTool, caseScoreMin/Max,
+          //   expectedInterventions, activePatient.condition
+          // ============================================================
+          const fetchCase = async () => {
+            setCaseLoading(true);
+            try {
+              const res  = await fetch(GAS_URL, {
+                method : 'POST',
+                body   : JSON.stringify({ action: 'getCase' })
+              });
+              const data = await res.json();
+              if (data.status === 'success' && data.case) {
+                const c = data.case;
+                setActiveCaseId(c.case_id);
+                setCaseSystemPrompt(c.system_prompt);
+                setCorrectTool(c.correct_tool || null);
+                setCaseScoreMin(Number(c.score_min) || 0);
+                setCaseScoreMax(Number(c.score_max) || 100);
+                setExpectedInterventions(Array.isArray(c.expected_interventions) ? c.expected_interventions : []);
+                // Update active patient display with case symptom group
+                setActivePatient(prev => ({
+                  ...prev,
+                  condition: c.symptom_group || prev.condition
+                }));
+              } else {
+                console.warn('[GeriSim] getCase:', data.message || 'no case returned');
+              }
+            } catch (err) {
+              console.error('[GeriSim] getCase error:', err);
+            } finally {
+              setCaseLoading(false);
             }
           };
 
@@ -894,6 +943,7 @@
               if (data.status === 'success') {
                 setStudentName(data.student_name || studentId);
                 navigate('home');
+                fetchCase(); // ← randomly pick a case from Proposition_DB
               } else {
                 alert(data.message || 'รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่');
               }
@@ -961,7 +1011,7 @@
                 body   : JSON.stringify({
                   action       : 'chat',
                   message      : messageText,
-                  systemPrompt : SYSTEM_PROMPT,
+                  systemPrompt : caseSystemPrompt || SYSTEM_PROMPT,
                   studentId    : studentId || 'anonymous'
                 })
               });
@@ -1090,13 +1140,18 @@
           // 4-STEP CLINICAL REASONING HANDLERS
           // ============================================================
           const handleToolSelect = (toolKey) => {
+            // 100 if no answer key set; 100 if matches key; 30 partial credit if wrong
+            const toolScore  = correctTool ? (toolKey === correctTool ? 100 : 30) : 100;
+            const matchHint  = correctTool && toolKey !== correctTool
+              ? ' ⚠️ (เครื่องมือไม่ตรงกับกรณีศึกษา)'
+              : '';
             setSelectedTool(toolKey);
             setAssessmentAnswers({});
             setSelectedRecommendations([]);
-            setScores(prev => ({ ...prev, tool: 100 }));
+            setScores(prev => ({ ...prev, tool: toolScore }));
             setActiveModal(null);
             setChatLog(prev => [...prev, {
-              text: `ระบบ: คุณเลือกเครื่องมือประเมิน ${assessmentTools[toolKey].name}`,
+              text: `ระบบ: เลือกเครื่องมือ ${assessmentTools[toolKey].name}${matchHint}`,
               sender: 'system'
             }]);
           };
@@ -1120,10 +1175,24 @@
             }
             const rawScore = Object.values(assessmentAnswers).reduce((sum, v) => sum + Number(v), 0);
             const pct      = tool.maxScore > 0 ? Math.round((rawScore / tool.maxScore) * 100) : 100;
-            setScores(prev => ({ ...prev, assessment: Math.max(pct, 10) }));
+
+            // Range-match scoring against case answer key
+            let rangeScore;
+            if (caseScoreMin === 0 && caseScoreMax === 100) {
+              rangeScore = Math.max(pct, 10);   // no answer key — use raw pct
+            } else if (pct >= caseScoreMin && pct <= caseScoreMax) {
+              rangeScore = 100;                  // perfectly within expected range
+            } else {
+              const dist = pct < caseScoreMin ? caseScoreMin - pct : pct - caseScoreMax;
+              rangeScore = Math.max(0, Math.round(100 - dist * 2));
+            }
+
+            setAssessmentPct(pct);
+            setAssessmentRawVal(rawScore);
+            setScores(prev => ({ ...prev, assessment: rangeScore }));
             setActiveModal(null);
             setChatLog(prev => [...prev, {
-              text: `ระบบ: บันทึกผลการประเมิน ${tool.name} (คะแนนดิบ ${rawScore}/${tool.maxScore} = ${pct}%)`,
+              text: `ระบบ: บันทึกผลประเมิน ${tool.name} — คะแนนดิบ ${rawScore}/${tool.maxScore} (${pct}%) → คะแนน ${rangeScore}%`,
               sender: 'system'
             }]);
           };
@@ -1133,10 +1202,17 @@
               alert('กรุณาเลือกคำแนะนำอย่างน้อย 1 ข้อ');
               return;
             }
-            setScores(prev => ({ ...prev, recommendation: 90 }));
+            // Compute match score against case answer key's expected interventions
+            let interventionScore = 90;  // default if no key set
+            if (expectedInterventions.length > 0) {
+              const matched = selectedRecommendations.filter(r => expectedInterventions.includes(r)).length;
+              interventionScore = Math.round((matched / expectedInterventions.length) * 100);
+              interventionScore = Math.max(interventionScore, 10);
+            }
+            setScores(prev => ({ ...prev, recommendation: interventionScore }));
             setActiveModal(null);
             setChatLog(prev => [...prev, {
-              text: `ระบบ: บันทึกคำแนะนำ: ${selectedRecommendations.join(', ')}`,
+              text: `ระบบ: บันทึกคำแนะนำ ${selectedRecommendations.length} ข้อ (คะแนน: ${interventionScore}%)`,
               sender: 'system'
             }]);
           };
@@ -1165,16 +1241,24 @@
               qPayload[`q${i + 1}`] = `[นักศึกษา] ${turn.user} | [ผู้ป่วย] ${turn.ai}`;
             });
 
+            const toolMatch = correctTool ? (selectedTool === correctTool) : true;
             const payload = {
-              action              : 'save',
-              student_id          : studentId || 'ไม่ระบุ',
-              case_name           : activePatient.name,
-              assessment_tool     : selectedTool,
-              assessment_score    : scores.assessment,
-              total_score         : totalScore,
-              duration            : durationStr,
-              nursing_intervention: selectedRecommendations.join(' | '),
-              system_feedback     : `เครื่องมือ: ${assessmentTools[selectedTool]?.name} | คะแนนรวม: ${totalScore}% | เวลา: ${durationStr}`,
+              action                : 'save',
+              student_id            : studentId || 'ไม่ระบุ',
+              student_name          : studentName || '',
+              case_id               : activeCaseId || '-',
+              case_name             : activePatient.condition || activePatient.name,
+              chosen_tool           : selectedTool,
+              correct_tool          : correctTool || '',
+              tool_match            : toolMatch,
+              tool_score            : scores.tool,
+              assessment_pct        : assessmentPct,
+              score_in_range        : scores.assessment >= 100,
+              assessment_score      : scores.assessment,
+              intervention_score    : scores.recommendation,
+              total_score           : totalScore,
+              duration              : durationStr,
+              nursing_interventions : selectedRecommendations.join(' | '),
               ...qPayload
             };
 
@@ -1238,14 +1322,22 @@
                 โปรแกรมการฝึกโดยใช้เทคโนโลยีปัญญาประดิษฐ์สำหรับนักศึกษาพยาบาล<br/>
                 เพื่อเสริมสร้างสมรรถนะการประเมินสุขภาพของผู้สูงอายุ
               </h2>
-              <h1 className="text-4xl font-black text-[#4F46E5] mb-10 tracking-tight z-10">GeriSim AI</h1>
+              <h1 className="text-4xl font-black text-[#4F46E5] mb-4 tracking-tight z-10">GeriSim AI</h1>
+
+              <div className="w-full bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl px-4 py-3 mb-6 z-10 flex items-start gap-3">
+                <i className="fas fa-info-circle text-[#4F46E5] mt-0.5 shrink-0"></i>
+                <p className="text-xs text-[#3730A3] leading-relaxed font-medium">
+                  กรุณาเข้าสู่ระบบด้วย <span className="font-black">รหัสนักศึกษา</span> และ <span className="font-black">รหัสผ่าน</span> ที่ได้รับจากอาจารย์ผู้สอน<br/>
+                  หากยังไม่มีบัญชี กรุณากดปุ่ม <span className="font-black">ลงทะเบียน</span> ด้านล่าง
+                </p>
+              </div>
 
               <div className="w-full space-y-4 z-10">
                 <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-user"></i></span>
+                  <span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-id-card"></i></span>
                   <input
                     type="text"
-                    placeholder="รหัสนักศึกษา / ชื่อผู้ใช้งาน"
+                    placeholder="รหัสนักศึกษา (Student ID)"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -1256,7 +1348,7 @@
                   <span className="absolute left-4 top-3.5 text-gray-400"><i className="fas fa-lock"></i></span>
                   <input
                     type="password"
-                    placeholder="รหัสผ่าน"
+                    placeholder="รหัสผ่าน (Password)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -1394,6 +1486,19 @@
                 <div className="text-center mb-10">
                   <h2 className="text-2xl font-black text-gray-800">{activePatient.name}</h2>
                   <p className="text-sm font-medium text-gray-500">อายุ {activePatient.age} ปี • กรณีศึกษาจำลอง</p>
+                  {caseLoading ? (
+                    <div className="mt-3 flex items-center justify-center gap-2 text-[#4F46E5]">
+                      <i className="fas fa-spinner fa-spin text-xs"></i>
+                      <span className="text-xs font-medium">กำลังโหลดกรณีศึกษา...</span>
+                    </div>
+                  ) : activeCaseId ? (
+                    <div className="mt-3 inline-flex items-center gap-2 bg-[#EEF2FF] border border-[#C7D2FE] rounded-full px-4 py-1.5">
+                      <i className="fas fa-file-medical-alt text-[#4F46E5] text-xs"></i>
+                      <span className="text-xs font-bold text-[#4F46E5] leading-snug">{activePatient.condition}</span>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-amber-500 font-medium">⚠️ ยังไม่มีกรณีศึกษา กรุณาให้อาจารย์เพิ่มข้อมูล</p>
+                  )}
                 </div>
 
                 <button onClick={startVdoCall} className="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20 flex items-center justify-center text-lg transition transform hover:scale-[1.02]">
@@ -1813,18 +1918,40 @@
           const renderSummary = () => {
             const totalScore = Math.round((scores.tool + scores.assessment + scores.recommendation) / 3);
 
-            const mockMistakes = [
-              {
-                topic  : 'การประเมินภาวะสุขภาพ',
-                mistake: 'ไม่ได้ประเมินปัญหาด้านการนอนหลับเพิ่มเติม',
-                correct: 'ผู้ป่วยให้ข้อมูลว่า "นอนไม่หลับ" ควรประเมินสภาพแวดล้อม หรือซักประวัติการปวดเข่าที่ทำให้ตื่นกลางดึกร่วมด้วย'
-              },
-              {
-                topic  : 'การให้คำแนะนำการพยาบาล',
-                mistake: 'ไม่ได้ให้คำแนะนำเรื่องการจัดการสภาพแวดล้อมยามวิกาล',
-                correct: 'ควรแนะนำการเปิดไฟทางเดิน หรือเตรียมกระโถนข้างเตียง เพื่อลดความเสี่ยงหกล้มตอนกลางคืน'
-              }
-            ];
+            // Dynamic feedback from case answer key (Proposition_DB)
+            const feedback = [];
+            const toolMatch = correctTool ? (selectedTool === correctTool) : true;
+            if (correctTool && !toolMatch) {
+              feedback.push({
+                topic  : '1. การเลือกเครื่องมือประเมิน (Step 1)',
+                mistake: `คุณเลือก: ${assessmentTools[selectedTool]?.name || selectedTool}`,
+                correct: `เครื่องมือที่เหมาะสมกับกรณีนี้: ${assessmentTools[correctTool]?.name || correctTool}`
+              });
+            }
+            if (correctTool && (caseScoreMin > 0 || caseScoreMax < 100) &&
+                (assessmentPct < caseScoreMin || assessmentPct > caseScoreMax)) {
+              feedback.push({
+                topic  : '2. ผลการประเมิน (Step 2)',
+                mistake: `คะแนนที่ได้: ${assessmentPct}%`,
+                correct: `ช่วงคะแนนที่คาดหวังสำหรับกรณีนี้: ${caseScoreMin}–${caseScoreMax}% — ตรวจสอบการอ่านผลอีกครั้ง`
+              });
+            }
+            const missedInterv = expectedInterventions.filter(r => !selectedRecommendations.includes(r));
+            if (missedInterv.length > 0) {
+              feedback.push({
+                topic  : '3. คำแนะนำการพยาบาลที่ยังขาด (Step 3)',
+                mistake: `เลือก ${selectedRecommendations.length} ข้อ จากที่คาดหวัง ${expectedInterventions.length} ข้อ`,
+                correct: missedInterv.slice(0, 3).join(' | ') +
+                  (missedInterv.length > 3 ? ` ... (+${missedInterv.length - 3} ข้อ)` : '')
+              });
+            }
+            if (feedback.length === 0 && correctTool) {
+              feedback.push({
+                topic  : '✅ ผลการประเมินสมบูรณ์',
+                mistake: 'ไม่มีข้อผิดพลาด',
+                correct: 'คุณเลือกเครื่องมือ ผลการประเมิน และคำแนะนำได้ถูกต้องตามกรณีศึกษา'
+              });
+            }
 
             return (
               <div className="flex flex-col h-full bg-[#4F46E5] w-full max-w-md mx-auto relative overflow-y-auto p-6 no-scrollbar">
@@ -1878,17 +2005,25 @@
 
                   {showReport && (
                     <div className="w-full mt-6 space-y-4 animate-slideUp">
-                      {mockMistakes.map((item, index) => (
-                        <div key={index} className="bg-white/95 backdrop-blur-md rounded-[1.5rem] p-6 shadow-xl border-l-[6px] border-[#EF4444]">
-                          <h4 className="text-sm font-black text-[#EF4444] mb-3 flex items-center">
-                            <i className="fas fa-times mr-2"></i> {item.topic}
-                          </h4>
-                          <p className="text-sm font-bold text-gray-800 mb-1">สิ่งที่คุณตอบ:</p>
-                          <p className="text-xs font-medium text-gray-600 mb-4 bg-[#FEF2F2] p-3 rounded-xl border border-[#FEE2E2]">{item.mistake}</p>
-                          <p className="text-sm font-bold text-gray-800 mb-1">คำแนะนำ (Feedback):</p>
-                          <p className="text-xs font-medium text-[#047857] bg-[#ECFDF5] p-3 rounded-xl border border-[#D1FAE5]">{item.correct}</p>
+                      {feedback.length === 0 && !correctTool && (
+                        <div className="bg-white/95 backdrop-blur-md rounded-[1.5rem] p-6 shadow-xl border-l-[6px] border-gray-300 text-center">
+                          <p className="text-sm text-gray-500 font-medium">ยังไม่มีข้อมูลกรณีศึกษา (Proposition_DB ว่าง)</p>
                         </div>
-                      ))}
+                      )}
+                      {feedback.map((item, index) => {
+                        const isOk = item.topic.startsWith('✅');
+                        return (
+                          <div key={index} className={`bg-white/95 backdrop-blur-md rounded-[1.5rem] p-6 shadow-xl border-l-[6px] ${isOk ? 'border-[#10B981]' : 'border-[#EF4444]'}`}>
+                            <h4 className={`text-sm font-black mb-3 flex items-center ${isOk ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
+                              <i className={`fas ${isOk ? 'fa-check' : 'fa-times'} mr-2`}></i> {item.topic}
+                            </h4>
+                            <p className="text-sm font-bold text-gray-800 mb-1">{isOk ? 'ผลลัพธ์:' : 'สิ่งที่คุณทำ:'}</p>
+                            <p className="text-xs font-medium text-gray-600 mb-4 bg-[#FEF2F2] p-3 rounded-xl border border-[#FEE2E2]">{item.mistake}</p>
+                            <p className="text-sm font-bold text-gray-800 mb-1">Feedback:</p>
+                            <p className="text-xs font-medium text-[#047857] bg-[#ECFDF5] p-3 rounded-xl border border-[#D1FAE5]">{item.correct}</p>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
