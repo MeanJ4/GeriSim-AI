@@ -3,228 +3,455 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>โปรแกรมการฝึกโดยใช้เทคโนโลยีปัญญาประดิษฐ์สำหรับนักศึกษาพยาบาล</title>
+    <title>GeriSim AI — บันทึกกรณีศึกษาผู้สูงอายุจำลอง</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: #f1f5f9;
-        }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .required-asterisk::after { content: " *"; color: #ef4444; }
         .step-container { transition: opacity 0.3s ease-in-out; }
-        .rec-checkbox {
-            width: 1.25rem; height: 1.25rem;
-            color: #2563eb; cursor: pointer; margin-top: 0.125rem;
-        }
+        .rec-checkbox { width: 1.25rem; height: 1.25rem; color: #2563eb; cursor: pointer; margin-top: 0.125rem; }
+        .bmi-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .sec-hdr-1 { background: #1d4ed8; }
+        .sec-hdr-2 { background: #047857; }
+        .sec-hdr-3 { background: #7c3aed; }
+        .sec-hdr-4 { background: #c2410c; }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Header Section -->
+    <!-- ─── Header ─── -->
     <header class="bg-blue-800 text-white shadow-lg py-6 px-4 sm:px-6 lg:px-8 shrink-0">
         <div class="max-w-5xl mx-auto">
-            <h1 class="text-2xl sm:text-3xl font-bold leading-tight text-center text-white">
-                Gerisim Ai Record
-            </h1>
-            <p class="mt-2 text-center text-blue-100 text-sm sm:text-base">
-                โปรแกรมการฝึกโดยใช้เทคโนโลยีปัญญาประดิษฐ์สำหรับนักศึกษาพยาบาล<br>เพื่อเสริมสร้างสมรรถนะการประเมินสุขภาพของผู้สูงอายุ
-            </p>
-            <p class="mt-2 text-center text-blue-200 text-xs sm:text-sm font-medium">
-                พัฒนาโดย มีนกาญจน์ แจ่มพงษ์
-            </p>
+            <h1 class="text-2xl sm:text-3xl font-bold leading-tight text-center">GeriSim AI — บันทึกกรณีศึกษา</h1>
+            <p class="mt-1 text-center text-blue-100 text-sm">แบบบันทึกข้อมูลผู้สูงอายุจำลอง (Geriatric Assessment Standard)</p>
+            <p class="mt-1 text-center text-blue-200 text-xs">พัฒนาโดย มีนกาญจน์ แจ่มพงษ์</p>
         </div>
-        <!-- Progress Indicator -->
-        <div class="max-w-3xl mx-auto mt-6 flex justify-between items-center text-xs sm:text-sm font-medium text-blue-200">
-            <div id="nav-step-1" class="flex flex-col items-center text-white"><div class="w-8 h-8 rounded-full bg-white text-blue-800 flex items-center justify-center mb-1 font-bold">1</div>ข้อมูลเบื้องต้น</div>
+        <!-- 4-step progress bar -->
+        <nav class="max-w-3xl mx-auto mt-6 flex justify-between items-center text-xs sm:text-sm font-medium text-blue-200">
+            <div id="nav-step-1" class="flex flex-col items-center text-white">
+                <div id="nav-circle-1" class="w-8 h-8 rounded-full bg-white text-blue-800 flex items-center justify-center mb-1 font-bold">1</div>
+                <span class="text-center leading-tight">ข้อมูลทั่วไป<br><span class="text-blue-300 text-xs">Parts 1–3</span></span>
+            </div>
             <div class="flex-grow border-t border-blue-400 mx-2"></div>
-            <div id="nav-step-2" class="flex flex-col items-center opacity-50"><div class="w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1">2</div>ผลการประเมิน</div>
+            <div id="nav-step-2" class="flex flex-col items-center opacity-50">
+                <div id="nav-circle-2" class="w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1">2</div>
+                <span class="text-center leading-tight">คุณสมบัติ AI<br><span class="text-blue-300 text-xs">Part 4 Q1–Q15</span></span>
+            </div>
             <div class="flex-grow border-t border-blue-400 mx-2"></div>
-            <div id="nav-step-3" class="flex flex-col items-center opacity-50"><div class="w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1">3</div>คำแนะนำพยาบาล</div>
-        </div>
+            <div id="nav-step-3" class="flex flex-col items-center opacity-50">
+                <div id="nav-circle-3" class="w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1">3</div>
+                <span class="text-center leading-tight">แบบประเมิน<br><span class="text-blue-300 text-xs">Assessment</span></span>
+            </div>
+            <div class="flex-grow border-t border-blue-400 mx-2"></div>
+            <div id="nav-step-4" class="flex flex-col items-center opacity-50">
+                <div id="nav-circle-4" class="w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1">4</div>
+                <span class="text-center leading-tight">การพยาบาล<br><span class="text-blue-300 text-xs">Interventions</span></span>
+            </div>
+        </nav>
     </header>
 
-    <!-- Main Form Container -->
-    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl relative" id="mainContent">
+    <!-- ─── Main Form ─── -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl" id="mainContent">
         <form id="healthAssessmentForm" novalidate>
 
-            <!-- ================= PAGE 1 ================= -->
+            <!-- ═══════════════════════════ PAGE 1 ═══════════════════════════ -->
             <div id="page1" class="step-container space-y-8">
-                <!-- ส่วนที่ 1: ข้อมูลทั่วไป -->
+
+                <!-- ── ส่วนที่ 1: ข้อมูลทั่วไป ── -->
                 <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4">
-                        <h2 class="text-xl font-bold text-slate-800">ส่วนที่ 1: ข้อมูลทั่วไป (General Information)</h2>
+                    <div class="sec-hdr-1 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">ส่วนที่ 1: ข้อมูลทั่วไป (General Information)</h2>
                     </div>
-                    <div class="p-6 space-y-6">
+                    <div class="p-6 space-y-5">
+                        <!-- ชื่อ -->
                         <div>
-                            <label class="block text-base font-medium text-slate-700 mb-2 required-asterisk">1. เพศ</label>
-                            <div class="flex flex-wrap gap-4">
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="gender" value="ชาย" class="form-radio h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500" required>
-                                    <span class="ml-2 text-slate-700">ชาย</span>
-                                </label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="radio" name="gender" value="หญิง" class="form-radio h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500" required>
-                                    <span class="ml-2 text-slate-700">หญิง</span>
-                                </label>
+                            <label for="patient_name" class="block text-sm font-semibold text-slate-700 mb-1">ชื่อผู้สูงอายุจำลอง</label>
+                            <input type="text" id="patient_name" name="patient_name" placeholder="เช่น คุณยายสมศรี ใจดี"
+                                class="block w-full rounded-md border border-gray-300 p-3 focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        </div>
+                        <!-- เพศ -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 required-asterisk">เพศ</label>
+                            <div class="flex gap-8">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="gender" value="ชาย" class="form-radio h-4 w-4 text-blue-600" required><span>( &nbsp;) ชาย</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="gender" value="หญิง" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) หญิง</span></label>
                             </div>
                         </div>
+                        <!-- อายุ -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="age_years" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">อายุ (ปี)</label>
+                                <input type="number" id="age_years" name="age_years" min="60" max="120" placeholder="เช่น 72"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm" required>
+                            </div>
+                            <div>
+                                <label for="age_months" class="block text-sm font-semibold text-slate-700 mb-1">อายุ (เดือน)</label>
+                                <input type="number" id="age_months" name="age_months" min="0" max="11" placeholder="0–11"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                            </div>
+                        </div>
+                        <!-- เชื้อชาติ + ศาสนา -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="ethnicity" class="block text-sm font-semibold text-slate-700 mb-1">เชื้อชาติ</label>
+                                <input type="text" id="ethnicity" name="ethnicity" placeholder="เช่น ไทย"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                            </div>
+                            <div>
+                                <label for="religion" class="block text-sm font-semibold text-slate-700 mb-1">ศาสนา</label>
+                                <input type="text" id="religion" name="religion" placeholder="เช่น พุทธ"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                            </div>
+                        </div>
+                        <!-- สถานภาพสมรส -->
                         <div>
-                            <label for="symptomGroup" class="block text-base font-medium text-slate-700 mb-2 required-asterisk">2. การจำแนกกลุ่มอาการ (Symptom Group Selection)</label>
-                            <select id="symptomGroup" name="symptomGroup" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-3 bg-white" required>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 required-asterisk">สถานภาพสมรส</label>
+                            <div class="flex flex-wrap gap-5">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="marital_status" value="โสด" class="form-radio h-4 w-4 text-blue-600" required><span>( &nbsp;) โสด</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="marital_status" value="คู่สมรส" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) คู่สมรส</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="marital_status" value="หม้าย" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) หม้าย</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="marital_status" value="หย่า/แยกกัน" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) หย่า/แยกกัน</span></label>
+                            </div>
+                        </div>
+                        <!-- ภูมิลำเนา -->
+                        <div>
+                            <label for="hometown" class="block text-sm font-semibold text-slate-700 mb-1">ภูมิลำเนา (จังหวัด/อำเภอ)</label>
+                            <input type="text" id="hometown" name="hometown" placeholder="เช่น จ.เชียงใหม่ อ.เมือง"
+                                class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                        </div>
+                        <!-- อาชีพ -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 required-asterisk">อาชีพ/การทำงานในปัจจุบัน</label>
+                            <div class="space-y-2 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="ไม่ได้ทำงาน" class="form-radio h-4 w-4 text-blue-600" required><span>( &nbsp;) ไม่ได้ทำงาน</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="ทำงานบ้าน" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) ทำงานบ้าน</span></label>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="เกษตรกรรม" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) เกษตรกรรม ระบุ</span></label>
+                                    <input type="text" name="occ_detail_agri" placeholder="ประเภท..." class="border border-gray-300 rounded px-2 py-1 text-sm flex-1 min-w-[160px]">
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="ธุรกิจส่วนตัว" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) ธุรกิจส่วนตัว ระบุ</span></label>
+                                    <input type="text" name="occ_detail_biz" placeholder="ประเภทธุรกิจ..." class="border border-gray-300 rounded px-2 py-1 text-sm flex-1 min-w-[160px]">
+                                </div>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="ข้าราชการเกษียณ/บำนาญ" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) ข้าราชการเกษียณ/บำนาญ</span></label>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="occupation" value="อื่นๆ" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) อื่นๆ ระบุ</span></label>
+                                    <input type="text" name="occ_detail_other" placeholder="ระบุอาชีพ..." class="border border-gray-300 rounded px-2 py-1 text-sm flex-1 min-w-[160px]">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- การเข้าร่วมกิจกรรม -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">การเข้าร่วมกิจกรรมองค์กร/ชมรม</label>
+                            <div class="flex gap-6 mb-2">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="community_participation" value="ไม่ได้เข้าร่วม" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) ไม่ได้เข้าร่วม</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="community_participation" value="เข้าร่วม" class="form-radio h-4 w-4 text-blue-600"><span>( &nbsp;) เข้าร่วม ระบุ</span></label>
+                            </div>
+                            <div class="pl-4 space-y-2">
+                                <input type="text" name="community_1" placeholder="1. ชื่อกิจกรรม/ชมรม/องค์กร" class="block w-full rounded-md border border-gray-300 p-2 text-sm">
+                                <input type="text" name="community_2" placeholder="2. ชื่อกิจกรรม/ชมรม/องค์กร" class="block w-full rounded-md border border-gray-300 p-2 text-sm">
+                                <input type="text" name="community_3" placeholder="3. ชื่อกิจกรรม/ชมรม/องค์กร" class="block w-full rounded-md border border-gray-300 p-2 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ── ส่วนที่ 2: สุขภาพกาย ── -->
+                <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+                    <div class="sec-hdr-2 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">ส่วนที่ 2: ข้อมูลพื้นฐานสุขภาพกาย</h2>
+                    </div>
+                    <div class="p-6 space-y-5">
+                        <!-- น้ำหนัก / ส่วนสูง / BMI -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="weight_kg" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">น้ำหนัก (กก.)</label>
+                                <input type="number" id="weight_kg" name="weight_kg" min="30" max="200" step="0.1" placeholder="เช่น 58.5"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm" required oninput="calcBMI()">
+                            </div>
+                            <div>
+                                <label for="height_cm" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">ส่วนสูง (ซม.)</label>
+                                <input type="number" id="height_cm" name="height_cm" min="100" max="220" step="0.1" placeholder="เช่น 158"
+                                    class="block w-full rounded-md border border-gray-300 p-3 text-sm" required oninput="calcBMI()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">ดัชนีมวลกาย (BMI) <span class="text-green-600 text-xs">★ คำนวณอัตโนมัติ</span></label>
+                                <div class="bmi-box rounded-md border border-emerald-200 p-3 text-center min-h-[52px] flex flex-col justify-center">
+                                    <div id="bmiDisplay" class="text-lg font-bold text-emerald-700">—</div>
+                                    <div id="bmiCategory" class="text-xs text-slate-500">กรอก น้ำหนัก + ส่วนสูง</div>
+                                    <input type="hidden" id="bmi" name="bmi">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- รอบเอว -->
+                        <div>
+                            <label for="waist_cm" class="block text-sm font-semibold text-slate-700 mb-1">รอบเอว (ซม.)</label>
+                            <input type="number" id="waist_cm" name="waist_cm" min="40" max="200" step="0.1" placeholder="เช่น 82"
+                                class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                        </div>
+                        <!-- ชีพจร -->
+                        <div class="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3">
+                            <p class="text-sm font-semibold text-slate-700">ชีพจร</p>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="pulse_rate" name="pulse_rate" min="30" max="200" placeholder="ครั้ง/นาที"
+                                    class="rounded-md border border-gray-300 p-2 text-sm w-36">
+                                <span class="text-sm text-slate-500">ครั้ง/นาที</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-medium text-slate-600 mb-1">ความแรง</p>
+                                    <div class="flex gap-4">
+                                        <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="pulse_strength" value="ปกติ" class="form-radio h-4 w-4"><span>( &nbsp;) ปกติ</span></label>
+                                        <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="pulse_strength" value="เบา" class="form-radio h-4 w-4"><span>( &nbsp;) เบา</span></label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-slate-600 mb-1">จังหวะ</p>
+                                    <div class="flex gap-4">
+                                        <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="pulse_rhythm" value="สม่ำเสมอ" class="form-radio h-4 w-4"><span>( &nbsp;) สม่ำเสมอ</span></label>
+                                        <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="pulse_rhythm" value="ไม่สม่ำเสมอ" class="form-radio h-4 w-4"><span>( &nbsp;) ไม่สม่ำเสมอ</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ความดันโลหิต -->
+                        <div class="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3">
+                            <p class="text-sm font-semibold text-slate-700">ความดันโลหิต</p>
+                            <div class="flex items-center gap-3">
+                                <input type="text" id="blood_pressure" name="blood_pressure" placeholder="เช่น 130/80"
+                                    class="rounded-md border border-gray-300 p-2 text-sm w-36">
+                                <span class="text-sm text-slate-500">มม.ปรอท</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-slate-600 mb-1">ท่าที่วัด</p>
+                                <div class="flex gap-6">
+                                    <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="bp_position" value="นั่ง" class="form-radio h-4 w-4"><span>( &nbsp;) นั่ง</span></label>
+                                    <label class="inline-flex items-center cursor-pointer gap-1 text-sm"><input type="radio" name="bp_position" value="นอน" class="form-radio h-4 w-4"><span>( &nbsp;) นอน</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- การมองเห็น -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">ความสามารถในการมองเห็น</label>
+                            <div class="flex flex-wrap gap-5">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="vision" value="เห็นชัดเจน" class="form-radio h-4 w-4"><span>( &nbsp;) เห็นชัดเจน</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="vision" value="เห็นไม่ชัด/มัว" class="form-radio h-4 w-4"><span>( &nbsp;) เห็นไม่ชัด/มัว</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="vision" value="ไม่เห็น" class="form-radio h-4 w-4"><span>( &nbsp;) ไม่เห็น</span></label>
+                            </div>
+                        </div>
+                        <!-- การได้ยิน -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">ความสามารถในการได้ยิน</label>
+                            <div class="flex flex-wrap gap-5">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="hearing" value="ได้ยินชัดเจน" class="form-radio h-4 w-4"><span>( &nbsp;) ได้ยินชัดเจน</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="hearing" value="ได้ยินไม่ชัดเจน" class="form-radio h-4 w-4"><span>( &nbsp;) ได้ยินไม่ชัดเจน</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="hearing" value="ไม่ได้ยิน" class="form-radio h-4 w-4"><span>( &nbsp;) ไม่ได้ยิน</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ── ส่วนที่ 3: การรับรู้ภาวะสุขภาพ ── -->
+                <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+                    <div class="sec-hdr-3 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">ส่วนที่ 3: การรับรู้ภาวะสุขภาพ</h2>
+                    </div>
+                    <div class="p-6 space-y-5">
+                        <!-- สุขภาพโดยทั่วไป -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">สุขภาพโดยทั่วไปในปัจจุบัน</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_perception" value="ดีมาก" class="form-radio h-4 w-4"><span>( &nbsp;) ดีมาก</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_perception" value="ดี" class="form-radio h-4 w-4"><span>( &nbsp;) ดี</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_perception" value="ปานกลาง" class="form-radio h-4 w-4"><span>( &nbsp;) ปานกลาง</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_perception" value="แย่" class="form-radio h-4 w-4"><span>( &nbsp;) แย่</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_perception" value="แย่มาก" class="form-radio h-4 w-4"><span>( &nbsp;) แย่มาก</span></label>
+                            </div>
+                        </div>
+                        <!-- เปรียบเทียบ -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">เปรียบเทียบสุขภาพกับผู้อื่นที่อายุเท่ากัน</label>
+                            <div class="flex flex-wrap gap-6">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_comparison" value="ดีกว่า" class="form-radio h-4 w-4"><span>( &nbsp;) ดีกว่า</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_comparison" value="เท่ากัน" class="form-radio h-4 w-4"><span>( &nbsp;) เท่ากัน</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="health_comparison" value="ด้อยกว่า" class="form-radio h-4 w-4"><span>( &nbsp;) ด้อยกว่า</span></label>
+                            </div>
+                        </div>
+                        <!-- อุปกรณ์ทางการแพทย์ -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">อุปกรณ์ทางการแพทย์/เครื่องช่วยเหลือที่ใช้<br><span class="font-normal text-xs text-slate-500">เช่น ฟันปลอม ไม้เท้า เครื่องช่วยฟัง แว่นตา รถเข็น</span></label>
+                            <div class="flex gap-6 mb-2">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="medical_devices_yn" value="ไม่มี" class="form-radio h-4 w-4"><span>( &nbsp;) ไม่มี</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="medical_devices_yn" value="มี" class="form-radio h-4 w-4"><span>( &nbsp;) มี ระบุ</span></label>
+                            </div>
+                            <div class="pl-4 grid grid-cols-3 gap-2">
+                                <input type="text" name="medical_device_1" placeholder="1." class="rounded-md border border-gray-300 p-2 text-sm">
+                                <input type="text" name="medical_device_2" placeholder="2." class="rounded-md border border-gray-300 p-2 text-sm">
+                                <input type="text" name="medical_device_3" placeholder="3." class="rounded-md border border-gray-300 p-2 text-sm">
+                            </div>
+                        </div>
+                        <!-- สถานบริการ -->
+                        <div>
+                            <label for="health_facility" class="block text-sm font-semibold text-slate-700 mb-1">สถานบริการสุขภาพที่ใช้ประจำ</label>
+                            <input type="text" id="health_facility" name="health_facility" placeholder="เช่น รพ.สต. ตำบลบ้านใหม่"
+                                class="block w-full rounded-md border border-gray-300 p-3 text-sm">
+                        </div>
+                        <!-- สถานที่ประเมิน -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">สถานที่ประเมิน</label>
+                            <div class="flex flex-wrap gap-6">
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="assessment_location" value="บ้าน" class="form-radio h-4 w-4"><span>( &nbsp;) บ้าน</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="assessment_location" value="โรงพยาบาล/รพ.สต." class="form-radio h-4 w-4"><span>( &nbsp;) โรงพยาบาล/รพ.สต.</span></label>
+                                <label class="inline-flex items-center cursor-pointer gap-2"><input type="radio" name="assessment_location" value="สถานที่สาธารณะ" class="form-radio h-4 w-4"><span>( &nbsp;) สถานที่สาธารณะ</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="flex justify-end pt-4 pb-8">
+                    <button type="button" onclick="goToStep(2)" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition flex items-center gap-2">
+                        ถัดไป (คุณสมบัติ AI) <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════ PAGE 2 ═══════════════════════════ -->
+            <div id="page2" class="step-container space-y-8 hidden">
+                <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
+                    <div class="sec-hdr-4 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">ส่วนที่ 4: คุณสมบัติของผู้สูงอายุจำลอง (Agentic AI Persona)</h2>
+                        <p class="text-sm text-orange-100 mt-1">15-Dimensional Personality Embedding — ข้อมูลนี้ใช้สร้าง AI ตัวละครผู้สูงอายุ</p>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Symptom Group -->
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <label for="symptomGroup" class="block text-base font-bold text-slate-800 mb-2 required-asterisk">การจำแนกกลุ่มอาการสุขภาพ (Symptom Group)</label>
+                            <select id="symptomGroup" name="symptomGroup"
+                                class="block w-full rounded-md border border-gray-300 p-3 bg-white text-sm" required>
                                 <option value="" disabled selected>-- กรุณาเลือกกลุ่มอาการ --</option>
                                 <option value="กลุ่มโรคไม่ติดต่อเรื้อรังและโรคจากพฤติกรรมสุขภาพ">1. กลุ่มโรคไม่ติดต่อเรื้อรังและโรคจากพฤติกรรมสุขภาพ</option>
                                 <option value="กลุ่มโรคจากความเสื่อมตามวัยของระบบต่างๆ">2. กลุ่มโรคจากความเสื่อมตามวัยของระบบต่างๆ</option>
-                                <option value="กลุ่มอาการผู้สูงอายุ">3. กลุ่มอาการผู้สูงอายุ (Geriatric Syndromes)</option>
+                                <option value="กลุ่มอาการผู้สูงอายุ (Geriatric Syndromes)">3. กลุ่มอาการผู้สูงอายุ (Geriatric Syndromes)</option>
                                 <option value="กลุ่มปัญหาการรู้คิดและระบบประสาท">4. กลุ่มปัญหาการรู้คิดและระบบประสาท</option>
                                 <option value="กลุ่มปัญหาทางจิตเวชและจิตสังคม">5. กลุ่มปัญหาทางจิตเวชและจิตสังคม</option>
                                 <option value="กลุ่มปัญหาจากการรักษาและการใช้ยา">6. กลุ่มปัญหาจากการรักษาและการใช้ยา</option>
                             </select>
                         </div>
+                        <!-- Q1–Q15 -->
+                        <div class="space-y-4" id="commandDatabaseFields"></div>
                     </div>
                 </section>
 
-                <!-- ส่วนที่ 2: ฐานข้อมูลคำสั่ง (q1-q15) -->
-                <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-                    <div class="bg-blue-50 border-b border-blue-200 px-6 py-4">
-                        <h2 class="text-xl font-bold text-slate-800">ส่วนที่ 2: คุณสมบัติของ ผู้สูงอายุจำลอง</h2>
-                    </div>
-                    <div class="p-6 space-y-6" id="commandDatabaseFields">
-                        <!-- Injected via JS -->
-                    </div>
-                </section>
-
-                <div class="flex justify-end pt-4 pb-8">
-                    <button type="button" onclick="goToStep(2)" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 flex items-center gap-2">
-                        ถัดไป (ผลการประเมิน) <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <div class="flex justify-between pt-4 pb-8">
+                    <button type="button" onclick="goToStep(1)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> ย้อนกลับ
+                    </button>
+                    <button type="button" onclick="goToStep(3)" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition flex items-center gap-2">
+                        ถัดไป (แบบประเมิน) <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- ================= PAGE 2 ================= -->
-            <div id="page2" class="step-container space-y-8 hidden">
+            <!-- ═══════════════════════════ PAGE 3 ═══════════════════════════ -->
+            <div id="page3" class="step-container space-y-8 hidden">
                 <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4">
-                        <h2 class="text-xl font-bold text-slate-800">ประเภทของแบบประเมินและผลการประเมินสุขภาพ</h2>
+                    <div class="bg-slate-700 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">ประเภทแบบประเมินและผลการประเมินสุขภาพ</h2>
                     </div>
                     <div class="p-6 space-y-6">
-                        <!-- Assessment Type Selection -->
                         <div>
                             <label class="block text-lg font-bold text-slate-800 mb-3 required-asterisk">เลือกประเภทแบบประเมิน (Assessment Tool)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="assessmentTypeContainer">
-                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                                    <input type="radio" name="assessmentType" value="ADL" class="form-radio h-5 w-5 text-blue-600">
-                                    <span class="ml-3 font-medium">ADL (Activities of Daily Living)</span>
-                                </label>
-                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                                    <input type="radio" name="assessmentType" value="IADL" class="form-radio h-5 w-5 text-blue-600">
-                                    <span class="ml-3 font-medium">IADL (Instrumental ADL)</span>
-                                </label>
-                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                                    <input type="radio" name="assessmentType" value="TGDS" class="form-radio h-5 w-5 text-blue-600">
-                                    <span class="ml-3 font-medium">TGDS (Thai Geriatric Depression Scale)</span>
-                                </label>
-                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
-                                    <input type="radio" name="assessmentType" value="GDS" class="form-radio h-5 w-5 text-blue-600">
-                                    <span class="ml-3 font-medium">GDS (Geriatric Depression Scale)</span>
-                                </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="radio" name="assessmentType" value="ADL" class="form-radio h-5 w-5 text-blue-600"><span class="ml-3 font-medium">ADL (Activities of Daily Living)</span></label>
+                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="radio" name="assessmentType" value="IADL" class="form-radio h-5 w-5 text-blue-600"><span class="ml-3 font-medium">IADL (Instrumental ADL)</span></label>
+                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="radio" name="assessmentType" value="TGDS" class="form-radio h-5 w-5 text-blue-600"><span class="ml-3 font-medium">TGDS (Thai Geriatric Depression Scale)</span></label>
+                                <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="radio" name="assessmentType" value="GDS" class="form-radio h-5 w-5 text-blue-600"><span class="ml-3 font-medium">GDS (Geriatric Depression Scale)</span></label>
                             </div>
                         </div>
-
-                        <!-- Answer Key: Expected Score Range -->
-                        <div class="mt-6 p-5 bg-amber-50 border border-amber-200 rounded-xl">
-                            <h4 class="font-bold text-amber-800 mb-1 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                กำหนดช่วงคะแนนที่คาดหวัง (Answer Key — %)
-                            </h4>
-                            <p class="text-xs text-amber-700 mb-4">ระบุช่วงเปอร์เซ็นต์คะแนนที่นักศึกษาควรได้รับสำหรับผู้ป่วยรายนี้ (0–100%)</p>
+                        <!-- Score range -->
+                        <div class="p-5 bg-amber-50 border border-amber-200 rounded-xl">
+                            <h4 class="font-bold text-amber-800 mb-1">กำหนดช่วงคะแนนที่คาดหวัง (Answer Key — %)</h4>
+                            <p class="text-xs text-amber-700 mb-4">ระบุช่วงเปอร์เซ็นต์คะแนนที่นักศึกษาควรได้รับ (0–100%)</p>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label for="score_min" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">คะแนนขั้นต่ำ (%)</label>
-                                    <input type="number" id="score_min" name="score_min" min="0" max="100" value="0"
-                                        class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"
-                                        required>
+                                    <input type="number" id="score_min" name="score_min" min="0" max="100" value="0" class="block w-full rounded-md border border-gray-300 p-2.5 text-sm" required>
                                 </div>
                                 <div>
                                     <label for="score_max" class="block text-sm font-semibold text-slate-700 mb-1 required-asterisk">คะแนนสูงสุด (%)</label>
-                                    <input type="number" id="score_max" name="score_max" min="0" max="100" value="100"
-                                        class="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2.5"
-                                        required>
+                                    <input type="number" id="score_max" name="score_max" min="0" max="100" value="100" class="block w-full rounded-md border border-gray-300 p-2.5 text-sm" required>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Dynamic Assessment Form Container -->
-                        <div id="dynamicAssessmentForm" class="hidden mt-8 pt-8 border-t border-slate-200">
-                            <!-- Injected via JS based on selection -->
-                        </div>
+                        <div id="dynamicAssessmentForm" class="hidden mt-6 pt-6 border-t border-slate-200"></div>
                     </div>
                 </section>
 
                 <div class="flex justify-between pt-4 pb-8">
-                    <button type="button" onclick="goToStep(1)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center gap-2">
+                    <button type="button" onclick="goToStep(2)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> ย้อนกลับ
                     </button>
-                    <button type="button" onclick="goToStep(3)" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 flex items-center gap-2">
-                        ถัดไป (คำแนะนำทางการพยาบาล) <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <button type="button" onclick="goToStep(4)" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition flex items-center gap-2">
+                        ถัดไป (การพยาบาล) <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- ================= PAGE 3 ================= -->
-            <div id="page3" class="step-container space-y-8 hidden">
+            <!-- ═══════════════════════════ PAGE 4 ═══════════════════════════ -->
+            <div id="page4" class="step-container space-y-8 hidden">
                 <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
                     <div class="bg-blue-50 border-b border-blue-200 px-6 py-4">
                         <h2 class="text-xl font-bold text-slate-800">คำแนะนำทางการพยาบาล (Nursing Interventions)</h2>
-                        <p class="text-sm text-slate-600 mt-1">สามารถเลือกได้หลายตัวเลือกตามความเหมาะสมกับสภาวะของผู้ป่วย</p>
+                        <p class="text-sm text-slate-500 mt-1">เลือกได้หลายข้อตามความเหมาะสม</p>
                     </div>
                     <div class="p-6" id="dynamicRecommendations">
-                        <div class="text-center text-slate-500 py-10">กรุณาเลือกประเภทแบบประเมินในหน้าก่อนหน้านี้</div>
+                        <div class="text-center text-slate-400 py-10">กรุณาเลือกประเภทแบบประเมินในหน้าก่อนหน้า</div>
                     </div>
                 </section>
 
                 <div class="flex justify-between pt-4 pb-8">
-                    <button type="button" onclick="goToStep(2)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center gap-2">
+                    <button type="button" onclick="goToStep(3)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> ย้อนกลับ
                     </button>
-                    <button type="button" onclick="showSummary()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200 flex items-center gap-2 text-lg">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> ตรวจสอบและยืนยันการส่งข้อมูล
+                    <button type="button" onclick="showSummary()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition flex items-center gap-2 text-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        ตรวจสอบและยืนยันการส่งข้อมูล
                     </button>
                 </div>
             </div>
-
         </form>
     </main>
 
-    <!-- Success Message Section -->
+    <!-- ─── Success Section ─── -->
     <div id="successSection" class="hidden flex-grow items-center justify-center p-6 mt-10">
         <div class="bg-white rounded-2xl shadow-xl p-10 max-w-2xl w-full text-center border-t-4 border-green-500">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
                 <svg class="h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h2 class="text-2xl font-bold text-slate-800 mb-4">บันทึกข้อมูลสำเร็จ</h2>
-            <p class="text-lg text-slate-600 leading-relaxed">
-                ขอบคุณสำหรับข้อมูล ข้อมูลของท่านเป็นประโยชน์ต่อการพัฒนา<br>
-                <span class="font-semibold text-blue-700">โปรแกรมการฝึกโดยใช้เทคโนโลยีปัญญาประดิษฐ์สำหรับนักศึกษาพยาบาลเพื่อเสริมสร้างสมรรถนะการประเมินสุขภาพของผู้สูงอายุ</span>
-            </p>
-            <button onclick="location.reload()" class="mt-8 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-6 rounded-lg transition duration-200">เพิ่มข้อมูลใหม่</button>
+            <p class="text-lg text-slate-600 leading-relaxed">ข้อมูลกรณีศึกษาถูกบันทึกลง Proposition_DB เรียบร้อยแล้ว<br>
+            <span class="font-semibold text-blue-700">ระบบ Agentic AI พร้อมใช้งานกรณีศึกษานี้</span></p>
+            <button onclick="location.reload()" class="mt-8 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-6 rounded-lg transition">เพิ่มกรณีศึกษาใหม่</button>
         </div>
     </div>
 
-    <!-- Summary Modal -->
+    <!-- ─── Summary Modal ─── -->
     <div id="summaryModal" class="fixed inset-0 z-50 hidden bg-slate-900 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center backdrop-blur-sm px-4">
         <div class="relative w-full max-w-3xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
-                <h3 class="text-xl font-bold text-slate-800">สรุปข้อมูลเตรียมจัดส่ง</h3>
-                <button type="button" onclick="hideModal()" class="text-slate-400 hover:text-slate-600"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <h3 class="text-xl font-bold text-slate-800">สรุปข้อมูลก่อนส่ง</h3>
+                <button type="button" onclick="hideModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <div class="px-6 py-4 overflow-y-auto flex-grow text-sm" id="summaryContent">
-                <!-- Content injected by JS -->
-            </div>
+            <div class="px-6 py-4 overflow-y-auto flex-grow text-sm" id="summaryContent"></div>
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex justify-end gap-3">
                 <button type="button" onclick="hideModal()" class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium">แก้ไขข้อมูล</button>
                 <button type="button" id="confirmSubmitBtn" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow-md flex items-center gap-2">
@@ -234,407 +461,373 @@
         </div>
     </div>
 
+    <!-- ─── JavaScript ─── -->
     <script>
-        /* ==========================================
-           CONFIGURATION
-           ========================================== */
-        // Unified GAS URL — same backend as index.html, routes by action field
-        // action:'submitCase' → Proposition_DB  (this form)
-        // action:'login'/'chat'/'save' → student flow  (index.html)
-        const EXPERT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw7pjJuv2axCk9Nv7Z2p4QOts5CxmUOv3oK0imSkPEhvOSLriX0KhtQo9NPO999-8v9xQ/exec';
+    const EXPERT_GAS_URL = 'https://script.google.com/macros/s/AKfycbx_7jk4T52G5kVUHFrtAGAaLwR392rbn788EuxTPVVYqcEoe1CeDM6RDKSyOCnouMQT6w/exec';
+    const TOTAL_STEPS = 4;
+    let currentStep = 1;
 
-        /* ==========================================
-           DATA STRUCTURES
-           ========================================== */
+    /* ══ BMI Auto-Calculator ══ */
+    function calcBMI() {
+        const w = parseFloat(document.getElementById('weight_kg').value);
+        const h = parseFloat(document.getElementById('height_cm').value);
+        const disp = document.getElementById('bmiDisplay');
+        const cat  = document.getElementById('bmiCategory');
+        const inp  = document.getElementById('bmi');
+        if (!w || !h || h <= 0) { disp.textContent = '—'; cat.textContent = 'กรอก น้ำหนัก + ส่วนสูง'; inp.value = ''; return; }
+        const bmi = w / Math.pow(h / 100, 2);
+        const rounded = bmi.toFixed(1);
+        inp.value = rounded;
+        disp.textContent = rounded;
+        let c = '';
+        if      (bmi < 18.5) c = 'น้ำหนักน้อย (< 18.5)';
+        else if (bmi < 23.0) c = 'ปกติ (18.5–22.9)';
+        else if (bmi < 25.0) c = 'น้ำหนักเกิน (23–24.9)';
+        else if (bmi < 30.0) c = 'อ้วน ระดับ 1 (25–29.9)';
+        else                 c = 'อ้วน ระดับ 2 (≥ 30)';
+        cat.textContent = c;
+    }
 
-        // 1. Command Database (q1-q15 persona fields)
-        const commandDatabaseItems = [
-            { id: 'q1',  topic: 'การเปิดสนทนาและเหตุผลในการมาพบแพทย์',     desc: 'คำพูดแรกของผู้ป่วย, อาการนำที่ทำให้มาโรงพยาบาล' },
-            { id: 'q2',  topic: 'อาการสำคัญและลักษณะอาการ',                  desc: 'ตำแหน่ง, ความรุนแรง, ระยะเวลา, ปัจจัยกระตุ้น' },
-            { id: 'q3',  topic: 'อาการร่วมอื่นๆ',                             desc: 'อาการที่เกิดขึ้นพร้อมกับอาการหลัก' },
-            { id: 'q4',  topic: 'ประวัติการแพ้ยา/อาหาร',                     desc: 'ชื่อสิ่งที่แพ้ และลักษณะอาการที่แพ้' },
-            { id: 'q5',  topic: 'รายการยาที่ใช้ในปัจจุบัน',                   desc: 'ชื่อยา, ขนาดยา, วิธีการใช้ (รวมถึงยาสมุนไพร/ยาซื้อเอง)' },
-            { id: 'q6',  topic: 'โรคประจำตัวที่ได้รับการวินิจฉัยแล้ว',        desc: 'โรคเรื้อรังที่เป็นอยู่และการรักษาที่ได้รับ' },
-            { id: 'q7',  topic: 'ประวัติการเจ็บป่วยในอดีต',                   desc: 'การผ่าตัด, การนอนโรงพยาบาลในอดีต' },
-            { id: 'q8',  topic: 'ประวัติการเจ็บป่วยในครอบครัว',               desc: 'โรคทางพันธุกรรมหรือโรคติดต่อในเครือญาติ' },
-            { id: 'q9',  topic: 'สถานภาพความสัมพันธ์และสุขภาพทางเพศ',        desc: 'การดูแลกันในครอบครัว, ความสัมพันธ์กับคู่สมรส' },
-            { id: 'q10', topic: 'ประวัติส่วนตัวและสังคม',                      desc: 'อาชีพ, ที่อยู่อาศัย, สภาพแวดล้อมทางกายภาพ' },
-            { id: 'q11', topic: 'ประวัติการใช้สารเสพติด/แอลกอฮอล์/บุหรี่',   desc: 'ปริมาณและระยะเวลาที่ใช้ (รวมถึงการเลิกใช้)' },
-            { id: 'q12', topic: 'รูปแบบการดำเนินชีวิต (ADLs)',               desc: 'การกิน, การออกกำลังกาย, การนอน, การขับถ่าย, กิจวัตรประจำวัน' },
-            { id: 'q13', topic: 'สภาวะทางอารมณ์และบุคลิกภาพ',               desc: 'ความวิตกกังวล, ภาวะซึมเศร้า, ลักษณะนิสัยพื้นฐาน' },
-            { id: 'q14', topic: 'ทัศนคติการสนทนาและรูปแบบการพูด',            desc: 'พูดน้อย, ถามคำตอบคำ, พูดจาวกวน, หรือให้ความร่วมมือดี' },
-            { id: 'q15', topic: 'ข้อมูลพิเศษเพิ่มเติมของผู้ป่วย',              desc: 'ความเชื่อเรื่องสุขภาพ, ข้อจำกัดทางวัฒนธรรม/ภาษา' }
-        ];
+    /* ══ Q1–Q15 Persona Fields ══ */
+    const commandDatabaseItems = [
+        { id:'q1',  topic:'การเปิดสนทนาและเหตุผลในการมาพบแพทย์',             desc:'คำพูดแรกของผู้ป่วย, อาการนำที่ทำให้มาโรงพยาบาล' },
+        { id:'q2',  topic:'อาการสำคัญและลักษณะอาการ',                          desc:'ตำแหน่ง, ความรุนแรง, ระยะเวลา, ปัจจัยกระตุ้น/บรรเทา' },
+        { id:'q3',  topic:'อาการร่วมอื่นๆ',                                     desc:'อาการที่เกิดขึ้นพร้อมกับอาการหลัก' },
+        { id:'q4',  topic:'ประวัติการแพ้ยา/อาหาร',                             desc:'ชื่อสิ่งที่แพ้ และลักษณะอาการที่แพ้' },
+        { id:'q5',  topic:'รายการยาที่ใช้ในปัจจุบัน',                           desc:'ชื่อยา, ขนาดยา, วิธีการใช้ (รวมยาสมุนไพร/ยาซื้อเอง)' },
+        { id:'q6',  topic:'โรคประจำตัวที่ได้รับการวินิจฉัยแล้ว',                desc:'โรคเรื้อรังที่เป็นอยู่และการรักษาที่ได้รับ' },
+        { id:'q7',  topic:'ประวัติการเจ็บป่วยในอดีต',                           desc:'การผ่าตัด, การนอนโรงพยาบาลในอดีต, อุบัติเหตุสำคัญ' },
+        { id:'q8',  topic:'ประวัติการเจ็บป่วยในครอบครัว',                       desc:'โรคทางพันธุกรรมหรือโรคติดต่อในเครือญาติสายตรง' },
+        { id:'q9',  topic:'สถานภาพความสัมพันธ์และสุขภาพทางเพศ',                desc:'การดูแลกันในครอบครัว, ความสัมพันธ์กับคู่สมรส/บุตร' },
+        { id:'q10', topic:'ประวัติส่วนตัวและสังคม',                              desc:'อาชีพ, ที่อยู่อาศัย, ผู้ดูแล, สภาพแวดล้อม' },
+        { id:'q11', topic:'ประวัติการใช้สารเสพติด/แอลกอฮอล์/บุหรี่',           desc:'ปริมาณและระยะเวลาที่ใช้ (รวมถึงการเลิกใช้)' },
+        { id:'q12', topic:'รูปแบบการดำเนินชีวิต (ADLs)',                       desc:'การกิน, การออกกำลังกาย, การนอน, การขับถ่าย, กิจวัตร' },
+        { id:'q13', topic:'สภาวะทางอารมณ์และบุคลิกภาพ',                       desc:'ความวิตกกังวล, ภาวะซึมเศร้า, ลักษณะนิสัยพื้นฐาน' },
+        { id:'q14', topic:'ทัศนคติการสนทนาและรูปแบบการพูด',                    desc:'พูดน้อย/มาก, ถามคำตอบคำ, วกวน, หรือให้ความร่วมมือดี' },
+        { id:'q15', topic:'ข้อมูลพิเศษเพิ่มเติมของผู้ป่วย',                      desc:'ความเชื่อเรื่องสุขภาพ, ข้อจำกัดทางวัฒนธรรม/ภาษา, ความกังวลพิเศษ' }
+    ];
 
-        // 2. Assessment Scales
-        const assessmentScales = {
-            ADL: {
-                title: "แบบประเมินดัชนีบาร์เธลเอดีแอล (Barthel ADL Index) มาตรฐาน การประเมิน 10 กิจกรรมหลัก",
-                items: [
-                    { id: 'adl1',  label: '1. Feeding (กิน)',                      options: [{v:0, l:'0 - ต้องป้อน'}, {v:1, l:'1 - ช่วยบ้าง'}, {v:2, l:'2 - ได้เอง'}] },
-                    { id: 'adl2',  label: '2. Grooming (แต่งตัว/ดูแลตัวเอง)',       options: [{v:0, l:'0 - ต้องช่วย'}, {v:1, l:'1 - ได้เอง'}] },
-                    { id: 'adl3',  label: '3. Transferring (ลุก-นั่ง/ย้ายที่)',      options: [{v:0, l:'0 - ไม่ได้เลย'}, {v:1, l:'1 - ช่วยมาก'}, {v:2, l:'2 - ช่วยบ้าง'}, {v:3, l:'3 - ได้เอง'}] },
-                    { id: 'adl4',  label: '4. Toilet Use (ใช้ห้องน้ำ)',              options: [{v:0, l:'0 - ไม่ได้เลย'}, {v:1, l:'1 - ช่วยบ้าง'}, {v:2, l:'2 - ได้เอง'}] },
-                    { id: 'adl5',  label: '5. Bathing (อาบน้ำ)',                   options: [{v:0, l:'0 - ต้องช่วย'}, {v:1, l:'1 - ได้เอง'}] },
-                    { id: 'adl6',  label: '6. Mobility (เดิน)',                     options: [{v:0, l:'0 - ไม่ได้/ติดเตียง'}, {v:1, l:'1 - ใช้วีลแชร์เอง'}, {v:2, l:'2 - เดินช่วยพยุง'}, {v:3, l:'3 - เดินเองได้'}] },
-                    { id: 'adl7',  label: '7. Stairs (ขึ้นลงบันได)',                options: [{v:0, l:'0 - ไม่ได้'}, {v:1, l:'1 - ช่วยบ้าง'}, {v:2, l:'2 - ได้เอง'}] },
-                    { id: 'adl8',  label: '8. Dressing (สวมเสื้อผ้า)',              options: [{v:0, l:'0 - ไม่ได้'}, {v:1, l:'1 - ช่วยบ้าง'}, {v:2, l:'2 - ได้เอง'}] },
-                    { id: 'adl9',  label: '9. Bowels (กลั้นอุจจาระ)',              options: [{v:0, l:'0 - กลั้นไม่ได้'}, {v:1, l:'1 - มีอุบัติเหตุบ้าง'}, {v:2, l:'2 - ปกติ'}] },
-                    { id: 'adl10', label: '10. Bladder (กลั้นปัสสาวะ)',            options: [{v:0, l:'0 - กลั้นไม่ได้'}, {v:1, l:'1 - มีอุบัติเหตุบ้าง'}, {v:2, l:'2 - ปกติ'}] }
-                ]
-            },
-            IADL: {
-                title: "แบบประเมิน Lawton IADL Scale มาตรฐาน 8 ข้อตามทฤษฎี",
-                items: [
-                    { id: 'iadl1', label: '1. Ability to Use Telephone (ความสามารถในการใช้โทรศัพท์)', options: [{v:1, l:'1 - ค้นหาหมายเลขและกดโทรออกได้เอง'}, {v:1, l:'1 - โทรออกเฉพาะหมายเลขที่คุ้นเคยไม่กี่เบอร์ได้'}, {v:1, l:'1 - รับสายได้อย่างเดียว'}, {v:0, l:'0 - ไม่ใช้/ใช้ไม่ได้เลย'}] },
-                    { id: 'iadl2', label: '2. Shopping (การจับจ่ายซื้อของ)', options: [{v:1, l:'1 - จัดการและไปซื้อของจำเป็นทุกอย่างได้เอง'}, {v:0, l:'0 - ซื้อของเล็กๆ น้อยๆ ได้เอง'}, {v:0, l:'0 - ต้องมีคนช่วยเหลือทุกครั้ง'}, {v:0, l:'0 - ไม่สามารถซื้อของได้เลย'}] },
-                    { id: 'iadl3', label: '3. Meal Preparation (การเตรียมอาหาร)', options: [{v:1, l:'1 - วางแผน ปรุง และจัดเสิร์ฟได้เอง'}, {v:0, l:'0 - ปรุงได้ต่อเมื่อมีคนเตรียมวัตถุดิบให้'}, {v:0, l:'0 - อุ่นอาหาร/จัดโต๊ะได้ แต่ปรุงใหม่ไม่ได้'}, {v:0, l:'0 - ต้องมีผู้จัดหาและเสิร์ฟให้ทุกมื้อ'}] },
-                    { id: 'iadl4', label: '4. Housekeeping (การทำงานบ้าน)', options: [{v:1, l:'1 - ทำความสะอาดทั้งหมดได้เอง'}, {v:1, l:'1 - ทำงานบ้านเบาๆ ได้เองประจำ'}, {v:1, l:'1 - ทำงานบ้านเบาๆ ได้แต่ไม่ค่อยเรียบร้อย'}, {v:0, l:'0 - ต้องมีคนช่วยทุกกระบวนการ'}, {v:0, l:'0 - ไม่สามารถทำได้เลย'}] },
-                    { id: 'iadl5', label: '5. Laundry (การซักรีดผ้า)', options: [{v:1, l:'1 - ซักและรีดเก็บทั้งหมดได้เอง'}, {v:1, l:'1 - ซักเสื้อผ้าชิ้นเล็กๆ ได้เอง'}, {v:0, l:'0 - ทั้งหมดต้องให้ผู้อื่นจัดการให้'}] },
-                    { id: 'iadl6', label: '6. Mode of Transportation (การเดินทาง)', options: [{v:1, l:'1 - ขับรถ/ใช้รถสาธารณะได้เองอิสระ'}, {v:1, l:'1 - ใช้รถสาธารณะได้เมื่อมีคนจองให้'}, {v:1, l:'1 - ใช้รถสาธารณะได้แต่ต้องมีคนเดินทางด้วย'}, {v:0, l:'0 - เดินทางได้เฉพาะรถที่มีคนดูแลขับให้'}, {v:0, l:'0 - ไม่เดินทางเลย'}] },
-                    { id: 'iadl7', label: '7. Responsibility for Own Medications (การจัดการดูแลเรื่องยา)', options: [{v:1, l:'1 - รับผิดชอบทานยาได้ถูกต้องเอง'}, {v:0, l:'0 - ทานยาเองได้ แต่ต้องมีคนจัดยาใส่ตลับให้'}, {v:0, l:'0 - ไม่สามารถจัดการทานยาเองได้เลย'}] },
-                    { id: 'iadl8', label: '8. Ability to Handle Finances (การบริหารการเงิน)', options: [{v:1, l:'1 - จัดการธุรกรรมการเงิน/จ่ายบิลได้เอง'}, {v:1, l:'1 - จัดการใช้จ่ายประจำวันได้ แต่ธุรกรรมใหญ่ไม่ได้'}, {v:0, l:'0 - ไม่สามารถจัดการเรื่องเงินได้เลย'}] }
-                ]
-            },
-            TGDS: {
-                title: "แบบประเมินภาวะซึมเศร้าในผู้สูงอายุ TGDS-15",
-                items: [
-                    '1. ความพึงพอใจในชีวิต', '2. การลดกิจกรรมที่สนใจ', '3. ความรู้สึกว่างเปล่า', '4. ความเบื่อหน่าย',
-                    '5. ความหวังในอนาคต', '6. ความว้าวุ่นใจ/รำคาญใจ', '7. ความสุขโดยรวม', '8. ความหมดหวัง',
-                    '9. การเก็บตัวอยู่บ้าน', '10. ปัญหาเรื่องความจำ', '11. คุณค่าของการมีชีวิตอยู่', '12. ความรู้สึกไร้ค่า',
-                    '13. พลังและความกระปรี้กระเปร่า', '14. ความสิ้นหวังในสถานการณ์ปัจจุบัน', '15. การเปรียบเทียบกับผู้อื่น'
-                ].map((label, i) => ({ id: `tgds${i+1}`, label: label, options: [{v:'ใช่', l:'ใช่'}, {v:'ไม่ใช่', l:'ไม่ใช่'}] }))
-            },
-            GDS: {
-                title: "GDS-15 (Geriatric Depression Scale - Short Form) - ส่วนคัดกรอง",
-                items: [
-                    '1. Are you basically satisfied with your life?',
-                    '2. Have you dropped many of your activities and interests?',
-                    '3. Do you feel that your life is empty?'
-                ].map((label, i) => ({ id: `gds${i+1}`, label: label, options: [{v:'Yes', l:'Yes'}, {v:'No', l:'No'}] }))
-            }
-        };
-
-        // 3. Nursing Recommendations
-        const nursingRecommendations = {
-            ADL: [
-                { cat: "1. Feeding (การรับประทานอาหาร)", items: ["จัดท่านอนศีรษะสูง 45–90 องศา หรือนั่งเก้าอี้ห้อยขาขณะรับประทานอาหาร", "แนะนำ/จัดหาอุปกรณ์ช่วยรับประทานอาหารดัดแปลง (เช่น ช้อนด้ามหนา)", "ดูแลและประเมินอาการสำลักระหว่างรับประทานอาหารและน้ำ", "จัดท่าศีรษะสูงหรือนั่งพักต่ออย่างน้อย 30 นาทีหลังมื้ออาหาร", "ประสานงานผู้ดูแลในการเตรียมอาหารที่อ่อน นุ่ม และเคี้ยวง่าย"] },
-                { cat: "2. Grooming (การแต่งตัว/ล้างหน้า/แปรงฟัน)", items: ["จัดวางอุปกรณ์โกนหนวด แปรงสีฟัน หวี ไว้ในตำแหน่งที่หยิบใช้ง่าย", "กระตุ้นให้ผู้ป่วยลงมือล้างหน้า แปรงฟัน และหวีผมด้วยตนเอง", "ช่วยเหลือในการเตรียมบีบยาสีฟัน เปิดฝาน้ำ หรือเทน้ำใส่แก้ว", "ทำความสะอาดช่องปากและเช็ดหน้าให้ผู้ป่วยเช้า-เย็น (กรณีพึ่งพาโดยสมบูรณ์)"] },
-                { cat: "3. Transferring (การลุก-นั่ง/ย้ายที่)", items: ["แนะนำให้ผู้ป่วยนั่งนิ่งๆ บนขอบเตียง 1-2 นาทีก่อนยืน เพื่อป้องกันอาการหน้ามืด", "ตรวจเช็กและล็อกล้อเตียง/ล้อรถเข็นให้สนิททุกครั้งก่อนเคลื่อนย้าย", "จัดวางเก้าอี้หรือรถเข็นทำมุม 45 องศากับเตียง โดยหันเข้าหาข้างที่แข็งแรง", "ใช้ท่าทางกลศาสตร์ที่ถูกต้องในการช่วยพยุงเพื่อป้องกันพยาบาล/ผู้ดูแลบาดเจ็บ"] },
-                { cat: "4. Toilet Use (การใช้ห้องน้ำ)", items: ["ตรวจสอบความปลอดภัยในห้องน้ำ ติดตั้งราวจับ และดูแลพื้นให้แห้งเสมอ", "จัดเตรียมเก้าอี้สามขาหรือโถนั่งราบเคลื่อนที่ (Commode Chair) ไว้ข้างเตียง", "ช่วยเหลือในการถอด-ใส่กางเกง และพยุงทำความสะอาดหลังขับถ่าย", "ดูแลการใช้หม้อนอน (Bedpan) หรือกระบอกปัสสาวะบนเตียงอย่างนุ่มนวล"] },
-                { cat: "5. Bathing (การอาบน้ำ)", items: ["แนะนำการปรับอุณหภูมิน้ำให้อุ่นพอดี และไม่ล็อกประตูห้องน้ำขณะใช้งาน", "จัดเก้าอี้พลาสติกที่มีพนักพิงและมียางกันลื่นให้ผู้ป่วยนั่งอาบน้ำ", "ช่วยเช็ดตัวบนเตียง (Bed Bath) โดยเช็ดจากส่วนปลายแขนขาเข้าหาหัวใจ", "ดูแลเช็ดและซับผิวหนังตามข้อพับต่างๆ ให้แห้งสนิททันทีหลังอาบน้ำ"] },
-                { cat: "6. Mobility (การเดินหรือเคลื่อนที่)", items: ["จัดสิ่งแวดล้อมทางเดินให้โล่ง แสงสว่างเพียงพอ ไม่มีสิ่งกีดขวางหรือพื้นต่างระดับ", "วัดระดับและปรับความสูงของไม้เท้า (Cane) หรือเครื่องช่วยเดิน (Walker) ให้เหมาะสม", "เดินประกบและช่วยพยุงทางด้านร่างกายซีกที่อ่อนแรงของผู้ป่วย", "ทำกายภาพบำบัดเคลื่อนไหวข้อต่อบนเตียง (Passive ROM) อย่างน้อยวันละ 2 ครั้ง"] },
-                { cat: "7. Stairs (การขึ้นลงบันได)", items: ["สอนเทคนิคการก้าวขึ้นลงบันไดที่ถูกต้อง (ขาดีขึ้นก่อน ขาเจ็บตามหลัง)", "แนะนำให้ใช้มือจับราวบันไดให้มั่นคงทุกครั้ง และไม่ถือสิ่งของขณะก้าวเดิน", "ยืนประกบประคองขนาบข้างในตำแหน่งที่ต่ำกว่าผู้ป่วยหนึ่งขั้นเสมอ", "แนะนำญาติให้ปรับย้ายห้องนอนมาอยู่ชั้นล่างเพื่อหลีกเลี่ยงการใช้บันได"] },
-                { cat: "8. Dressing (การสวมใส่เสื้อผ้า)", items: ["แนะนำเสื้อผ้าที่หลวมสบาย เอวยืด หรือเปลี่ยนมาใช้แถบตีนตุ๊กแกแทนกระดุม", "สอนเทคนิคการสวมเสื้อผ้า (ใส่แขน/ขาข้างที่อ่อนแรงก่อน ถอดข้างที่ดีออกก่อน)", "จัดเตรียมและส่งเสื้อผ้าให้ผู้ป่วยเลือกหยิบสวมใส่ด้วยตนเอง", "เลือกใช้เสื้อผ้าประเภทผ่าหน้าหรือผ่าหลังเนื้อนุ่มเพื่อให้ถอดเปลี่ยนง่าย"] },
-                { cat: "9. Bowels (การกลั้นอุจจาระ)", items: ["แนะนำการรับประทานอาหารที่มีกากใยสูงและดื่มน้ำสะอาดวันละ 6-8 แก้ว", "บันทึกความถี่ ลักษณะอุจจาระ และเฝ้าระวังภาวะท้องผูกของผู้ป่วย", "จัดตารางเวลาพาผู้ป่วยเข้าขับถ่ายให้เป็นเวลาทุกวัน (เช่น หลังอาหารเช้า)", "ทำความสะอาดผิวหน้ารอบทวารหนักทันที และทาครีมเคลือบผิวป้องกันผิวเปื่อยแดง"] },
-                { cat: "10. Bladder (การกลั้นปัสสาวะ)", items: ["แนะนำให้งดหรือลดการดื่มน้ำปริมาณมากในช่วง 2 ชั่วโมงก่อนเข้านอน", "ฝึกกระเพาะปัสสาวะ (Bladder Training) โดยพาเข้าห้องน้ำทุกๆ 2-3 ชั่วโมงตามเวลา", "เปลี่ยนผ้าอ้อมสำเร็จรูปทันทีเมื่อมีการขับถ่ายเพื่อป้องกันการติดเชื้อ", "ดูแลสายสวนปัสสาวะให้อยู่ต่ำกว่าระดับกระเพาะปัสสาวะ และทำความสะอาดด้วยเทคนิคปราศจากเชื้อ"] }
-            ],
-            IADL: [
-                { cat: "1. Ability to Use Telephone", items: ["จัดหาโทรศัพท์ที่มีปุ่มกดขนาดใหญ่หรือระบบสั่งการด้วยเสียง", "บันทึกหมายเลขโทรศัพท์ฉุกเฉินและญาติสนิทไว้ในปุ่มโทรด่วน", "ติดป้ายหมายเลขโทรศัพท์สำคัญขนาดใหญ่และชัดเจนไว้ข้างตัวเครื่อง", "ฝึกฝนและทบทวนวิธีการกดโทรออกและการรับสายร่วมกับผู้ดูแล"] },
-                { cat: "2. Shopping", items: ["จัดทำรายการสิ่งของและของชำที่จำเป็นต้องซื้อล่วงหน้า (Shopping List)", "แนะนำให้ผู้ดูแลพาออกไปเดินเลือกซื้อของร่วมกันเพื่อฝึกทักษะการตัดสินใจ", "แนะนำการเปลี่ยนมาใช้บริการสั่งซื้อของชำออนไลน์ส่งตรงถึงบ้าน", "ประสานงานจัดหาผู้ช่วยหรือญาติร่วมเดินทางไปคัดเลือกสินค้าทุกครั้ง"] },
-                { cat: "3. Meal Preparation", items: ["แนะนำให้ผู้ดูแลเตรียมหั่นวัตถุดิบและจัดแบ่งสัดส่วนไว้ให้ล่วงหน้า", "จัดหาอุปกรณ์ครัวที่ปลอดภัย เช่น หม้อหุงข้าวไฟฟ้าตัดไฟอัตโนมัติ หรือไมโครเวฟ", "แนะนำการใช้บริการส่งอาหารดิลิเวอรี หรือผูกปิ่นโตเพื่อความสะดวก", "จัดวางเครื่องปรุงและอุปกรณ์ปรุงอาหารไว้ในระดับสายตาที่หยิบใช้ง่าย"] },
-                { cat: "4. Housekeeping", items: ["แนะนำให้จำกัดการทำเฉพาะงานบ้านเบาๆ (เช่น การเช็ดโต๊ะ นั่งพับผ้า)", "จัดหาอุปกรณ์ทุ่นแรงในการทำความสะอาด เช่น หุ่นยนต์ดูดฝุ่น", "ประสานญาติหรือจ้างผู้ช่วยเข้ามาช่วยทำความสะอาดงานบ้านส่วนที่หนัก", "จัดระเบียบสิ่งของในบ้าน แยกประเภทของใช้ให้เป็นหมวดหมู่"] },
-                { cat: "5. Laundry", items: ["แนะนำการซักผ้าชิ้นเล็กๆ หรือของส่วนตัวน้ำหนักเบาด้วยตนเอง", "สอนและติดป้ายบอกขั้นตอนการกดปุ่มใช้งานเครื่องซักผ้าอัตโนมัติอย่างง่าย", "มอบหมายให้ผู้ดูแลหรือส่งร้านซักรีดดูแลผ้าชิ้นใหญ่", "จัดวางตะกร้าผ้าแยกผ้าสี-ผ้าขาว และวางน้ำยาซักผ้าให้อยู่ในจุดที่เทใช้งานง่าย"] },
-                { cat: "6. Mode of Transportation", items: ["แนะนำการจองหรือใช้บริการรถแท็กซี่/รถรับส่งผ่านแอปพลิเคชันมือถือ", "แนะนำให้ผู้ดูแลหรือญาตินั่งรถสาธารณะร่วมเดินทางไปด้วยทุกครั้ง", "วางแผนและบันทึกตารางการเดินทาง เส้นทาง ให้ผู้ป่วยพกติดตัว", "แนะนำญาติให้เป็นผู้ขับขี่รถยนต์ส่วนบุคคลพารับส่งเมื่อต้องไปโรงพยาบาล"] },
-                { cat: "7. Responsibility for Own Medications", items: ["จัดจัดเตรียมยาลงในตลับแยกมื้อยา (Pill Organizer) รายสัปดาห์", "ตั้งนาฬิกาปลุกบนมือถือหรือใช้แอปพลิเคชันแจ้งเตือนเวลารับประทานยา", "ตรวจเช็กจำนวนยาที่เหลือและวันหมดอายุบนซองยาเป็นประจำ", "ให้ผู้ดูแลร่วมตรวจสอบความถูกต้องของชนิดยา ขนาด และเวลาก่อนรับประทาน"] },
-                { cat: "8. Ability to Handle Finances", items: ["แนะนำการตั้งค่าหักค่าใช้จ่ายอัตโนมัติผ่านบัญชีธนาคาร", "ให้ผู้ป่วยดูแลเฉพาะเงินสดจำนวนน้อยสำหรับใช้จ่ายเล็กๆ น้อยๆ", "มอบหมายให้ญาติสนิทที่ไว้วางใจร่วมตรวจสอบสมุดบัญชี", "เก็บรักษาเอกสารสำคัญทางการเงิน บัตรเครดิต ไว้ในที่ปลอดภัย"] }
-            ],
-            GDS: [
-                { cat: "1. ความพึงพอใจในชีวิต (Life Satisfaction)", items: ["ชวนสนทนาทบทวนความสุข ความสำเร็จ และประสบการณ์เชิงบวกในอดีต (Reminiscence Therapy)", "กระตุ้นให้มองเห็นคุณค่าในสิ่งที่มีอยู่และค้นหาข้อดีของการดำเนินชีวิตในปัจจุบัน"] },
-                { cat: "2. การลดกิจกรรมที่สนใจ (Reduction of Activities)", items: ["สนับสนุนให้กลับมาทำกิจกรรมหรืองานอดิเรกเดิมที่เคยชอบในอดีต", "ชวนผู้ป่วยเข้าร่วมกิจกรรมกลุ่มหรือชมรมผู้สูงอายุในชุมชนเพื่อสร้างสิ่งเร้าใหม่ๆ"] },
-                { cat: "3. ความรู้สึกว่างเปล่า (Feeling of Emptiness)", items: ["ช่วยจัดตารางเวลากิจกรรมประจำวัน (Daily Schedule) ให้มีโครงสร้างที่ชัดเจนและสม่ำเสมอ", "มอบหมายบทบาทหน้าที่เล็กๆ น้อยๆ ในบ้านที่เหมาะสมกับแรงกายเพื่อลดความรู้สึกว่างเปล่า"] },
-                { cat: "4. ความเบื่อหน่าย (Boredom)", items: ["แนะนำให้ทดลองทำกิจกรรมแปลกใหม่ระดับง่าย", "เปลี่ยนบรรยากาศสิ่งแวดล้อม พานั่งรับลมริมหน้าต่าง หรือพาเดินเล่นรับแสงแดดยามเช้า"] },
-                { cat: "5. ความหวังในอนาคต (Future Outlook)", items: ["พูดคุยตั้งเป้าหมายระยะสั้นๆ ที่เป็นไปได้จริงในแต่ละวัน", "ให้แรงเสริมทางบวก (Positive Reinforcement) กล่าวชื่นชมเมื่อผู้ป่วยทำเป้าหมายเล็กๆ สำเร็จ"] }
-            ],
-            TGDS: [
-                { cat: "1. ความพึงพอใจในชีวิตความเป็นอยู่", items: ["ชวนสนทนาทบทวนความสุข ความสำเร็จ และความภูมิใจในอดีต (Reminiscence Therapy)", "กระตุ้นให้มองเห็นข้อดีและสิ่งดีๆ ที่ยังคงมีอยู่ในชีวิตประจำวันปัจจุบัน"] },
-                { cat: "2. การลดกิจกรรมหรืองานอดิเรก", items: ["สนับสนุนให้กลับมาทำกิจกรรมที่เคยชอบ (เช่น ปลูกต้นไม้ เลี้ยงปลา ฟังเพลง)", "ชวนเข้าร่วมกลุ่มกิจกรรมในชุมชน เช่น ชมรมผู้สูงอายุ หรือกลุ่มจิตอาสา"] },
-                { cat: "3. ความรู้สึกชีวิตว่างเปล่า", items: ["จัดตารางกิจกรรมประจำวันให้มีโครงสร้างชัดเจน เพื่อให้ผู้สูงอายุรู้สึกมีสิ่งต้องทำ", "มอบหมายบทบาทหน้าที่เล็กๆ น้อยๆ ในบ้านที่เหมาะสมกับแรงกาย"] },
-                { cat: "4. ความรู้สึกเบื่อหน่ายบ่อยๆ", items: ["เปลี่ยนบรรยากาศสิ่งแวดล้อม พานั่งรับลมนอกบ้าน หรือเดินเล่นรับแสงแดดยามเช้า", "แนะนำให้ลองทำสิ่งแปลกใหม่ระดับง่าย เช่น งานศิลปะบำบัด การตัดแปะภาพ"] },
-                { cat: "5. ความหวังและทัศนคติต่ออนาคต", items: ["พูดคุยตั้งเป้าหมายระยะสั้นๆ ที่เป็นไปได้จริงในชีวิตประจำวัน", "พูดคุยให้กำลังใจและชี้ให้เห็นมุมมองเชิงบวกต่อเหตุการณ์ที่จะเกิดขึ้น"] }
-            ]
-        };
-
-        /* ==========================================
-           APPLICATION LOGIC
-           ========================================== */
-
-        const form = document.getElementById('healthAssessmentForm');
-        let currentStep = 1;
-
-        // Initialize Page 1 — q1-q15 textarea fields
-        function initPage1() {
-            const container = document.getElementById('commandDatabaseFields');
-            commandDatabaseItems.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <label class="block text-base font-semibold text-slate-800 mb-1 required-asterisk">${index + 1}. ${item.topic}</label>
-                        <p class="text-sm text-slate-500 mb-3">${item.desc}</p>
-                        <textarea name="${item.id}" rows="2" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-base border p-3" required></textarea>
-                    </div>`;
-            });
-        }
-        initPage1();
-
-        // Step navigation
-        function goToStep(step) {
-            if (step > currentStep) {
-                if (!validateCurrentStep()) {
-                    alert('กรุณากรอกข้อมูลในช่องที่จำเป็น (*) ให้ครบถ้วน');
-                    return;
-                }
-            }
-
-            [1, 2, 3].forEach(s => {
-                document.getElementById(`page${s}`).classList.add('hidden');
-                const nav = document.getElementById(`nav-step-${s}`);
-                if (s < step) {
-                    nav.classList.remove('opacity-50', 'text-blue-200');
-                    nav.classList.add('text-white');
-                    nav.querySelector('div').className = 'w-8 h-8 rounded-full bg-blue-400 text-white flex items-center justify-center mb-1';
-                    nav.querySelector('div').innerHTML = '✓';
-                } else if (s === step) {
-                    nav.classList.remove('opacity-50', 'text-blue-200');
-                    nav.classList.add('text-white');
-                    nav.querySelector('div').className = 'w-8 h-8 rounded-full bg-white text-blue-800 flex items-center justify-center mb-1 font-bold';
-                    nav.querySelector('div').innerHTML = s;
-                } else {
-                    nav.classList.add('opacity-50', 'text-blue-200');
-                    nav.classList.remove('text-white');
-                    nav.querySelector('div').className = 'w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1';
-                    nav.querySelector('div').innerHTML = s;
-                }
-            });
-
-            document.getElementById(`page${step}`).classList.remove('hidden');
-            window.scrollTo(0, 0);
-            currentStep = step;
-            if (step === 3) renderRecommendations();
-        }
-
-        function validateCurrentStep() {
-            const page = document.getElementById(`page${currentStep}`);
-            const requiredElements = page.querySelectorAll('[required]');
-            let isValid = true;
-            requiredElements.forEach(el => {
-                if (el.type === 'radio') {
-                    if (!page.querySelector(`input[name="${el.name}"]:checked`)) isValid = false;
-                } else if (!el.value.trim()) {
-                    el.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    el.classList.remove('border-red-500');
-                }
-            });
-            return isValid;
-        }
-
-        // Render dynamic assessment form on radio change
-        document.querySelectorAll('input[name="assessmentType"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const type = this.value;
-                const container = document.getElementById('dynamicAssessmentForm');
-                const data = assessmentScales[type];
-
-                let html = `
-                    <div class="mb-4">
-                        <h3 class="text-lg font-bold text-blue-800">${data.title}</h3>
-                        ${type === 'ADL' ? '<div class="mt-2 p-3 bg-blue-50 text-blue-800 rounded font-semibold text-center border border-blue-200" id="adlScoreDisplay">คะแนนรวม: 0 (รอการประเมิน)</div>' : ''}
-                    </div>
-                    <div class="space-y-4">
-                `;
-
-                data.items.forEach(item => {
-                    html += `<div class="bg-slate-50 p-4 rounded border border-slate-200">
-                                <label class="block font-semibold text-slate-800 mb-2 required-asterisk">${item.label}</label>
-                                <div class="flex flex-col space-y-2 pl-2">`;
-                    item.options.forEach(opt => {
-                        html += `<label class="inline-flex items-center">
-                                    <input type="radio" name="${item.id}" value="${opt.v}" class="form-radio text-blue-600 adl-calc" required>
-                                    <span class="ml-2 text-slate-700">${opt.l}</span>
-                                 </label>`;
-                    });
-                    html += `</div></div>`;
-                });
-                html += `</div>`;
-
-                container.innerHTML = html;
-                container.classList.remove('hidden');
-
-                if (type === 'ADL') {
-                    document.querySelectorAll('.adl-calc').forEach(r => r.addEventListener('change', calculateADL));
-                }
-            });
+    (function initQ15() {
+        const c = document.getElementById('commandDatabaseFields');
+        commandDatabaseItems.forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'bg-slate-50 p-4 rounded-lg border border-slate-200';
+            div.innerHTML = `
+                <label class="block text-sm font-bold text-slate-800 mb-1 required-asterisk">${i+1}. ${item.topic}</label>
+                <p class="text-xs text-slate-500 mb-2">${item.desc}</p>
+                <textarea name="${item.id}" rows="2"
+                    class="block w-full rounded-md border border-gray-300 p-3 focus:border-orange-500 text-sm" required></textarea>`;
+            c.appendChild(div);
         });
+    })();
 
-        // ADL Score calculation
-        function calculateADL() {
-            let score = 0, answered = 0;
-            document.querySelectorAll('.adl-calc:checked').forEach(checked => {
-                score += parseInt(checked.value);
-                answered++;
-            });
+    /* ══ Assessment Scales ══ */
+    const assessmentScales = {
+        ADL: {
+            title: "แบบประเมินดัชนีบาร์เธลเอดีแอล (Barthel ADL Index)",
+            items: [
+                { id:'adl1',  label:'1. Feeding (การรับประทานอาหาร)',             options:[{v:0,l:'0 — ต้องให้ผู้อื่นป้อนทั้งหมด'},{v:1,l:'1 — ช่วยตัวเองได้บางส่วน'},{v:2,l:'2 — ทำได้เองทั้งหมด'}] },
+                { id:'adl2',  label:'2. Grooming (การดูแลตนเอง)',                  options:[{v:0,l:'0 — ต้องให้ผู้อื่นช่วย'},{v:1,l:'1 — ทำได้เอง'}] },
+                { id:'adl3',  label:'3. Transferring (การเคลื่อนย้าย)',            options:[{v:0,l:'0 — ไม่สามารถทำได้เลย'},{v:1,l:'1 — ต้องช่วยมาก (2 คน)'},{v:2,l:'2 — ต้องช่วยบ้าง (1 คน)'},{v:3,l:'3 — ทำได้เองทั้งหมด'}] },
+                { id:'adl4',  label:'4. Toilet Use (การใช้ห้องน้ำ)',               options:[{v:0,l:'0 — ทำไม่ได้'},{v:1,l:'1 — ต้องช่วยบ้าง'},{v:2,l:'2 — ทำได้เอง'}] },
+                { id:'adl5',  label:'5. Bathing (การอาบน้ำ)',                     options:[{v:0,l:'0 — ต้องให้ผู้อื่นช่วย'},{v:1,l:'1 — ทำได้เอง'}] },
+                { id:'adl6',  label:'6. Mobility (การเคลื่อนที่)',                 options:[{v:0,l:'0 — ไม่สามารถเคลื่อนที่ได้'},{v:1,l:'1 — ใช้รถเข็นเองได้'},{v:2,l:'2 — เดินโดยมีผู้ช่วยพยุง'},{v:3,l:'3 — เดินได้เองหรือใช้อุปกรณ์ช่วย'}] },
+                { id:'adl7',  label:'7. Stairs (การขึ้นลงบันได)',                  options:[{v:0,l:'0 — ไม่สามารถทำได้'},{v:1,l:'1 — ต้องช่วยบ้าง'},{v:2,l:'2 — ทำได้เอง'}] },
+                { id:'adl8',  label:'8. Dressing (การสวมใส่เสื้อผ้า)',             options:[{v:0,l:'0 — ต้องให้ผู้อื่นแต่งให้'},{v:1,l:'1 — ทำได้บางส่วน'},{v:2,l:'2 — ทำได้เองทั้งหมด'}] },
+                { id:'adl9',  label:'9. Bowels (การกลั้นอุจจาระ)',                 options:[{v:0,l:'0 — กลั้นไม่ได้'},{v:1,l:'1 — กลั้นไม่ได้บางครั้ง'},{v:2,l:'2 — กลั้นได้ปกติ'}] },
+                { id:'adl10', label:'10. Bladder (การกลั้นปัสสาวะ)',               options:[{v:0,l:'0 — กลั้นไม่ได้'},{v:1,l:'1 — กลั้นไม่ได้บางครั้ง'},{v:2,l:'2 — กลั้นได้ปกติ'}] }
+            ]
+        },
+        IADL: {
+            title: "แบบประเมิน Lawton IADL Scale — 8 ข้อ",
+            items: [
+                { id:'iadl1', label:'1. ความสามารถในการใช้โทรศัพท์', options:[{v:1,l:'1 — ใช้โทรศัพท์ได้อย่างอิสระ'},{v:1,l:'1 — โทรหาคนที่รู้จักได้'},{v:1,l:'1 — รับสายได้แต่โทรออกไม่ได้'},{v:0,l:'0 — ไม่สามารถใช้โทรศัพท์ได้เลย'}] },
+                { id:'iadl2', label:'2. การจัดซื้อสิ่งของ', options:[{v:1,l:'1 — ซื้อของได้อย่างอิสระ'},{v:0,l:'0 — ซื้อของเล็กน้อยได้'},{v:0,l:'0 — ต้องมีคนพาหรือช่วยทุกครั้ง'},{v:0,l:'0 — ไม่สามารถซื้อของได้'}] },
+                { id:'iadl3', label:'3. การเตรียมอาหาร', options:[{v:1,l:'1 — วางแผนและปรุงอาหารได้เอง'},{v:0,l:'0 — ปรุงได้ต่อเมื่อมีการเตรียมให้'},{v:0,l:'0 — อุ่นอาหารสำเร็จรูปได้'},{v:0,l:'0 — ต้องพึ่งพาผู้อื่นในการจัดหาอาหาร'}] },
+                { id:'iadl4', label:'4. การทำความสะอาดบ้าน', options:[{v:1,l:'1 — ทำความสะอาดได้ทั้งหมด'},{v:1,l:'1 — ทำงานเบาๆ ได้'},{v:1,l:'1 — ทำงานบ้านง่ายๆ ได้'},{v:0,l:'0 — ต้องมีคนช่วยทุกอย่าง'},{v:0,l:'0 — ไม่สามารถทำความสะอาดได้'}] },
+                { id:'iadl5', label:'5. การซักรีดเสื้อผ้า', options:[{v:1,l:'1 — ทำได้เองทั้งหมด'},{v:1,l:'1 — ซักชิ้นเล็กๆ ได้'},{v:0,l:'0 — ต้องให้ผู้อื่นจัดการทั้งหมด'}] },
+                { id:'iadl6', label:'6. การเดินทาง', options:[{v:1,l:'1 — ใช้ยานพาหนะได้อย่างอิสระ'},{v:1,l:'1 — ใช้รถสาธารณะได้เมื่อมีคนช่วย'},{v:1,l:'1 — ต้องมีคนพาไปด้วย'},{v:0,l:'0 — ใช้รถส่วนตัวที่มีคนขับเท่านั้น'},{v:0,l:'0 — ไม่ออกเดินทางเลย'}] },
+                { id:'iadl7', label:'7. การรับผิดชอบต่อยา', options:[{v:1,l:'1 — จัดการยาได้เองถูกต้อง'},{v:0,l:'0 — ทานยาได้ถ้ามีคนจัดยาให้'},{v:0,l:'0 — ไม่สามารถจัดการยาเองได้'}] },
+                { id:'iadl8', label:'8. การจัดการเรื่องการเงิน', options:[{v:1,l:'1 — จัดการธุรกรรมการเงินได้เอง'},{v:1,l:'1 — จัดการค่าใช้จ่ายรายวันได้'},{v:0,l:'0 — ไม่สามารถจัดการเรื่องเงินได้เลย'}] }
+            ]
+        },
+        TGDS: {
+            title: "แบบประเมินภาวะซึมเศร้าในผู้สูงอายุไทย TGDS-15",
+            items: [
+                'ท่านพอใจกับชีวิตในปัจจุบันหรือไม่?',
+                'ท่านได้ละทิ้งกิจกรรมหรืองานอดิเรกที่เคยสนใจไปเป็นจำนวนมากหรือไม่?',
+                'ท่านรู้สึกว่าชีวิตว่างเปล่าหรือไม่?',
+                'ท่านรู้สึกเบื่อหน่ายบ่อยๆ หรือไม่?',
+                'ท่านรู้สึกมีความหวังเกี่ยวกับอนาคตหรือไม่?',
+                'ท่านรู้สึกว้าวุ่นใจและไม่สบายใจอยู่บ่อยๆ หรือไม่?',
+                'ท่านรู้สึกมีความสุขดีกว่าคนอื่นๆ ส่วนใหญ่หรือไม่?',
+                'ท่านรู้สึกหมดหวังบ่อยๆ หรือไม่?',
+                'ท่านชอบอยู่บ้านมากกว่าออกไปทำกิจกรรมนอกบ้านหรือไม่?',
+                'ท่านรู้สึกว่าตัวเองมีปัญหาเรื่องความจำมากกว่าคนอื่นๆ หรือไม่?',
+                'ท่านคิดว่าการมีชีวิตอยู่ในขณะนี้เป็นเรื่องน่ายินดีหรือไม่?',
+                'ท่านรู้สึกไร้ค่าในสภาพที่เป็นอยู่ในขณะนี้หรือไม่?',
+                'ท่านรู้สึกมีพลังงาน กระปรี้กระเปร่าหรือไม่?',
+                'ท่านรู้สึกสิ้นหวังกับสถานการณ์ในปัจจุบันหรือไม่?',
+                'ท่านคิดว่าคนอื่นๆ ส่วนใหญ่ดีกว่าท่านหรือไม่?'
+            ].map((l,i) => ({ id:`tgds${i+1}`, label:`${i+1}. ${l}`, options:[{v:'ใช่',l:'ใช่'},{v:'ไม่ใช่',l:'ไม่ใช่'}] }))
+        },
+        GDS: {
+            title: "GDS-15 Short Form (Geriatric Depression Scale)",
+            items: [
+                'Are you basically satisfied with your life?',
+                'Have you dropped many of your activities and interests?',
+                'Do you feel that your life is empty?',
+                'Do you often get bored?',
+                'Are you in good spirits most of the time?',
+                'Are you afraid that something bad is going to happen to you?',
+                'Do you feel happy most of the time?',
+                'Do you often feel helpless?',
+                'Do you prefer to stay at home, rather than going out?',
+                'Do you feel you have more problems with memory than most?',
+                'Do you think it is wonderful to be alive now?',
+                'Do you feel pretty worthless the way you are now?',
+                'Do you feel full of energy?',
+                'Do you feel that your situation is hopeless?',
+                'Do you think that most people are better off than you are?'
+            ].map((l,i) => ({ id:`gds${i+1}`, label:`${i+1}. ${l}`, options:[{v:'Yes',l:'Yes'},{v:'No',l:'No'}] }))
+        }
+    };
 
-            if (answered > 0) {
-                let interpretation = "";
-                if (score >= 12) interpretation = "กลุ่มติดสังคม (พึ่งพาตนเองได้ดี)";
-                else if (score >= 5) interpretation = "กลุ่มติดบ้าน (พึ่งพาปานกลาง-รุนแรง)";
-                else              interpretation = "กลุ่มติดเตียง (พึ่งพาโดยสมบูรณ์)";
+    /* ══ Nursing Recommendations ══ */
+    const nursingRecommendations = {
+        ADL: [
+            { cat:'1. Feeding', items:['จัดท่านั่งศีรษะสูง 45–90 องศาขณะรับประทานอาหาร และนั่งพักต่ออีก 30 นาทีหลังมื้อ','แนะนำ/จัดหาอุปกรณ์ช่วยรับประทานดัดแปลง (ช้อนด้ามหนา ถ้วยมีหู)','ดูแลและประเมินอาการสำลักระหว่างรับประทานอาหารและน้ำ','ประสานผู้ดูแลจัดอาหารอ่อน นุ่ม หรือบดสำหรับผู้ที่มีปัญหาเคี้ยว'] },
+            { cat:'2. Grooming', items:['กระตุ้นให้ล้างหน้า แปรงฟัน และหวีผมด้วยตนเองเป็นประจำทุกวัน','จัดวางอุปกรณ์โกนหนวด/แปรงสีฟันไว้ในตำแหน่งที่หยิบใช้ง่าย','ช่วยเตรียมบีบยาสีฟัน/เทน้ำหากมือไม่แข็งแรง','ทำความสะอาดช่องปากและเช็ดหน้าให้เช้า-เย็น (กรณีพึ่งพาโดยสมบูรณ์)'] },
+            { cat:'3. Transferring', items:['ให้นั่งนิ่งๆ บนขอบเตียง 1–2 นาทีก่อนยืนเพื่อป้องกันหน้ามืด','ล็อกล้อเตียง/รถเข็นให้สนิทก่อนเคลื่อนย้ายทุกครั้ง','วางเก้าอี้/รถเข็นมุม 45 องศาด้านข้างที่แข็งแรงของผู้ป่วย','ใช้กลศาสตร์ร่างกายที่ถูกต้องในการช่วยพยุงเพื่อป้องกันพยาบาลบาดเจ็บ'] },
+            { cat:'4. Toilet Use', items:['ตรวจสอบความปลอดภัยในห้องน้ำ ติดราวจับ พื้นแห้งเสมอ','จัดเตรียม Commode Chair ข้างเตียงสำหรับกรณีฉุกเฉิน','ช่วยเหลือถอด-ใส่กางเกง และพยุงทำความสะอาดหลังขับถ่าย','บันทึกความถี่และลักษณะการขับถ่าย เฝ้าระวังท้องผูก'] },
+            { cat:'5. Bathing', items:['จัดเก้าอี้พลาสติกมียางกันลื่นให้นั่งอาบน้ำ ไม่ล็อกประตู','แนะนำปรับอุณหภูมิน้ำอุ่นพอดีก่อนอาบ','เช็ดตัวบนเตียง (Bed Bath) จากปลายแขนขาเข้าหาหัวใจ','ซับผิวหนังตามข้อพับให้แห้งสนิทหลังอาบเพื่อป้องกันราและแผลกดทับ'] },
+            { cat:'6. Mobility', items:['วัดและปรับความสูงไม้เท้า/Walker ให้เหมาะสม','เดินประกบช่วยพยุงด้านที่อ่อนแรงเสมอ','ตรวจสอบและเคลียร์สิ่งกีดขวางในทางเดิน แสงสว่างเพียงพอ','ทำ Passive ROM บนเตียงอย่างน้อยวันละ 2 ครั้ง'] },
+            { cat:'7. Stairs', items:['สอนเทคนิคบันได: ขาดีขึ้นก่อน ขาเจ็บตามหลัง','จับราวบันไดให้มั่นคงทุกครั้ง ไม่ถือสิ่งของขณะก้าว','ยืนประกบต่ำกว่าผู้ป่วยหนึ่งขั้น','แนะนำย้ายห้องนอนชั้นล่างเพื่อหลีกเลี่ยงบันได'] },
+            { cat:'8. Dressing', items:['แนะนำเสื้อผ้าหลวม เอวยืด ตีนตุ๊กแกแทนกระดุม','สอนเทคนิค: ใส่แขน/ขาที่อ่อนแรงก่อน ถอดข้างที่ดีออกก่อน','จัดเตรียมและส่งเสื้อผ้าให้ผู้ป่วยเลือกสวมใส่เอง','เลือกเสื้อผ้าผ่าหน้า/ผ่าหลังเนื้อนุ่มเพื่อถอดเปลี่ยนง่าย'] },
+            { cat:'9. Bowels', items:['แนะนำรับประทานอาหารกากใยสูง ดื่มน้ำ 6–8 แก้ว/วัน','จัดตารางเวลาขับถ่ายให้เป็นประจำทุกวัน (หลังอาหารเช้า)','บันทึกความถี่ ลักษณะอุจจาระ เฝ้าระวังท้องผูก','ทำความสะอาดรอบทวาร ทาครีมเคลือบผิวป้องกันผิวเปื่อย'] },
+            { cat:'10. Bladder', items:['งดดื่มน้ำมากในช่วง 2 ชั่วโมงก่อนนอน','ฝึก Bladder Training พาเข้าห้องน้ำทุก 2–3 ชั่วโมง','เปลี่ยนผ้าอ้อมทันทีเมื่อเปียกชื้น','ดูแลสายสวนปัสสาวะอยู่ต่ำกว่ากระเพาะ ทำความสะอาดด้วยเทคนิคปลอดเชื้อ'] }
+        ],
+        IADL: [
+            { cat:'1. Telephone', items:['จัดหาโทรศัพท์ปุ่มใหญ่หรือระบบสั่งการด้วยเสียง','บันทึกหมายเลขฉุกเฉินและญาติไว้ในปุ่มโทรด่วน','ติดป้ายหมายเลขสำคัญขนาดใหญ่ไว้ข้างเครื่อง','ฝึกทบทวนการกดโทรออกและรับสายร่วมกับผู้ดูแล'] },
+            { cat:'2. Shopping', items:['จัดทำรายการสินค้าที่ต้องซื้อล่วงหน้า','พาเดินเลือกซื้อร่วมกันเพื่อฝึกทักษะ','แนะนำบริการสั่งซื้อออนไลน์ส่งตรงถึงบ้าน','ประสานผู้ช่วยร่วมเดินทางไปคัดเลือกสินค้า'] },
+            { cat:'3. Meal Prep', items:['ผู้ดูแลเตรียมหั่นวัตถุดิบและจัดสัดส่วนไว้ล่วงหน้า','จัดหาอุปกรณ์ครัวปลอดภัย เช่น หม้อหุงข้าวไฟฟ้าตัดไฟอัตโนมัติ','แนะนำบริการส่งอาหารดิลิเวอรีหรือผูกปิ่นโต','จัดวางเครื่องปรุงระดับสายตาที่หยิบใช้ง่าย'] },
+            { cat:'4. Housekeeping', items:['จำกัดให้ทำงานบ้านเบาๆ เช่น เช็ดโต๊ะ พับผ้า','จัดหาอุปกรณ์ทุ่นแรง เช่น หุ่นยนต์ดูดฝุ่น','ประสานญาติ/ผู้ช่วยทำความสะอาดงานหนัก','จัดระเบียบสิ่งของในบ้านให้เป็นหมวดหมู่'] },
+            { cat:'5. Laundry', items:['ซักผ้าชิ้นเล็กๆ/ของส่วนตัวน้ำหนักเบาด้วยตนเอง','ติดป้ายขั้นตอนการกดปุ่มเครื่องซักผ้าอัตโนมัติ','มอบให้ผู้ดูแลหรือร้านซักรีดดูแลผ้าชิ้นใหญ่','จัดตะกร้าแยกผ้าสี-ผ้าขาว วางน้ำยาในจุดที่เทง่าย'] },
+            { cat:'6. Transportation', items:['แนะนำการจองแท็กซี่/รถรับส่งผ่านแอปพลิเคชัน','ผู้ดูแลนั่งร่วมเดินทางทุกครั้ง','บันทึกตารางการเดินทางให้ผู้ป่วยพกติดตัว','ญาติเป็นผู้ขับรถส่วนตัวรับส่งโรงพยาบาล'] },
+            { cat:'7. Medications', items:['จัดยาลงตลับแยกมื้อ (Pill Organizer) รายสัปดาห์','ตั้งนาฬิกาปลุก/แอปแจ้งเตือนเวลารับประทานยา','ตรวจจำนวนยาและวันหมดอายุเป็นประจำ','ผู้ดูแลร่วมตรวจสอบชนิด ขนาด และเวลาก่อนรับประทาน'] },
+            { cat:'8. Finances', items:['ตั้งค่าหักค่าใช้จ่ายอัตโนมัติผ่านบัญชีธนาคาร','ให้ดูแลเงินสดน้อยๆ สำหรับค่าใช้จ่ายเล็กน้อย','ให้ญาติที่ไว้วางใจตรวจสอบสมุดบัญชีร่วม','เก็บรักษาเอกสารสำคัญและบัตรเครดิตในที่ปลอดภัย'] }
+        ],
+        GDS: [
+            { cat:'1. Life Satisfaction', items:['Reminiscence Therapy — ชวนทบทวนความสุขและความสำเร็จในอดีต','กระตุ้นให้มองเห็นคุณค่าและสิ่งดีๆ ที่ยังมีอยู่'] },
+            { cat:'2. Activity', items:['สนับสนุนให้กลับมาทำงานอดิเรกที่เคยชอบ','ชวนเข้าร่วมกลุ่มกิจกรรมในชุมชน'] },
+            { cat:'3. Emptiness / Boredom', items:['จัดตารางกิจกรรมประจำวันให้มีโครงสร้างชัดเจน','มอบหมายบทบาทหน้าที่เล็กๆ ที่เหมาะกับแรงกาย'] },
+            { cat:'4. Depression Screening', items:['ประเมินซ้ำโดยแพทย์หรือจิตแพทย์หากคะแนน ≥ 6','แนะนำการปรึกษาผู้เชี่ยวชาญด้านสุขภาพจิต'] }
+        ],
+        TGDS: [
+            { cat:'1. ความพึงพอใจในชีวิต', items:['Reminiscence Therapy — ชวนทบทวนความสุข ความสำเร็จในอดีต','กระตุ้นให้มองเห็นสิ่งดีๆ ที่ยังคงมีอยู่ในปัจจุบัน'] },
+            { cat:'2. กิจกรรมและความสนใจ', items:['สนับสนุนให้กลับมาทำกิจกรรมที่เคยชอบ (ปลูกต้นไม้ เลี้ยงสัตว์ ฟังเพลง)','ชวนเข้าร่วมกลุ่มชมรมผู้สูงอายุในชุมชน'] },
+            { cat:'3. อารมณ์และความรู้สึก', items:['จัดตารางกิจกรรมประจำวันให้มีโครงสร้างและเป้าหมายชัดเจน','เปลี่ยนบรรยากาศ พาเดินรับแสงแดดยามเช้า นั่งรับลมนอกบ้าน'] },
+            { cat:'4. การส่งต่อผู้เชี่ยวชาญ', items:['ประเมินซ้ำโดยแพทย์หากคะแนน TGDS-15 ≥ 8','แนะนำการปรึกษาจิตแพทย์หรือนักจิตวิทยาคลินิก','ให้ครอบครัวมีส่วนร่วมในการดูแลด้านอารมณ์'] }
+        ]
+    };
 
-                document.getElementById('adlScoreDisplay').innerHTML =
-                    `คะแนนรวม: ${score} / 20 <br><span class="text-sm mt-1 block font-bold text-red-600">การแปลผล: ${interpretation}</span>`;
-
-                let hiddenInput = document.getElementById('adlScoreResult');
-                if (!hiddenInput) {
-                    hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.id   = 'adlScoreResult';
-                    hiddenInput.name = 'adlScoreResult';
-                    form.appendChild(hiddenInput);
-                }
-                hiddenInput.value = `${score} (${interpretation})`;
+    /* ══ Step Navigation ══ */
+    function goToStep(step) {
+        if (step > currentStep && !validateCurrentStep()) {
+            alert('กรุณากรอกข้อมูลในช่องที่จำเป็น (*) ให้ครบถ้วน');
+            return;
+        }
+        for (let s = 1; s <= TOTAL_STEPS; s++) {
+            document.getElementById(`page${s}`).classList.add('hidden');
+            const navEl = document.getElementById(`nav-step-${s}`);
+            const circle = document.getElementById(`nav-circle-${s}`);
+            if (s < step) {
+                navEl.classList.remove('opacity-50'); navEl.classList.add('text-white');
+                circle.className = 'w-8 h-8 rounded-full bg-blue-400 text-white flex items-center justify-center mb-1 font-bold';
+                circle.textContent = '✓';
+            } else if (s === step) {
+                navEl.classList.remove('opacity-50'); navEl.classList.add('text-white');
+                circle.className = 'w-8 h-8 rounded-full bg-white text-blue-800 flex items-center justify-center mb-1 font-bold';
+                circle.textContent = s;
+            } else {
+                navEl.classList.add('opacity-50'); navEl.classList.remove('text-white');
+                circle.className = 'w-8 h-8 rounded-full border-2 border-blue-200 flex items-center justify-center mb-1';
+                circle.textContent = s;
             }
         }
+        document.getElementById(`page${step}`).classList.remove('hidden');
+        window.scrollTo(0,0);
+        currentStep = step;
+        if (step === 4) renderRecommendations();
+    }
 
-        // Render nursing recommendations (Step 3)
-        function renderRecommendations() {
-            const typeRadio = document.querySelector('input[name="assessmentType"]:checked');
-            const container = document.getElementById('dynamicRecommendations');
-
-            if (!typeRadio) {
-                container.innerHTML = '<div class="text-center text-red-500 py-10 font-bold">เกิดข้อผิดพลาด: ไม่พบประเภทแบบประเมิน กรุณาย้อนกลับไปเลือก</div>';
-                return;
+    function validateCurrentStep() {
+        const page = document.getElementById(`page${currentStep}`);
+        let valid = true;
+        const radioNames = new Set();
+        page.querySelectorAll('[required]').forEach(el => {
+            if (el.type === 'radio') {
+                if (!radioNames.has(el.name)) {
+                    radioNames.add(el.name);
+                    if (!page.querySelector(`input[name="${el.name}"]:checked`)) valid = false;
+                }
+            } else if (el.tagName === 'SELECT') {
+                if (!el.value) { el.classList.add('border-red-500'); valid = false; } else el.classList.remove('border-red-500');
+            } else {
+                if (!el.value.trim()) { el.classList.add('border-red-500'); valid = false; } else el.classList.remove('border-red-500');
             }
+        });
+        return valid;
+    }
 
-            const type    = typeRadio.value;
-            const recData = nursingRecommendations[type];
-            let html = `<div class="space-y-6">`;
-
-            recData.forEach((cat, index) => {
-                html += `
-                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                        <h4 class="font-bold text-slate-800 mb-3 pb-2 border-b">${cat.cat}</h4>
-                        <div class="space-y-2 pl-2">
-                `;
-                cat.items.forEach((item, i) => {
-                    const id = `rec_${type}_${index}_${i}`;
-                    html += `
-                        <label for="${id}" class="flex items-start cursor-pointer hover:bg-slate-100 p-1 rounded">
-                            <input type="checkbox" id="${id}" name="nursing_interventions" value="${item}" class="rec-checkbox mt-0.5 shrink-0">
-                            <span class="ml-3 text-slate-700 text-sm leading-relaxed">${item}</span>
-                        </label>
-                    `;
+    /* ══ Dynamic Assessment Form ══ */
+    document.querySelectorAll('input[name="assessmentType"]').forEach(r => {
+        r.addEventListener('change', function() {
+            const type = this.value;
+            const container = document.getElementById('dynamicAssessmentForm');
+            const data = assessmentScales[type];
+            let html = `<div class="mb-4">
+                <h3 class="text-lg font-bold text-blue-800">${data.title}</h3>
+                ${type==='ADL'?'<div class="mt-2 p-3 bg-blue-50 text-blue-800 rounded font-semibold text-center border border-blue-200" id="adlScoreDisplay">คะแนนรวม: 0 / 20 (รอการประเมิน)</div>':''}
+            </div><div class="space-y-4">`;
+            data.items.forEach(item => {
+                html += `<div class="bg-slate-50 p-4 rounded border border-slate-200">
+                    <label class="block font-semibold text-slate-800 mb-2">${item.label}</label>
+                    <div class="flex flex-col space-y-1.5 pl-2">`;
+                item.options.forEach(opt => {
+                    html += `<label class="inline-flex items-center cursor-pointer gap-2">
+                        <input type="radio" name="${item.id}" value="${opt.v}" class="form-radio text-blue-600 adl-calc">
+                        <span class="text-slate-700">${opt.l}</span></label>`;
                 });
                 html += `</div></div>`;
             });
-
             html += `</div>`;
             container.innerHTML = html;
-        }
-
-        // Show summary modal
-        function showSummary() {
-            const formDataObj = Object.fromEntries(new FormData(form).entries());
-            const selectedInterventions = Array.from(
-                document.querySelectorAll('input[name="nursing_interventions"]:checked')
-            ).map(cb => cb.value);
-
-            let html = `
-                <div class="space-y-4">
-                    <div class="bg-blue-50 p-3 rounded">
-                        <span class="font-bold">เพศ:</span> ${formDataObj.gender || '-'} &nbsp;|&nbsp;
-                        <span class="font-bold">กลุ่มอาการ:</span> ${formDataObj.symptomGroup || '-'}
-                    </div>
-                    <div class="border-t pt-2">
-                        <span class="font-bold text-blue-800">ประเภทแบบประเมินที่เลือก:</span> ${formDataObj.assessmentType || '-'}
-                    </div>
-            `;
-
-            if (formDataObj.assessmentType === 'ADL' && formDataObj.adlScoreResult) {
-                html += `<div class="bg-red-50 text-red-800 p-2 rounded border border-red-200 font-bold">ผลประเมิน ADL: ${formDataObj.adlScoreResult}</div>`;
+            container.classList.remove('hidden');
+            if (type === 'ADL') {
+                document.querySelectorAll('.adl-calc').forEach(r2 => r2.addEventListener('change', calculateADL));
             }
+        });
+    });
 
-            html += `
-                    <div class="border-t pt-2">
-                        <span class="font-bold text-blue-800">จำนวนคำแนะนำทางการพยาบาลที่เลือก:</span> ${selectedInterventions.length} รายการ
-                    </div>
-                    ${selectedInterventions.length > 0 ? `
-                    <div class="bg-green-50 p-3 rounded border border-green-200">
-                        <p class="font-bold text-green-800 mb-2">คำแนะนำที่เลือก:</p>
-                        <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
-                            ${selectedInterventions.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
-                    </div>` : ''}
-                </div>
-            `;
-
-            document.getElementById('summaryContent').innerHTML = html;
-            document.getElementById('summaryModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+    function calculateADL() {
+        let score = 0, answered = 0;
+        document.querySelectorAll('.adl-calc:checked').forEach(c => { score += parseInt(c.value); answered++; });
+        if (answered > 0) {
+            const interp = score >= 12 ? 'กลุ่มติดสังคม (ช่วยเหลือตนเองได้ดี)' : score >= 5 ? 'กลุ่มติดบ้าน (พึ่งพาปานกลาง-มาก)' : 'กลุ่มติดเตียง (พึ่งพาโดยสมบูรณ์)';
+            document.getElementById('adlScoreDisplay').innerHTML = `คะแนนรวม: <strong>${score} / 20</strong> — <span class="text-red-700">${interp}</span>`;
+            let inp = document.getElementById('adlScoreResult');
+            if (!inp) { inp = document.createElement('input'); inp.type='hidden'; inp.id='adlScoreResult'; inp.name='adlScoreResult'; document.getElementById('healthAssessmentForm').appendChild(inp); }
+            inp.value = `${score}/20 (${interp})`;
         }
+    }
 
-        function hideModal() {
-            document.getElementById('summaryModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // ============================================================
-        // FORM SUBMISSION — POST JSON to Expert App GAS URL
-        // Omit Content-Type → browser sends as text/plain → avoids
-        // CORS preflight; GAS reads via e.postData.contents
-        // ============================================================
-        document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
-            const btn = this;
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> กำลังส่งข้อมูล...';
-            btn.disabled = true;
-
-            // Collect all form fields into a flat JSON object
-            const payload = { action: 'submitCase' };  // ← routes to Proposition_DB in Code.gs
-            new FormData(form).forEach((value, key) => {
-                // Skip nursing_interventions here — handled separately below
-                if (key !== 'nursing_interventions') {
-                    payload[key] = value;
-                }
+    /* ══ Nursing Recommendations ══ */
+    function renderRecommendations() {
+        const typeRadio = document.querySelector('input[name="assessmentType"]:checked');
+        const container = document.getElementById('dynamicRecommendations');
+        if (!typeRadio) { container.innerHTML = '<div class="text-center text-red-500 py-10 font-bold">ไม่พบประเภทแบบประเมิน กรุณาย้อนกลับไปเลือก</div>'; return; }
+        const type = typeRadio.value;
+        const recData = nursingRecommendations[type];
+        let html = '<div class="space-y-6">';
+        recData.forEach((cat, ci) => {
+            html += `<div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <h4 class="font-bold text-slate-800 mb-3 pb-2 border-b">${cat.cat}</h4>
+                <div class="space-y-2 pl-2">`;
+            cat.items.forEach((item, ii) => {
+                const id = `rec_${type}_${ci}_${ii}`;
+                html += `<label for="${id}" class="flex items-start cursor-pointer hover:bg-slate-100 p-1 rounded gap-3">
+                    <input type="checkbox" id="${id}" name="nursing_interventions" value="${item}" class="rec-checkbox shrink-0">
+                    <span class="text-slate-700 text-sm leading-relaxed">${item}</span></label>`;
             });
+            html += `</div></div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
-            // Collect all checked interventions as pipe-separated string (Code.gs joins with ' | ')
-            const selectedInterventions = Array.from(
-                document.querySelectorAll('input[name="nursing_interventions"]:checked')
-            ).map(cb => cb.value);
-            payload['nursing_interventions'] = selectedInterventions.join('\n');
+    /* ══ Summary Modal ══ */
+    function showSummary() {
+        const fd = Object.fromEntries(new FormData(document.getElementById('healthAssessmentForm')).entries());
+        const interventions = Array.from(document.querySelectorAll('input[name="nursing_interventions"]:checked')).map(c=>c.value);
+        const occMap = { 'เกษตรกรรม': fd.occ_detail_agri, 'ธุรกิจส่วนตัว': fd.occ_detail_biz, 'อื่นๆ': fd.occ_detail_other };
+        const occDetail = occMap[fd.occupation] || '-';
+        let html = `<div class="space-y-3">
+            <div class="bg-blue-50 p-3 rounded text-sm grid grid-cols-3 gap-2">
+                <div><strong>ชื่อ:</strong><br>${fd.patient_name||'-'}</div>
+                <div><strong>เพศ:</strong><br>${fd.gender||'-'}</div>
+                <div><strong>อายุ:</strong><br>${fd.age_years||'-'} ปี ${fd.age_months||0} เดือน</div>
+            </div>
+            <div class="bg-emerald-50 p-3 rounded text-sm grid grid-cols-3 gap-2">
+                <div><strong>น้ำหนัก:</strong><br>${fd.weight_kg||'-'} กก.</div>
+                <div><strong>ส่วนสูง:</strong><br>${fd.height_cm||'-'} ซม.</div>
+                <div><strong>BMI:</strong><br>${fd.bmi||'-'}</div>
+            </div>
+            <div class="text-sm p-2 border rounded"><strong>อาชีพ:</strong> ${fd.occupation||'-'} ${occDetail ? `(${occDetail})` : ''}</div>
+            <div class="text-sm p-2 border rounded"><strong>กลุ่มอาการ:</strong> ${fd.symptomGroup||'-'}</div>
+            <div class="text-sm p-2 border rounded"><strong>แบบประเมิน:</strong> ${fd.assessmentType||'-'} | คะแนน: ${fd.score_min||0}–${fd.score_max||100}%</div>
+            <div class="text-sm"><strong>คำแนะนำพยาบาลที่เลือก:</strong> ${interventions.length} รายการ</div>
+            ${interventions.length > 0 ? `<div class="bg-green-50 p-3 rounded border border-green-200"><ul class="list-disc list-inside text-xs space-y-1">${interventions.slice(0,5).map(r=>`<li>${r}</li>`).join('')}${interventions.length>5?`<li class="text-slate-400">...และอีก ${interventions.length-5} รายการ</li>`:''}</ul></div>` : ''}
+        </div>`;
+        document.getElementById('summaryContent').innerHTML = html;
+        document.getElementById('summaryModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
 
-            // Add submission metadata
-            payload['submitted_at'] = new Date().toISOString();
+    function hideModal() {
+        document.getElementById('summaryModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
 
-            fetch(EXPERT_GAS_URL, {
-                method : 'POST',
-                // No Content-Type header → text/plain → GAS e.postData.contents
-                body   : JSON.stringify(payload)
-            })
-            .then(res => res.json())
+    /* ══ Form Submission ══ */
+    document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+        const btn = this;
+        const origHTML = btn.innerHTML;
+        btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> กำลังส่งข้อมูล...';
+        btn.disabled = true;
+
+        const fd = new FormData(document.getElementById('healthAssessmentForm'));
+        const payload = { action: 'submitCase' };
+        fd.forEach((v, k) => { if (k !== 'nursing_interventions') payload[k] = v; });
+
+        // Consolidate occupation detail
+        const occMap = { 'เกษตรกรรม': payload.occ_detail_agri, 'ธุรกิจส่วนตัว': payload.occ_detail_biz, 'อื่นๆ': payload.occ_detail_other };
+        payload.occupation_detail = occMap[payload.occupation] || '-';
+        ['occ_detail_agri','occ_detail_biz','occ_detail_other'].forEach(k => delete payload[k]);
+
+        // Consolidate community detail
+        payload.community_detail = [payload.community_1, payload.community_2, payload.community_3].filter(Boolean).join(' | ') || '-';
+        ['community_1','community_2','community_3'].forEach(k => delete payload[k]);
+
+        // Consolidate medical devices
+        payload.medical_devices_detail = [payload.medical_device_1, payload.medical_device_2, payload.medical_device_3].filter(Boolean).join(', ') || '-';
+        ['medical_device_1','medical_device_2','medical_device_3'].forEach(k => delete payload[k]);
+
+        // Nursing interventions
+        payload.expected_interventions = Array.from(document.querySelectorAll('input[name="nursing_interventions"]:checked')).map(c=>c.value).join('\n');
+        payload.correct_tool = payload.assessmentType || '-';
+        payload.submitted_at = new Date().toISOString();
+
+        fetch(EXPERT_GAS_URL, { method:'POST', body: JSON.stringify(payload) })
+            .then(r => r.json())
             .then(data => {
                 hideModal();
                 if (data.status === 'success') {
-                    alert('✅ บันทึกข้อมูลสำเร็จ!\nขอบคุณสำหรับการตรวจสอบและให้ข้อมูล');
                     document.getElementById('mainContent').classList.add('hidden');
-                    const successEl = document.getElementById('successSection');
-                    successEl.classList.remove('hidden');
-                    successEl.classList.add('flex');
-                    window.scrollTo(0, 0);
+                    const s = document.getElementById('successSection');
+                    s.classList.remove('hidden'); s.classList.add('flex');
+                    window.scrollTo(0,0);
                 } else {
-                    alert('⚠️ เกิดข้อผิดพลาด: ' + (data.message || 'ไม่ทราบสาเหตุ') + '\nกรุณาลองใหม่อีกครั้ง');
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
+                    alert('⚠️ เกิดข้อผิดพลาด: ' + (data.message||'ไม่ทราบสาเหตุ'));
+                    btn.innerHTML = origHTML; btn.disabled = false;
                 }
             })
-            .catch(error => {
-                console.error('[GeriSim Expert] Submission error:', error);
-                alert('❌ ไม่สามารถส่งข้อมูลได้\n' + error.message + '\n\nกรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
+            .catch(err => {
+                console.error('[GeriSim] Submit error:', err);
+                alert('❌ ไม่สามารถส่งข้อมูลได้\n' + err.message);
+                btn.innerHTML = origHTML; btn.disabled = false;
             });
-        });
+    });
     </script>
 </body>
 </html>
