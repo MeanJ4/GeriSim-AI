@@ -1453,7 +1453,9 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
           // AVATAR  (Flat / Corporate Memphis style)
           // ============================================================
           const renderAvatar = (patient, speaking, scaleClass = 'scale-100') => {
-            const isFemale   = (patient.gender || 'หญิง') === 'หญิง';
+            // Robust gender check — works with "ชาย", "หญิง", trailing spaces, mixed case
+            const genderStr  = (patient.gender || '').toString().trim();
+            const isFemale   = !genderStr.includes('ชาย');   // default female if unset
             const hasCane    = correctTool === 'ADL';
             const isSad      = correctTool === 'GDS' || correctTool === 'TGDS';
             const skinColor  = isFemale ? '#FDDCB5' : '#EFC990';
@@ -1754,6 +1756,17 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
                     <i className="fas fa-phone text-white text-3xl animate-pulse"></i>
                   </div>
                   <h2 className="text-xl font-black text-gray-800 mb-1">{activePatient.name}</h2>
+                  <div className="flex items-center gap-2 mb-1">
+                    {activePatient.gender && (
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                        style={activePatient.gender.includes('ชาย')
+                          ? {background:'#EFF6FF',color:'#1D4ED8',border:'1.5px solid #BFDBFE'}
+                          : {background:'#FDF2F8',color:'#9D174D',border:'1.5px solid #FBCFE8'}}>
+                        {activePatient.gender.includes('ชาย') ? '♂ เพศชาย' : '♀ เพศหญิง'}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">อายุ {activePatient.age} ปี</span>
+                  </div>
                   <p className="text-sm font-medium text-gray-400">กำลังเชื่อมต่อ...</p>
                 </div>
               )}
@@ -1834,11 +1847,22 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
                   {/* Patient info row */}
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-base font-black text-gray-900">{activePatient.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-black text-gray-900">{activePatient.name}</p>
+                        {/* Gender badge — updates live from DB */}
+                        {activePatient.gender && (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                            style={activePatient.gender.includes('ชาย')
+                              ? {background:'#EFF6FF',color:'#1D4ED8',border:'1.5px solid #BFDBFE'}
+                              : {background:'#FDF2F8',color:'#9D174D',border:'1.5px solid #FBCFE8'}}>
+                            {activePatient.gender.includes('ชาย') ? '♂ ชาย' : '♀ หญิง'}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400">อายุ {activePatient.age} ปี</p>
                     </div>
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                      style={{background:'#EEE8FF',background:'#F0FDF4',border:'1.5px solid #BBF7D0'}}>
+                      style={{background:'#F0FDF4',border:'1.5px solid #BBF7D0'}}>
                       <span className="w-2 h-2 rounded-full animate-pulse" style={{background:'#16A34A'}}></span>
                       <span className="text-xs font-bold" style={{color:'#16A34A'}}>Online</span>
                     </div>
@@ -2044,7 +2068,18 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
               <div className="absolute top-0 w-full px-4 pt-10 pb-4 flex items-center justify-between z-40"
                 style={{background:'#1A1A2E',borderBottom:'2px solid #2D2D4E'}}>
                 <div className="flex flex-col">
-                  <span className="text-white font-bold text-lg drop-shadow-md">{activePatient.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-bold text-lg drop-shadow-md">{activePatient.name}</span>
+                    {/* Gender badge in simulation */}
+                    {activePatient.gender && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                        style={activePatient.gender.includes('ชาย')
+                          ? {background:'rgba(59,130,246,0.25)',color:'#93C5FD',border:'1px solid rgba(59,130,246,0.4)'}
+                          : {background:'rgba(236,72,153,0.25)',color:'#F9A8D4',border:'1px solid rgba(236,72,153,0.4)'}}>
+                        {activePatient.gender.includes('ชาย') ? '♂ ชาย' : '♀ หญิง'}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[#06C755] text-xs font-medium flex items-center drop-shadow-md">
                     <span className="w-1.5 h-1.5 bg-[#06C755] rounded-full mr-1.5 animate-pulse"></span>
                     {isSpeaking ? 'กำลังพูด...' : isListening ? 'กำลังฟัง...' : 'กำลังสนทนา'}
