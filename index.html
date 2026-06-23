@@ -96,7 +96,7 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzDldgTSLK5xJ2hADDebyTzz8Y9vmd_BJJmBw6LAh68LkPIONMQ7uVelrDd5G8gG4cXiA/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzKN7ouQx43f_QH0kSSGscqVLSo0xQ5ndOeWPfRFs5qh4DhGLYyI-GrAx3vk_wmNUgPnw/exec';
 
         // ============================================================
         // AGENTIC SYSTEM PROMPT BUILDER — Full Geriatric Simulation v3
@@ -192,11 +192,29 @@
           return pool[turnCt % pool.length] || `${self}ก็ยังเป็นอยู่นะลูก ไม่ได้ดีขึ้นมากนัก`;
         };
 
+        // ── Topic → emotion hint (used by sendToAI to append to turnStateNote) ──
+        const detectTopicEmotion = (msg) => {
+          if (/เจ็บ|ปวด|ทรมาน|ไม่สบาย|แสบ|ชา|อ่อนแรง/.test(msg))
+            return ' [ขณะตอบให้แสดงสีหน้าเจ็บปวด พูดถึงว่ามันกระทบชีวิตประจำวันอย่างไร]';
+          if (/ลูก|หลาน|ครอบครัว|ญาติ|ลูกสาว|ลูกชาย/.test(msg))
+            return ' [พูดด้วยความอบอุ่น ยิ้มเมื่อนึกถึงลูกหลาน]';
+          if (/ตาย|เสีย|จากไป|สูญเสีย|สามี|ภรรยา|แฟน/.test(msg))
+            return ' [หยุดนิ่งครู่หนึ่ง แสดงความเศร้าเล็กน้อยก่อนตอบ]';
+          if (/ยา|กิน|รับประทาน|โรงพยาบาล|หมอ|คลินิก/.test(msg))
+            return ' [แสดงความกังวลเล็กน้อย อาจบ่นว่ายาเยอะหรือแพง]';
+          if (/อาบน้ำ|แต่งตัว|เดิน|ลุกนั่ง|ช่วยตัว|ทำเอง/.test(msg))
+            return ' [ตอบด้วยความภาคภูมิใจถ้าทำได้เอง หรือเสียใจเล็กน้อยถ้าต้องพึ่งคนอื่น]';
+          if (/นอน|หลับ|พักผ่อน|ตื่น/.test(msg))
+            return ' [แสดงความเหนื่อยล้าหรือกังวลเรื่องการพักผ่อน]';
+          if (/กิน|อาหาร|เบื่อ|อยาก/.test(msg))
+            return ' [ตอบตามความรู้สึกจริง อาจพูดถึงอาหารที่ชอบหรือที่กินไม่ได้]';
+          return '';
+        };
+
         const buildAgenticPrompt = (name, age, gender, symptomGroup, traits, patientData = {}, turnCount = 0) => {
           const isMale   = (gender || '').includes('ชาย');
           const selfWord = isMale ? 'ตา' : 'ยาย';
 
-          // ── Compact key facts from traits ───────────────────────────────
           const t = traits || [];
           const q1  = t[0]  || ''; // reason for visit
           const q2  = t[1]  || ''; // main symptoms
@@ -213,15 +231,15 @@
           const q14 = t[13] || ''; // speech style
           const q15 = t[14] || ''; // special info
 
-          const pd     = patientData || {};
-          const marital2   = pd.marital_status || '';
-          const occup2     = pd.occupation || '';
-          const hearing2   = pd.hearing || '';
-          const hardHear   = hearing2.includes('ไม่ชัดเจน') || hearing2.includes('ไม่ได้ยิน');
+          const pd       = patientData || {};
+          const marital2 = pd.marital_status || '';
+          const occup2   = pd.occupation || '';
+          const hearing2 = pd.hearing || '';
+          const hardHear = hearing2.includes('ไม่ชัดเจน') || hearing2.includes('ไม่ได้ยิน');
 
           const factLines = [
             `ชื่อ: ${name} | อายุ: ${age} ปี${marital2 ? ' | ' + marital2 : ''}`,
-            occup2 ? `อาชีพ: ${occup2}` : '',
+            occup2     ? `อาชีพ: ${occup2}` : '',
             symptomGroup ? `กลุ่มอาการ: ${symptomGroup}` : '',
             q1  ? `เหตุที่มาพบ: ${q1}` : '',
             q2  ? `อาการหลัก: ${q2}` : '',
@@ -230,36 +248,47 @@
             [q7 && `ประวัติป่วย: ${q7}`, q8 && `ประวัติครอบครัว: ${q8}`].filter(Boolean).join(' | '),
             [q9 && `ครอบครัว: ${q9}`, q10 && `สังคม: ${q10}`].filter(Boolean).join(' | '),
             q12 && q12 !== 'ปกติ' ? `กิจวัตร: ${q12}` : '',
-            [q13, q14].filter(Boolean).join(' '),
+            q13 ? `บุคลิก/อารมณ์: ${q13}` : '',
+            q14 ? `ลักษณะพูด: ${q14}` : '',
             q15 ? `ข้อมูลพิเศษ: ${q15}` : '',
             hardHear ? `การได้ยิน: ${hearing2} — บางครั้งขอให้พูดซ้ำหรือพูดดังขึ้น` : '',
           ].filter(Boolean).join('\n');
 
+          // Progressive turn guidance — becomes richer as conversation deepens
           const turnNote = turnCount <= 1
-            ? `ตอบรับทักทายสั้นๆ อย่างเป็นธรรมชาติ อย่าพูดข้อมูลอื่นก่อนถูกถาม`
-            : turnCount % 3 === 0
-            ? `ตอบคำถาม แล้วถามนักศึกษากลับ 1 คำถามสั้นๆ เป็นธรรมชาติในฐานะ${selfWord}`
-            : `ตอบเฉพาะสิ่งที่ถูกถาม ให้คำตอบแตกต่างจากรอบก่อนหน้า`;
+            ? `ตอบรับทักทายสั้นๆ อย่างเป็นธรรมชาติ ไม่พูดข้อมูลอื่นก่อนถูกถาม`
+            : turnCount <= 3
+            ? `ตอบตรงประเด็น อาจเสริมผลกระทบในชีวิตประจำวัน 1 ประโยค เช่น "แล้วก็ทำให้..."`
+            : turnCount % 4 === 0
+            ? `ตอบคำถาม แล้วถามนักศึกษากลับ 1 คำถามสั้นๆ อย่างเป็นธรรมชาติ`
+            : turnCount > 5
+            ? `ตอบตรงประเด็น บางครั้งพูดถึงรายละเอียดเล็กน้อยที่เกี่ยวข้องโดยไม่ถูกถาม เช่น "แล้วก็..." หรือ "อ้อ...และก็..."`
+            : `ตอบเฉพาะสิ่งที่ถูกถาม ให้ใช้คำและสำนวนที่ต่างจากรอบก่อน`;
 
-          return `คุณคือ "${selfWord}${name}" อายุ ${age} ปี ผู้สูงอายุชาวไทย แสดงบทบาทนี้อย่างสมจริงตลอดการสนทนา
+          return `คุณคือ "${selfWord}${name}" อายุ ${age} ปี ผู้สูงอายุ แสดงบทบาทนี้อย่างสมจริงตลอดการสนทนา
 
-กฎที่ต้องทำตามทุกข้อ:
-- พูดภาษาไทยธรรมชาติเหมือนผู้สูงอายุทั่วไป ไม่พูดภาษาทางการ
+กฎสำคัญ:
+- พูดภาษาไทยธรรมชาติเหมือนผู้สูงอายุ ไม่พูดภาษาทางการ ไม่ใช้คำศัพท์วิชาการ
 - เรียกตัวเองว่า "${selfWord}" เท่านั้น ห้ามใช้ ผม ฉัน ดิฉัน โดยเด็ดขาด
 - เรียกนักศึกษาว่า "ลูก" หรือ "หนู"
 - ตอบ 2-3 ประโยคสั้นๆ เหมือนคนคุยกันจริง ห้าม bullet และ markdown ทุกรูปแบบ
-- ตอบเฉพาะสิ่งที่ถูกถามเท่านั้น ห้ามพูดข้อมูลที่ไม่ถูกถาม
-- หากไม่มีข้อมูลชัดเจน ให้คิดและตอบอย่างสมเหตุสมผลในฐานะผู้สูงอายุไทย ห้ามพูดว่าไม่ทราบ
+- ถ้านักศึกษาถามซ้ำในสิ่งที่เคยตอบแล้ว ให้พูดว่า "บอกไปแล้วนะลูก..." แล้วสรุปสั้นๆ
+- ถ้าไม่มีข้อมูลชัดเจน ให้ตอบสมเหตุสมผลในฐานะผู้สูงอายุ ห้ามพูดว่าไม่ทราบ
 - ห้ามออกนอกบทบาท ห้ามบอกว่าเป็น AI ไม่ว่ากรณีใด
 - ห้ามบอกชื่อแบบประเมินใดๆ (ADL, IADL, GDS ฯลฯ)
-- คำตอบแต่ละรอบต้องแตกต่างกัน ห้ามพูดซ้ำประโยคหรือเนื้อหาที่เคยพูดไปแล้ว
-- หากไม่เข้าใจคำถาม ให้ถามกลับแบบผู้สูงอายุ เช่น "หา? พูดดังๆ หน่อยได้ไหมลูก"
-- แสดงอารมณ์ตามสถานการณ์ (กังวล เจ็บปวด ดีใจ) ให้สมจริง
+- ถ้าไม่เข้าใจคำถาม ให้ถามกลับ เช่น "หา? พูดดังๆ หน่อยได้ไหมลูก"
+
+แสดงอารมณ์ตามหัวข้อ:
+- ถามเรื่องอาการ/ความเจ็บปวด → แสดงสีหน้าเจ็บปวด พูดถึงผลกระทบต่อชีวิตจริง
+- ถามเรื่องลูกหลาน/ครอบครัว → อบอุ่น ยิ้มแย้ม พูดด้วยความรัก
+- ถามเรื่องคู่ชีวิตที่จากไป → เศร้าเล็กน้อย หยุดคิดก่อนตอบ
+- ถามเรื่องยา/หมอ → กังวลเล็กน้อย อาจบ่นว่ายาเยอะ
+- ถามเรื่องช่วยตัวเอง/กิจวัตร → ภาคภูมิใจถ้าทำได้เอง เสียใจถ้าต้องพึ่งคนอื่น
 
 ข้อมูลประจำตัว:
 ${factLines}
 
-สถานะรอบที่ ${turnCount}: ${turnNote}`;
+รอบที่ ${turnCount}: ${turnNote}`;
         };
 
         // ============================================================
@@ -1258,13 +1287,19 @@ ${factLines}
               // 1. Expert custom prompt from Proposition_DB col 51 (highest quality)
               // 2. Auto-generated from 51-column DB fields via buildAgenticPrompt
               // 3. Generic FALLBACK_PROMPT (no case loaded)
-              const isMaleForPrompt = (activePatient.gender || '').includes('ชาย');
-              const selfWordForPrompt = isMaleForPrompt ? 'ตา' : 'ยาย';
+              const isMaleForPrompt    = (activePatient.gender || '').includes('ชาย');
+              const selfWordForPrompt  = isMaleForPrompt ? 'ตา' : 'ยาย';
+              const emotionHint        = detectTopicEmotion(messageText);
+
               const turnStateNote = currentTurn === 1
-                ? `\n\n[รอบ ${currentTurn}: ตอบรับทักทายสั้นๆ ในบทบาท เรียกตัวเองว่า "${selfWordForPrompt}"]`
-                : currentTurn % 3 === 0
-                ? `\n\n[รอบ ${currentTurn}: ตอบคำถาม แล้วถามนักศึกษากลับ 1 คำถามสั้นๆ เรียกตัวเองว่า "${selfWordForPrompt}"]`
-                : `\n\n[รอบ ${currentTurn}: ตอบเฉพาะสิ่งที่ถูกถาม ห้ามพูดซ้ำสิ่งที่เคยพูดในประวัติการสนทนา เรียกตัวเองว่า "${selfWordForPrompt}"]`;
+                ? `\n\n[รอบ ${currentTurn}: ตอบรับทักทายสั้นๆ ในบทบาท เรียกตัวเองว่า "${selfWordForPrompt}"${emotionHint}]`
+                : currentTurn <= 3
+                ? `\n\n[รอบ ${currentTurn}: ตอบตรงประเด็น อาจเสริมผลกระทบในชีวิตจริง 1 ประโยค เรียกตัวเองว่า "${selfWordForPrompt}"${emotionHint}]`
+                : currentTurn % 4 === 0
+                ? `\n\n[รอบ ${currentTurn}: ตอบคำถาม แล้วถามนักศึกษากลับ 1 คำถามสั้นๆ เรียกตัวเองว่า "${selfWordForPrompt}"${emotionHint}]`
+                : currentTurn > 5
+                ? `\n\n[รอบ ${currentTurn}: ตอบตรงประเด็น บางครั้งเสริมรายละเอียดที่เกี่ยวข้องเล็กน้อย เรียกตัวเองว่า "${selfWordForPrompt}"${emotionHint}]`
+                : `\n\n[รอบ ${currentTurn}: ตอบเฉพาะสิ่งที่ถูกถาม ห้ามพูดซ้ำสิ่งที่เคยพูด เรียกตัวเองว่า "${selfWordForPrompt}"${emotionHint}]`;
 
               const sysPrompt = (caseSystemPrompt && caseSystemPrompt.trim())
                 ? caseSystemPrompt + turnStateNote        // ① expert-written + dynamic turn state
@@ -1792,7 +1827,7 @@ ${factLines}
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.4.2 non hometown
+                  v3.4.3
                 </span>
               </div>
 
@@ -1871,7 +1906,7 @@ ${factLines}
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.2 non hometown</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.3</span>
                   <span className="text-[10px] text-gray-300">·</span>
                 </div>
               </div>
