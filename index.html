@@ -96,7 +96,7 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzlY493lQ4q-M9Mo7y_1FQS6-9evRSZ3kL3vLZr9g4lkbjUBzzOAo6EXwWHzS3mY5KSug/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzDldgTSLK5xJ2hADDebyTzz8Y9vmd_BJJmBw6LAh68LkPIONMQ7uVelrDd5G8gG4cXiA/exec';
 
         // ============================================================
         // AGENTIC SYSTEM PROMPT BUILDER — Full Geriatric Simulation v3
@@ -214,14 +214,13 @@
           const q15 = t[14] || ''; // special info
 
           const pd     = patientData || {};
-          const hometown2  = pd.hometown || '';
           const marital2   = pd.marital_status || '';
           const occup2     = pd.occupation || '';
           const hearing2   = pd.hearing || '';
           const hardHear   = hearing2.includes('ไม่ชัดเจน') || hearing2.includes('ไม่ได้ยิน');
 
           const factLines = [
-            `ชื่อ: ${name} | อายุ: ${age} ปี${hometown2 ? ' | ภูมิลำเนา: ' + hometown2 : ''}${marital2 ? ' | ' + marital2 : ''}`,
+            `ชื่อ: ${name} | อายุ: ${age} ปี${marital2 ? ' | ' + marital2 : ''}`,
             occup2 ? `อาชีพ: ${occup2}` : '',
             symptomGroup ? `กลุ่มอาการ: ${symptomGroup}` : '',
             q1  ? `เหตุที่มาพบ: ${q1}` : '',
@@ -245,12 +244,12 @@
           return `คุณคือ "${selfWord}${name}" อายุ ${age} ปี ผู้สูงอายุชาวไทย แสดงบทบาทนี้อย่างสมจริงตลอดการสนทนา
 
 กฎที่ต้องทำตามทุกข้อ:
-- พูดภาษาไทยพูดธรรมชาติ ใช้สำเนียงตามภูมิลำเนา ไม่พูดภาษาทางการ
+- พูดภาษาไทยธรรมชาติเหมือนผู้สูงอายุทั่วไป ไม่พูดภาษาทางการ
 - เรียกตัวเองว่า "${selfWord}" เท่านั้น ห้ามใช้ ผม ฉัน ดิฉัน โดยเด็ดขาด
 - เรียกนักศึกษาว่า "ลูก" หรือ "หนู"
 - ตอบ 2-3 ประโยคสั้นๆ เหมือนคนคุยกันจริง ห้าม bullet และ markdown ทุกรูปแบบ
 - ตอบเฉพาะสิ่งที่ถูกถามเท่านั้น ห้ามพูดข้อมูลที่ไม่ถูกถาม
-- หากไม่มีข้อมูลชัดเจน ให้คิดและตอบอย่างสมเหตุสมผลในฐานะผู้สูงอายุจากภูมิลำเนานั้น ห้ามพูดว่าไม่ทราบ
+- หากไม่มีข้อมูลชัดเจน ให้คิดและตอบอย่างสมเหตุสมผลในฐานะผู้สูงอายุไทย ห้ามพูดว่าไม่ทราบ
 - ห้ามออกนอกบทบาท ห้ามบอกว่าเป็น AI ไม่ว่ากรณีใด
 - ห้ามบอกชื่อแบบประเมินใดๆ (ADL, IADL, GDS ฯลฯ)
 - คำตอบแต่ละรอบต้องแตกต่างกัน ห้ามพูดซ้ำประโยคหรือเนื้อหาที่เคยพูดไปแล้ว
@@ -1793,7 +1792,7 @@ ${factLines}
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.4.1 Qwen
+                  v3.4.2 non hometown
                 </span>
               </div>
 
@@ -1872,7 +1871,7 @@ ${factLines}
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.1 Qwen</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.2 non hometown</span>
                   <span className="text-[10px] text-gray-300">·</span>
                 </div>
               </div>
