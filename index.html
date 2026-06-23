@@ -96,7 +96,7 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyUnJjwVdlsGEQLgZZUuCc8Rs7URRbUHJOMHB57p-mJkgqg8EAYI25Wn1Wcr0Rj-d2XJQ/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzlY493lQ4q-M9Mo7y_1FQS6-9evRSZ3kL3vLZr9g4lkbjUBzzOAo6EXwWHzS3mY5KSug/exec';
 
         // ============================================================
         // AGENTIC SYSTEM PROMPT BUILDER — Full Geriatric Simulation v3
@@ -193,89 +193,8 @@
         };
 
         const buildAgenticPrompt = (name, age, gender, symptomGroup, traits, patientData = {}, turnCount = 0) => {
-          const isMale    = (gender || '').includes('ชาย');
-          const selfWord  = isMale ? 'ตา' : 'ยาย';
-          const genderTxt = isMale ? 'ชาย' : 'หญิง';
-          const pronoun   = isMale ? 'คุณตา' : 'คุณยาย';
-
-          // ── Physical Health Block ──────────────────────────────────────
-          const weightStr    = patientData.weight_kg      ? `น้ำหนัก ${patientData.weight_kg} กก.` : '';
-          const heightStr    = patientData.height_cm      ? `ส่วนสูง ${patientData.height_cm} ซม.` : '';
-          const bmiStr       = patientData.bmi            ? `BMI ${patientData.bmi}` : '';
-          const waistStr     = patientData.waist_cm       ? `รอบเอว ${patientData.waist_cm} ซม.` : '';
-          const pulseStr     = patientData.pulse_rate
-            ? `ชีพจร ${patientData.pulse_rate} ครั้ง/นาที` +
-              (patientData.pulse_strength ? ` | ${patientData.pulse_strength}` : '') +
-              (patientData.pulse_rhythm   ? ` | ${patientData.pulse_rhythm}`   : '')
-            : '';
-          const bpStr        = patientData.blood_pressure
-            ? `ความดัน ${patientData.blood_pressure} มม.ปรอท` +
-              (patientData.bp_position ? ` (วัดท่า${patientData.bp_position})` : '')
-            : '';
-          const visionStr    = patientData.vision         ? `การมองเห็น: ${patientData.vision}` : '';
-          const hearingStr   = patientData.hearing        ? `การได้ยิน: ${patientData.hearing}` : '';
-          const devicesStr   = patientData.medical_devices_yn === 'มี' && patientData.medical_devices_detail
-            ? `อุปกรณ์การแพทย์: ${patientData.medical_devices_detail}`
-            : '';
-          const physicalParts = [weightStr, heightStr, bmiStr, waistStr, pulseStr, bpStr, visionStr, hearingStr, devicesStr].filter(Boolean);
-          const physicalBlock = physicalParts.length > 0
-            ? physicalParts.map(p => `  • ${p}`).join('\n')
-            : '  • (ไม่มีข้อมูลสุขภาพกาย)';
-
-          // ── Social/Background Block ────────────────────────────────────
-          const ethnicityStr   = patientData.ethnicity              ? `เชื้อชาติ/สัญชาติ: ${patientData.ethnicity}` : '';
-          const religionStr    = patientData.religion               ? `ศาสนา: ${patientData.religion}` : '';
-          const maritalStr     = patientData.marital_status         ? `สถานภาพสมรส: ${patientData.marital_status}` : '';
-          const hometownStr    = patientData.hometown               ? `ภูมิลำเนา: ${patientData.hometown}` : '';
-          const occupStr       = patientData.occupation
-            ? `อาชีพ: ${patientData.occupation}` +
-              (patientData.occupation_detail && patientData.occupation_detail !== '-' ? ` (${patientData.occupation_detail})` : '')
-            : '';
-          const communityStr   = patientData.community_participation === 'เข้าร่วม' && patientData.community_detail
-            ? `กิจกรรมชุมชน: ${patientData.community_detail}`
-            : '';
-          const perceptionStr  = patientData.health_perception      ? `การรับรู้สุขภาพตนเอง: ${patientData.health_perception}` : '';
-          const comparisonStr  = patientData.health_comparison      ? `เปรียบเทียบสุขภาพกับคนอื่น: ${patientData.health_comparison}` : '';
-          const facilityStr    = patientData.health_facility        ? `สถานพยาบาลที่ใช้: ${patientData.health_facility}` : '';
-          const socialParts = [ethnicityStr, religionStr, maritalStr, hometownStr, occupStr, communityStr, perceptionStr, comparisonStr, facilityStr].filter(Boolean);
-          const socialBlock = socialParts.length > 0
-            ? socialParts.map(p => `  • ${p}`).join('\n')
-            : '  • (ไม่มีข้อมูลสังคม)';
-
-          // ── 15-Dimensional Personality Block ──────────────────────────
-          const traitLabels = [
-            'การเปิดสนทนา/เหตุผลมาพบแพทย์',
-            'อาการสำคัญและลักษณะอาการ',
-            'อาการร่วมอื่นๆ',
-            'ประวัติแพ้ยา/อาหาร',
-            'ยาที่ใช้ปัจจุบัน',
-            'โรคประจำตัว',
-            'ประวัติเจ็บป่วยในอดีต',
-            'ประวัติเจ็บป่วยในครอบครัว',
-            'สถานภาพสัมพันธ์/สุขภาพทางเพศ',
-            'ประวัติส่วนตัวและสังคม',
-            'ประวัติสารเสพติด/แอลกอฮอล์/บุหรี่',
-            'รูปแบบการดำเนินชีวิต (ADLs)',
-            'สภาวะอารมณ์และบุคลิกภาพ',
-            'ทัศนคติและรูปแบบการพูด',
-            'ข้อมูลพิเศษเพิ่มเติม'
-          ];
-          const traitBlock = traits
-            .map((v, i) => v ? `  [${i+1}] ${traitLabels[i] || `ลักษณะที่ ${i+1}`}: ${v}` : null)
-            .filter(Boolean)
-            .join('\n');
-
-          // ── Vision/Hearing behavioral guidelines ──────────────────────
-          const visionBehavior = patientData.vision && patientData.vision.includes('ไม่ชัด')
-            ? '\n  ⚠️ มองเห็นไม่ชัด — แสดงความลำบากในการอ่านหรือดูของชิ้นเล็ก'
-            : patientData.vision && patientData.vision.includes('ไม่เห็น')
-            ? '\n  ⚠️ ไม่เห็น — อย่าอ้างอิงสิ่งที่มองเห็นในการสนทนา'
-            : '';
-          const hearingBehavior = patientData.hearing && patientData.hearing.includes('ไม่ชัดเจน')
-            ? '\n  ⚠️ ได้ยินไม่ชัด — บางครั้งขอให้พูดซ้ำหรือพูดดังขึ้น'
-            : patientData.hearing && patientData.hearing.includes('ไม่ได้ยิน')
-            ? '\n  ⚠️ ไม่ได้ยิน — มักตอบผิดประเด็นหรือถามซ้ำบ่อยๆ'
-            : '';
+          const isMale   = (gender || '').includes('ชาย');
+          const selfWord = isMale ? 'ตา' : 'ยาย';
 
           // ── Compact key facts from traits ───────────────────────────────
           const t = traits || [];
@@ -317,10 +236,10 @@
             hardHear ? `การได้ยิน: ${hearing2} — บางครั้งขอให้พูดซ้ำหรือพูดดังขึ้น` : '',
           ].filter(Boolean).join('\n');
 
-          const turnNote = turnCount === 0
+          const turnNote = turnCount <= 1
             ? `ตอบรับทักทายสั้นๆ อย่างเป็นธรรมชาติ อย่าพูดข้อมูลอื่นก่อนถูกถาม`
             : turnCount % 3 === 0
-            ? `ตอบคำถาม แล้วถาม${selfWord}นักศึกษากลับ 1 คำถามสั้นๆ เป็นธรรมชาติ`
+            ? `ตอบคำถาม แล้วถามนักศึกษากลับ 1 คำถามสั้นๆ เป็นธรรมชาติในฐานะ${selfWord}`
             : `ตอบเฉพาะสิ่งที่ถูกถาม ให้คำตอบแตกต่างจากรอบก่อนหน้า`;
 
           return `คุณคือ "${selfWord}${name}" อายุ ${age} ปี ผู้สูงอายุชาวไทย แสดงบทบาทนี้อย่างสมจริงตลอดการสนทนา
@@ -1874,7 +1793,7 @@ ${factLines}
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.4
+                  v3.4.1 Qwen
                 </span>
               </div>
 
@@ -1953,7 +1872,7 @@ ${factLines}
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.1 Qwen</span>
                   <span className="text-[10px] text-gray-300">·</span>
                 </div>
               </div>
