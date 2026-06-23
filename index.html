@@ -96,7 +96,7 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycby8Ksb__AUl2izAYPQ2byc1Dh5L8qoIs-IV6NTTUpIStVm0HNUki9jIQQeFi5IXN5kmCA/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyVBXvc55ljct91DtD6ycGHlcZQMDReXV5fhwGp5gM27YcmEWLK8GXI4mJtso_uWZXzDg/exec';
 
         // ============================================================
         // AGENTIC SYSTEM PROMPT BUILDER — Full Geriatric Simulation v3
@@ -1274,6 +1274,9 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
                         currentTurn
                       )
                     : (caseSystemPrompt || FALLBACK_PROMPT),
+                  // Send full conversation history so Gemini remembers
+                  // what the patient asked and can respond in context
+                  history      : chatTurnsRef.current.slice(),
                   studentId    : studentId || 'anonymous'
                 })
               });
@@ -1752,7 +1755,7 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.0 · Agentic AI
+                  v3.1 · Agentic AI
                 </span>
               </div>
 
@@ -1831,7 +1834,7 @@ ${traitBlock || '  • (ยังไม่ได้กำหนดลักษ�
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.0</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.1</span>
                   <span className="text-[10px] text-gray-300">·</span>
                   <span className="text-[10px] text-gray-400">Agentic AI Simulation</span>
                 </div>
