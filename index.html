@@ -1086,6 +1086,46 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
 
           const navigate = (page) => { setCurrentPage(page); window.scrollTo(0, 0); };
 
+          // ── CSV prefetch constants ───────────────────────────────────
+          const CSV_CACHE_KEY  = 'gerisim_csv_v2';   // v2 = stores parsed rows
+          const CSV_CACHE_TTL  = 2 * 60 * 60 * 1000; // 2-hour TTL
+
+          // Returns cached rows (array) or null
+          const getCachedRows = () => {
+            try {
+              const c = JSON.parse(localStorage.getItem(CSV_CACHE_KEY) || 'null');
+              if (c && Array.isArray(c.rows) && Date.now() - c.ts < CSV_CACHE_TTL) return c.rows;
+            } catch (_) {}
+            return null;
+          };
+
+          // Fetch + parse + cache; returns parsed rows or null
+          const fetchAndCacheCSV = async () => {
+            try {
+              const res = await fetch(PROPOSITION_CSV_URL);
+              if (!res.ok) return null;
+              const text = await res.text();
+              const rows = parseCSV(text);
+              if (rows.length > 0) {
+                try { localStorage.setItem(CSV_CACHE_KEY, JSON.stringify({ ts: Date.now(), rows })); } catch (_) {}
+                console.log(`[GeriSim] CSV: fetched & cached ${rows.length} rows`);
+              }
+              return rows.length > 0 ? rows : null;
+            } catch (e) {
+              console.warn('[GeriSim] CSV prefetch failed:', e.message);
+              return null;
+            }
+          };
+
+          // Warm the cache as soon as the app loads — result is ready by login time
+          useEffect(() => {
+            if (!getCachedRows()) fetchAndCacheCSV();
+            else {
+              // Stale-while-revalidate: serve cache now, refresh in background
+              fetchAndCacheCSV();
+            }
+          }, []);
+
           // ============================================================
           // HISTORY — POST action:"history" to GAS
           // ============================================================
@@ -1185,69 +1225,29 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
           const fetchCase = async () => {
             setCaseLoading(true);
             try {
-              // ── Tier 1: direct CSV (localStorage cache, 30-min TTL) ─
-              let resolved = false;
-              try {
-                const CACHE_KEY = 'gerisim_csv_cache';
-                const CACHE_TTL = 30 * 60 * 1000;
-                let csvText = null;
-                try {
-                  const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-                  if (cached && Date.now() - cached.ts < CACHE_TTL) {
-                    csvText = cached.data;
-                    console.log('[GeriSim] CSV: loaded from cache');
-                  }
-                } catch (_) {}
-                if (!csvText) {
-                  const csvRes = await fetch(PROPOSITION_CSV_URL);
-                  if (csvRes.ok) {
-                    csvText = await csvRes.text();
-                    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: csvText })); } catch (_) {}
-                  }
-                }
-                if (csvText) {
-                  const allRows = parseCSV(csvText);
-
-                  if (allRows.length > 0) {
-                    // Randomly sample up to 3 rows (majority composite)
-                    const SAMPLE_N = Math.min(3, allRows.length);
-                    const shuffled = [...allRows].sort(() => Math.random() - 0.5);
-                    const sampled  = shuffled.slice(0, SAMPLE_N);
-
-                    // Primary case = first sampled row (for answer-key fields)
-                    const primary = csvRowToCase(sampled[0]);
-
-                    // If we have multiple rows, build a majority system prompt
-                    if (sampled.length > 1) {
-                      const allCases   = sampled.map(csvRowToCase);
-                      const majorityPr = buildMajorityPrompt(allCases);
-                      if (majorityPr) primary.system_prompt = majorityPr;
-                      console.log(`[GeriSim] CSV: sampled ${sampled.length} rows → majority prompt`);
-                    } else {
-                      console.log('[GeriSim] CSV: 1 row sampled');
-                    }
-
-                    hydrateCase(primary);
-                    resolved = true;
-                  }
-                }
-              } catch (csvErr) {
-                console.warn('[GeriSim] CSV fetch failed, trying GAS:', csvErr.message);
+              // ── Tier 1: parsed-row cache (instant if warm) ──────────
+              let allRows = getCachedRows();
+              if (allRows) {
+                console.log(`[GeriSim] CSV: serving ${allRows.length} rows from cache`);
+              } else {
+                // Cache cold or expired — fetch now (prefetch may still be in flight)
+                allRows = await fetchAndCacheCSV();
               }
 
-              // ── Tier 2: GAS getCase ────────────────────────────────
-              if (!resolved) {
-                const res  = await fetch(GAS_URL, {
-                  method : 'POST',
-                  body   : JSON.stringify({ action: 'getCase' })
-                });
-                const data = await res.json();
-                if (data.status === 'success' && data.case) {
-                  hydrateCase(data.case);
-                  console.log('[GeriSim] GAS: case loaded', data.case.case_id);
-                } else {
-                  console.warn('[GeriSim] getCase:', data.message || 'no case returned');
-                }
+              if (allRows && allRows.length > 0) {
+                const primary = csvRowToCase(allRows[Math.floor(Math.random() * allRows.length)]);
+                hydrateCase(primary);
+                setCaseLoading(false);
+                return;
+              }
+
+              // ── Tier 2: GAS getCase (fallback) ────────────────────
+              const res  = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'getCase' }) });
+              const data = await res.json();
+              if (data.status === 'success' && data.case) {
+                hydrateCase(data.case);
+              } else {
+                console.warn('[GeriSim] getCase:', data.message || 'no case returned');
               }
             } catch (err) {
               console.error('[GeriSim] getCase error:', err);
