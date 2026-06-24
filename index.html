@@ -96,7 +96,157 @@
         // ============================================================
         // CONFIGURATION — Google Apps Script Web App URL (Student App)
         // ============================================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzKN7ouQx43f_QH0kSSGscqVLSo0xQ5ndOeWPfRFs5qh4DhGLYyI-GrAx3vk_wmNUgPnw/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvubNbpyZonn6qK3OIZZiKcvOy6dM124pyfa275SvTX8t0PesB2r-oRmAxwR7EX9EUXg/exec';
+
+        // ============================================================
+        // AI PROVIDER CHAIN — browser-direct fallback (Gemini → Qwen)
+        // Gemini uses service-account OAuth2 JWT flow (no API key needed).
+        // ============================================================
+
+        // Service account — used to mint short-lived Gemini access tokens
+        const GEMINI_SA = {
+          client_email : 'gerisim-ai-dataset-db@gen-lang-client-0909422950.iam.gserviceaccount.com',
+          private_key  : '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC9n2W2JL7j6iRr\nRke+Y/C9dhci7cqy9abTdIMdb4mmmeaCB4gHaTIdm9nSi37WpZJqNkMcub23X+DM\nowRPjaUN06UuF1H3Hqlg34Q3stiLxV8Nw3kHISOvCr+QHDl0Cjy/ZdmMZqrdDfb2\njDEnBELBUQghLXGMlrgqtPXcsY0IJPSyuMAjxTFfa3YLZWoE0kmJ52S5q53Lw19Z\nesDhEalJ1vvmota1879Ij3uPSyvHOj746ZS4zJopTrw4bVzYetOWdjPJKvGtGYGZ\nPb/2I5NXuDag3WhGyEkdxt68SM8HoM2AQz54k6itDfWdeiB72Cer817XH7v0yY6z\nxXcJpVppAgMBAAECggEABQ0UrsYqTpRrXW8tFJGBdW6KnbvTWTKJe9r/7h4NPuKd\nHQwZz8a51seSxRTBr3KQJKOm5II/Hz4e1Rynjf3yLlzbqs9kt845iVLS6Q/qzEhY\n6JszI2E629wPr8VMs35dUWTjZ2XJueM4F6ey3Hz00UT5EDcvbeUK6VpSLUuOe+/C\nUbNjaooFfVf9YYK9pTFeYV8I37gUVJ//eGNP/lXB3jzUbEH3ziKAZIaqhwcHESZD\njeg5tDQ9Ihbc1Efkd/A428z1IB07YIiWw441gXAhqDr0r+pciFDP8BuHKyImwUec\nVS3E4or4qAz6YhTxl7zj5sZvmI2NaJ2duZglO+xUDQKBgQDpxBFk/aRRFdtqH3lp\nOc9/n4OQPaC+TWi4T39xjFh87IVkS4+DCYrWo5Vd0LCeK1lFyqpW+79UHgavLcE/\no90O6BWTfyOAYwV0qRMU0KpmljjJ4d3/egvYtseLILMk3MUOIX2JNfxszUXamjDs\nLvx2djB1KtJLj2BrxR0Sw9GrpQKBgQDPqH3pn0OEGydPtOnRN6ui1kacwpWD/uks\npX2U9tX1aUcVcsPWdoK2tXcxn28rhCXKtO7m3RCYz9r/fjGO6hgiTwOOWgiwta6H\n4EvygLN817KKpKsZEu1Ok5TcXUBoqk9STK8K487RjjqkexTBFiBpAFWS03iFTfsk\nS2QeUIXIdQKBgGLLExLcQwJlu1oJPTVkUjY8gsyFzxY9/sDOEC07w/Xfu6wcZuVZ\nNgzqC2kfllTyOwNM2Fp0gHKbUfXc32v246i2GtBADg/nSVn5TnAgk7NRT2S6iSi8\nOp9297PruOoeR0Vmj/haEXkl85ykR4K5hMbHwkjyNPfr+zLwlg3lJgplAoGAblxv\nvo+kBDuiItxVP5nEoCAdGwbXC3WYWuAA5ABjKbAv1RhPOFV3lr7OgBLptEjhBOAv\n74YhYfVlwE9C619CQEmZ7DexUqjb/t6XvmPkAD9qZgCp5gOHFzGb9Zmht3579ZNH\nnBQCQKDETdIT76Jgyy0gTY4SCVauWFWw+eN1llkCgYEA26z/RZo8zupbmi2l/lHb\nGNY5GuTVVMwN04Po6aFeG/BtIJsuoMK/vYwByB+a10zsxr3UW4nFVEP4gAyVZ9Vr\nVqzkc4g6YddC+nj/vhEIvYJFW7rSdM/kHGfacrDZSCZ0GLM4fW+pBwWEBJ4gsDXW\nyJRuaHeVV3aOmvI6Nab1Z1c=\n-----END PRIVATE KEY-----\n',
+          token_uri    : 'https://oauth2.googleapis.com/token',
+          scope        : 'https://www.googleapis.com/auth/generative-language'
+        };
+
+        // Cache: { token, expiry }
+        let _saToken = null;
+
+        const getGeminiToken = async () => {
+          if (_saToken && Date.now() < _saToken.expiry) return _saToken.token;
+
+          const b64url = obj =>
+            btoa(JSON.stringify(obj)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+
+          const now = Math.floor(Date.now() / 1000);
+          const header  = b64url({ alg: 'RS256', typ: 'JWT' });
+          const payload = b64url({
+            iss  : GEMINI_SA.client_email,
+            scope: GEMINI_SA.scope,
+            aud  : GEMINI_SA.token_uri,
+            iat  : now,
+            exp  : now + 3600
+          });
+          const unsigned = `${header}.${payload}`;
+
+          // Import PKCS8 private key
+          const pem = GEMINI_SA.private_key.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+          const der = Uint8Array.from(atob(pem), c => c.charCodeAt(0));
+          const cryptoKey = await crypto.subtle.importKey(
+            'pkcs8', der.buffer,
+            { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+            false, ['sign']
+          );
+
+          // Sign and assemble JWT
+          const sigBuf = await crypto.subtle.sign(
+            'RSASSA-PKCS1-v1_5', cryptoKey,
+            new TextEncoder().encode(unsigned)
+          );
+          const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf)))
+            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+          const jwt = `${unsigned}.${sig}`;
+
+          // Exchange JWT for access token
+          const res = await fetch(GEMINI_SA.token_uri, {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body   : `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+          });
+          const data = await res.json();
+          if (!data.access_token) throw new Error('SA token failed: ' + JSON.stringify(data));
+
+          _saToken = { token: data.access_token, expiry: Date.now() + (data.expires_in - 60) * 1000 };
+          console.log('[GeriSim] Gemini SA token refreshed');
+          return _saToken.token;
+        };
+
+        // AI_CHAIN: Qwen first (stable), Gemini second (native endpoint + SA token).
+        // Gemini requires billing credits on project gen-lang-client-0909422950.
+        const AI_CHAIN = [
+          {
+            name  : 'Qwen',
+            url   : 'https://gateway.9arm.co/v1/chat/completions',
+            key   : 'sk-eZUCIqUoggLU57ahNAt1DA',
+            model : 'qwen3.6-35b-a3b'
+          },
+          {
+            name  : 'Gemini',
+            // Native REST endpoint — accepts SA OAuth2 tokens (OpenAI-compat only accepts API keys)
+            url   : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+            model : 'gemini-2.0-flash'
+          },
+        ];
+
+        // Convert OpenAI-style messages[] to Gemini native format
+        const toGeminiNative = (messages) => {
+          const systemMsg = messages.find(m => m.role === 'system');
+          const turns = messages.filter(m => m.role !== 'system');
+          const contents = turns.map(m => ({
+            role  : m.role === 'assistant' ? 'model' : 'user',
+            parts : [{ text: m.content }]
+          }));
+          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 600, topP: 0.9 } };
+          if (systemMsg) req.systemInstruction = { parts: [{ text: systemMsg.content }] };
+          return req;
+        };
+
+        // Call AI providers in order; returns { text, log[] } or throws with log[].
+        const callAIChain = async (messages) => {
+          const log = [];
+          for (const provider of AI_CHAIN) {
+            try {
+              let res;
+              if (provider.name === 'Gemini') {
+                const token = await getGeminiToken();
+                res = await fetch(provider.url, {
+                  method  : 'POST',
+                  headers : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body    : JSON.stringify(toGeminiNative(messages)),
+                });
+              } else {
+                const body = { model: provider.model, messages, temperature: 0.82, max_tokens: 600, top_p: 0.9 };
+                if (provider.name === 'Qwen') body.enable_thinking = false;
+                res = await fetch(provider.url, {
+                  method  : 'POST',
+                  headers : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.key}` },
+                  body    : JSON.stringify(body),
+                });
+              }
+
+              if (!res.ok) {
+                const errBody = await res.text().catch(() => '');
+                const msg = `${provider.name}: HTTP ${res.status} — ${errBody.substring(0, 120)}`;
+                log.push(msg);
+                console.warn('[GeriSim]', msg);
+                continue;
+              }
+
+              const json = await res.json();
+              // Gemini native response shape differs from OpenAI
+              let text = provider.name === 'Gemini'
+                ? (json?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
+                : (json?.choices?.[0]?.message?.content || '').trim();
+              text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+              if (text) {
+                console.log(`[GeriSim] Used provider: ${provider.name}`);
+                return { text, log };
+              }
+              const emptyMsg = `${provider.name}: empty reply`;
+              log.push(emptyMsg);
+              console.warn('[GeriSim]', emptyMsg);
+            } catch (err) {
+              const errMsg = `${provider.name}: ${err.message}`;
+              log.push(errMsg);
+              console.warn('[GeriSim]', errMsg);
+            }
+          }
+          const err = new Error('ALL_PROVIDERS_FAILED');
+          err.log = log;
+          throw err;
+        };
 
         // ============================================================
         // AGENTIC SYSTEM PROMPT BUILDER — Full Geriatric Simulation v3
@@ -1325,8 +1475,9 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
           };
 
           // ============================================================
-          // API INTEGRATION — POST action:"chat" to GAS → Gemini 1.5 Flash
-          // Falls back to local in-character template if Gemini fails.
+          // AI CHAT — calls providers directly from browser (no GAS hop)
+          // Priority: Gemini → OpenRouter → Qwen
+          // Falls back to local in-character template only if all fail.
           // ============================================================
           const sendToAI = async (messageText) => {
             if (!messageText.trim() || isLoadingRef.current) return;
@@ -1337,14 +1488,17 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
             setInputText('');
 
             try {
-              // Increment turn counter before sending
               turnCountRef.current += 1;
-              const currentTurn = turnCountRef.current;
 
-              // Always rebuild the prompt from live patient data so the model
-              // gets the current clean background-only style, regardless of
-              // whatever system_prompt the GAS returned when the case loaded.
-              const sysPrompt = activeCaseId
+              // Build system prompt from live patient data
+              const englishFrame =
+                "You are roleplaying as a real elderly Thai person for nursing student simulation.\n" +
+                "CRITICAL: Answer ONLY what the student directly asks — do NOT volunteer extra information they haven't asked about yet.\n" +
+                "If the student asks something NOT in the background notes, invent a realistic, consistent answer — never refuse or say you don't know.\n" +
+                "Keep each reply to 1-2 short sentences in natural spoken Thai. Use the correct gendered speech particle throughout (ค่ะ/นะคะ for female, ครับ/นะครับ for male) — never mix them.\n" +
+                "Never reveal you are an AI. Never name any clinical assessment tool.\n\n";
+
+              const thaiPrompt = activeCaseId
                 ? buildAgenticPrompt(
                     activePatient.name,
                     activePatient.age,
@@ -1355,43 +1509,39 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                   )
                 : FALLBACK_PROMPT;
 
-              const res = await fetch(GAS_URL, {
-                method : 'POST',
-                // Omit Content-Type → text/plain → avoids CORS preflight with GAS
-                body   : JSON.stringify({
-                  action       : 'chat',
-                  message      : messageText,
-                  systemPrompt : sysPrompt,
-                  history      : chatTurnsRef.current.slice(),
-                  studentId    : studentId || 'anonymous'
-                })
+              const fullSystem = englishFrame + thaiPrompt;
+
+              // Build messages array with conversation history
+              const messages = [{ role: 'system', content: fullSystem }];
+              chatTurnsRef.current.forEach(turn => {
+                if (turn.user && turn.ai) {
+                  messages.push({ role: 'user',      content: turn.user });
+                  messages.push({ role: 'assistant', content: turn.ai  });
+                }
               });
+              messages.push({ role: 'user', content: messageText });
 
-              const data = await res.json();
-
-              // ── Detect Gemini error (GEMINI_ERROR: prefix from code.gs) ──
-              const rawReply   = data.reply || '';
-              const isGeminiOk = rawReply && !rawReply.startsWith('GEMINI_ERROR:');
-
-              if (!isGeminiOk) {
-                // Log full diagnostic info to console for debugging
-                console.warn('[GeriSim] Gemini failed — using local fallback.');
-                console.warn('[GeriSim] GAS reply:', rawReply || '(empty)');
-                console.warn('[GeriSim] Full response:', JSON.stringify(data));
+              let reply;
+              let isRealReply = true;
+              try {
+                const result = await callAIChain(messages);
+                reply = result.text;
+              } catch (aiErr) {
+                const details = (aiErr.log || []).join(' | ') || aiErr.message;
+                console.error('[GeriSim] All AI providers failed:', details);
+                // Show the real error as a system note so it's diagnosable
+                setChatLog(prev => [...prev, {
+                  text   : `[ระบบ: AI ไม่ตอบสนอง — ${details}]`,
+                  sender : 'system'
+                }]);
+                reply = generateInCharacterFallback(activePatient);
+                isRealReply = false;
               }
 
-              // ── Resolve reply: Gemini or local in-character fallback ──────
-              const reply = isGeminiOk
-                ? rawReply
-                : generateInCharacterFallback(activePatient);
-
-              // ── Detect mood & update avatar ───────────────────────────────
               setAvatarMood(detectMood(reply));
 
-              // ── Only record to history when we got a REAL Gemini reply ────
-              // Fallback responses must NOT enter history — they would corrupt
-              // Gemini's view of the conversation on the next turn.
-              if (isGeminiOk && chatTurnsRef.current.length < 15) {
+              // Only add real replies to history (fallback replies must not corrupt context)
+              if (isRealReply && chatTurnsRef.current.length < 15) {
                 chatTurnsRef.current.push({ user: messageText, ai: reply });
               }
 
@@ -1399,7 +1549,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
               speakText(reply);
 
             } catch (err) {
-              console.error('[GeriSim] Network error:', err);
+              console.error('[GeriSim] Unexpected error in sendToAI:', err);
               const netReply = generateInCharacterFallback(activePatient);
               setChatLog(prev => [...prev, { text: netReply, sender: 'ai' }]);
               speakText(netReply);
@@ -2382,7 +2532,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                   {chatLog.map((msg, idx) => (
                     <div key={idx} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : msg.sender === 'ai' ? 'items-start' : 'items-center'}`}>
                       {msg.sender === 'system' ? (
-                        <span className="text-[10px] bg-white/10 text-gray-300 px-3 py-1 rounded-full my-1 backdrop-blur-sm font-medium">{msg.text}</span>
+                        <span className="text-[10px] bg-red-900/60 text-red-300 border border-red-700/50 px-3 py-1 rounded-full my-1 backdrop-blur-sm font-medium max-w-[90%] text-center break-all">{msg.text}</span>
                       ) : (
                         <div className={`max-w-[85%] px-4 py-2.5 text-sm font-medium shadow-sm backdrop-blur-md ${msg.sender === 'user' ? 'bg-[#06C755] text-white rounded-2xl rounded-tr-sm' : 'bg-gray-800/90 text-white rounded-2xl rounded-tl-sm border border-gray-700/50'}`}>
                           {msg.text}
