@@ -1180,12 +1180,27 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
           const fetchCase = async () => {
             setCaseLoading(true);
             try {
-              // ── Tier 1: direct CSV ──────────────────────────────────
+              // ── Tier 1: direct CSV (localStorage cache, 30-min TTL) ─
               let resolved = false;
               try {
-                const csvRes = await fetch(PROPOSITION_CSV_URL);
-                if (csvRes.ok) {
-                  const csvText = await csvRes.text();
+                const CACHE_KEY = 'gerisim_csv_cache';
+                const CACHE_TTL = 30 * 60 * 1000;
+                let csvText = null;
+                try {
+                  const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+                  if (cached && Date.now() - cached.ts < CACHE_TTL) {
+                    csvText = cached.data;
+                    console.log('[GeriSim] CSV: loaded from cache');
+                  }
+                } catch (_) {}
+                if (!csvText) {
+                  const csvRes = await fetch(PROPOSITION_CSV_URL);
+                  if (csvRes.ok) {
+                    csvText = await csvRes.text();
+                    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: csvText })); } catch (_) {}
+                  }
+                }
+                if (csvText) {
                   const allRows = parseCSV(csvText);
 
                   if (allRows.length > 0) {
@@ -2004,7 +2019,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.4.3
+                  v3.4.4
                 </span>
               </div>
 
@@ -2083,7 +2098,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.3</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.4</span>
                   <span className="text-[10px] text-gray-300">·</span>
                 </div>
               </div>
@@ -2182,11 +2197,19 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
 
                 {/* Top status row */}
                 <div className="absolute top-0 left-0 right-0 pt-12 px-5 flex justify-between items-start z-20">
-                  {/* Streak badge */}
-                  <div className="flex flex-col items-center rounded-2xl px-3 py-2" style={{background:'rgba(255,255,255,0.9)',minWidth:'60px',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
-                    <i className="fas fa-fire text-base mb-0.5" style={{color:'#F97316'}}></i>
-                    <p className="text-xl font-black leading-none text-gray-800">{Math.min(99,Math.floor(xp/20))}</p>
-                    <p className="text-[8px] font-bold text-gray-400 leading-tight text-center">Days<br/>Streaks</p>
+                  {/* Streak + Level stack (top-left) */}
+                  <div className="flex flex-col items-center gap-1.5">
+                    <div className="flex flex-col items-center rounded-2xl px-3 py-2" style={{background:'rgba(255,255,255,0.9)',minWidth:'60px',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                      <i className="fas fa-fire text-base mb-0.5" style={{color:'#F97316'}}></i>
+                      <p className="text-xl font-black leading-none text-gray-800">{Math.min(99,Math.floor(xp/20))}</p>
+                      <p className="text-[8px] font-bold text-gray-400 leading-tight text-center">Days<br/>Streaks</p>
+                    </div>
+                    <div className="flex items-center gap-1 rounded-xl px-2.5 py-1" style={{background:lvData.bg,border:`1.5px solid ${lvData.border}`,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                      <div className="w-3 h-3 rounded-full flex items-center justify-center" style={{background:lvData.color}}>
+                        <i className="fas fa-star text-white" style={{fontSize:'5px'}}></i>
+                      </div>
+                      <span className="text-[10px] font-black" style={{color:lvData.color}}>Lv.{lvData.lv}</span>
+                    </div>
                   </div>
                   {/* Action buttons */}
                   <div className="flex flex-col gap-1.5">
@@ -2235,18 +2258,14 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 </div>
                 <div className="px-5 pt-2 pb-4">
 
-                  {/* Chips: level + mission */}
+                  {/* Chip: level name only (streak+Lv. number now in top-left) */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
                       style={{background:lvData.bg,border:`1.5px solid ${lvData.border}`}}>
                       <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{background:lvData.color}}>
                         <i className="fas fa-star text-white" style={{fontSize:'6px'}}></i>
                       </div>
-                      <span className="text-[11px] font-black" style={{color:lvData.color}}>Lv.{lvData.lv} {lvData.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{background:'#FFFBEB',border:'1.5px solid #FDE68A'}}>
-                      <i className="fas fa-phone-alt text-xs" style={{color:'#D97706'}}></i>
-                      <span className="text-[11px] font-black" style={{color:'#D97706'}}>มีคนคอยคุณอยู่</span>
+                      <span className="text-[11px] font-black" style={{color:lvData.color}}>{lvData.name}</span>
                     </div>
                   </div>
 
@@ -2308,12 +2327,19 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                     <i className="fas fa-chart-bar text-xl text-gray-300"></i>
                     <span className="text-[8px] font-bold text-gray-300">ผลลัพธ์</span>
                   </button>
-                  {/* Big center call button */}
-                  <button onClick={startVdoCall}
-                    className="w-14 h-14 rounded-full flex items-center justify-center"
-                    style={{background:'#9146FF',boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-3px -3px 8px rgba(255,255,255,0.2)',marginTop:'-28px'}}>
-                    <i className="fas fa-phone-alt text-xl text-white"></i>
-                  </button>
+                  {/* Big center call button + floating label */}
+                  <div className="relative flex flex-col items-center" style={{marginTop:'-28px'}}>
+                    <div className="absolute flex items-center gap-1 rounded-full px-2.5 py-1 pointer-events-none"
+                      style={{bottom:'calc(100% + 6px)',background:'#FFFBEB',border:'1.5px solid #FDE68A',whiteSpace:'nowrap',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                      <i className="fas fa-phone-alt" style={{color:'#D97706',fontSize:'9px'}}></i>
+                      <span className="text-[10px] font-black" style={{color:'#D97706'}}>มีคนคอยคุณอยู่</span>
+                    </div>
+                    <button onClick={startVdoCall}
+                      className="w-14 h-14 rounded-full flex items-center justify-center"
+                      style={{background:'#9146FF',boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-3px -3px 8px rgba(255,255,255,0.2)'}}>
+                      <i className="fas fa-phone-alt text-xl text-white"></i>
+                    </button>
+                  </div>
                   <button className="flex flex-col items-center gap-0.5 w-10">
                     <i className="fas fa-images text-xl text-gray-300"></i>
                     <span className="text-[8px] font-bold text-gray-300">คลัง</span>
