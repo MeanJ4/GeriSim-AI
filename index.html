@@ -1822,8 +1822,10 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
             }]);
           };
 
-          const handleAnswerSelect = (questionIndex, answer) => {
-            setAssessmentAnswers(prev => ({ ...prev, [questionIndex]: answer }));
+          // Store option index (not value) so unique selection works even when
+          // multiple options share the same score value (e.g. IADL v:1 items).
+          const handleAnswerSelect = (questionIndex, optionIndex) => {
+            setAssessmentAnswers(prev => ({ ...prev, [questionIndex]: optionIndex }));
           };
 
           const handleRecommendationToggle = (rec) => {
@@ -1839,7 +1841,10 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
               alert('กรุณาประเมินให้ครบทุกข้อก่อนบันทึก');
               return;
             }
-            const rawScore = Object.values(assessmentAnswers).reduce((sum, v) => sum + Number(v), 0);
+            const rawScore = tool.items.reduce((sum, item, qi) => {
+              const optIdx = assessmentAnswers[qi];
+              return sum + (optIdx !== undefined ? Number(item.options[optIdx]?.v ?? 0) : 0);
+            }, 0);
             const pct      = tool.maxScore > 0 ? Math.round((rawScore / tool.maxScore) * 100) : 100;
 
             // Range-match scoring against case answer key
@@ -2161,7 +2166,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 </p>
                 <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                   style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE', letterSpacing:'0.05em'}}>
-                  v3.4.5
+                  v3.4.6
                 </span>
               </div>
 
@@ -2240,7 +2245,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 <div className="flex items-center justify-center gap-2 pt-2 pb-1">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.5</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.6</span>
                   <span className="text-[10px] text-gray-300">·</span>
                 </div>
               </div>
@@ -2852,10 +2857,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                             }}>
                             <span className="text-[11px] font-black" style={{color: done ? '#fff' : '#6B7280'}}>{i+1}</span>
                             <span className="text-[8px] font-bold leading-none" style={{color: done ? 'rgba(255,255,255,0.85)' : '#4B5563'}}>{step.label}</span>
-                            {done && step.score !== null && (
-                              <span className="text-[9px] font-black" style={{color:'#FDE68A'}}>{step.score}%</span>
-                            )}
-                            {done && step.score === null && (
+                            {done && (
                               <i className="fas fa-check text-[9px] text-white"></i>
                             )}
                           </button>
@@ -2964,9 +2966,9 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                             <div key={i} className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                               <p className="text-sm font-bold text-gray-800 mb-3">{item.label}</p>
                               <div className="flex flex-col space-y-2">
-                                {item.options.map(opt => (
-                                  <button key={opt.v + '_' + opt.l} onClick={() => handleAnswerSelect(i, opt.v)}
-                                    className={`w-full text-left py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition ${assessmentAnswers[i] === opt.v ? 'bg-[#8B5CF6] text-white border-[#8B5CF6]' : 'border-gray-200 text-gray-600 hover:bg-[#F5F3FF] hover:border-[#8B5CF6] hover:text-[#8B5CF6]'}`}
+                                {item.options.map((opt, j) => (
+                                  <button key={j} onClick={() => handleAnswerSelect(i, j)}
+                                    className={`w-full text-left py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition ${assessmentAnswers[i] === j ? 'bg-[#8B5CF6] text-white border-[#8B5CF6]' : 'border-gray-200 text-gray-600 hover:bg-[#F5F3FF] hover:border-[#8B5CF6] hover:text-[#8B5CF6]'}`}
                                   >{opt.l}</button>
                                 ))}
                               </div>
