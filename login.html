@@ -68,38 +68,40 @@
     }
 
     function LoginApp() {
-      const [studentId,    setStudentId]    = useState('');
+      const [email,        setEmail]        = useState('');
       const [password,     setPassword]     = useState('');
       const [isLoading,    setIsLoading]    = useState(false);
 
       // Register state
-      const [showRegister, setShowRegister] = useState(false);
-      const [regId,        setRegId]        = useState('');
-      const [regName,      setRegName]      = useState('');
-      const [regUniversity,setRegUniversity]= useState('');
-      const [regPassword,  setRegPassword]  = useState('');
-      const [regConfirm,   setRegConfirm]   = useState('');
+      const [showRegister,  setShowRegister]  = useState(false);
+      const [regEmail,      setRegEmail]      = useState('');
+      const [regId,         setRegId]         = useState('');
+      const [regName,       setRegName]       = useState('');
+      const [regUniversity, setRegUniversity] = useState('');
+      const [regPassword,   setRegPassword]   = useState('');
+      const [regConfirm,    setRegConfirm]    = useState('');
 
       // Forgot password state
       const [showReset,    setShowReset]    = useState(false);
-      const [resetId,      setResetId]      = useState('');
+      const [resetEmail,   setResetEmail]   = useState('');
       const [resetName,    setResetName]    = useState('');
       const [resetNewPass, setResetNewPass] = useState('');
       const [resetConfirm, setResetConfirm] = useState('');
 
       // ── Login ────────────────────────────────────────────────────────
       const handleLogin = async () => {
-        if (!studentId.trim()) { alert('กรุณากรอกรหัสนักศึกษา'); return; }
-        if (!password.trim())  { alert('กรุณากรอกรหัสผ่าน'); return; }
+        if (!email.trim())    { alert('กรุณากรอกอีเมล'); return; }
+        if (!password.trim()) { alert('กรุณากรอกรหัสผ่าน'); return; }
         setIsLoading(true);
         try {
           const res  = await fetch(GAS_URL, { method:'POST',
-            body: JSON.stringify({ action:'login', username:studentId.trim(), password:password.trim() }) });
+            body: JSON.stringify({ action:'login', email:email.trim(), password:password.trim() }) });
           const data = await res.json();
           if (data.status === 'success') {
             sessionStorage.setItem('gerisim_auth', JSON.stringify({
-              studentId    : studentId.trim(),
-              studentName  : data.student_name || studentId.trim(),
+              email        : data.email        || email.trim(),
+              studentId    : data.student_id   || '',
+              studentName  : data.student_name || email.trim(),
               university   : data.university   || '',
               gold_badges  : data.gold_badges  || 0,
               silver_badges: data.silver_badges|| 0,
@@ -107,7 +109,7 @@
             }));
             window.location.href = 'home.html';
           } else {
-            alert(data.message || 'รหัสนักศึกษาหรือรหัสผ่านไม่ถูกต้อง');
+            alert(data.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
           }
         } catch (err) {
           alert('ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
@@ -118,7 +120,7 @@
 
       // ── Register ─────────────────────────────────────────────────────
       const handleRegister = async () => {
-        if (!regId.trim())         { alert('กรุณากรอกรหัสนักศึกษา'); return; }
+        if (!regEmail.trim())      { alert('กรุณากรอกอีเมล'); return; }
         if (!regName.trim())       { alert('กรุณากรอกชื่อ-นามสกุล'); return; }
         if (!regUniversity.trim()) { alert('กรุณาเลือกมหาวิทยาลัย'); return; }
         if (!regPassword.trim())   { alert('กรุณากรอกรหัสผ่าน'); return; }
@@ -126,15 +128,16 @@
         setIsLoading(true);
         try {
           const res  = await fetch(GAS_URL, { method:'POST',
-            body: JSON.stringify({ action:'register', username:regId.trim(),
-              student_name:regName.trim(), university:regUniversity.trim(), password:regPassword.trim() }) });
+            body: JSON.stringify({ action:'register', email:regEmail.trim(),
+              student_id:regId.trim(), student_name:regName.trim(),
+              university:regUniversity.trim(), password:regPassword.trim() }) });
           const data = await res.json();
           if (data.status === 'success') {
             alert('✅ ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
             setShowRegister(false);
-            setStudentId(regId.trim());
+            setEmail(regEmail.trim());
             setPassword(regPassword.trim());
-            setRegId(''); setRegName(''); setRegUniversity(''); setRegPassword(''); setRegConfirm('');
+            setRegEmail(''); setRegId(''); setRegName(''); setRegUniversity(''); setRegPassword(''); setRegConfirm('');
           } else {
             alert('⚠️ ' + (data.message || 'ไม่สามารถลงทะเบียนได้'));
           }
@@ -147,7 +150,7 @@
 
       // ── Reset password ───────────────────────────────────────────────
       const handleReset = async () => {
-        if (!resetId.trim())      { alert('กรุณากรอกรหัสนักศึกษา'); return; }
+        if (!resetEmail.trim())   { alert('กรุณากรอกอีเมล'); return; }
         if (!resetName.trim())    { alert('กรุณากรอกชื่อ-นามสกุลที่ลงทะเบียนไว้'); return; }
         if (!resetNewPass.trim()) { alert('กรุณากรอกรหัสผ่านใหม่'); return; }
         if (resetNewPass.length < 4) { alert('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร'); return; }
@@ -155,15 +158,15 @@
         setIsLoading(true);
         try {
           const res  = await fetch(GAS_URL, { method:'POST',
-            body: JSON.stringify({ action:'resetPassword', username:resetId.trim(),
+            body: JSON.stringify({ action:'resetPassword', email:resetEmail.trim(),
               student_name:resetName.trim(), new_password:resetNewPass.trim() }) });
           const data = await res.json();
           if (data.status === 'success') {
             alert('✅ รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
             setShowReset(false);
-            setStudentId(resetId.trim());
+            setEmail(resetEmail.trim());
             setPassword(resetNewPass.trim());
-            setResetId(''); setResetName(''); setResetNewPass(''); setResetConfirm('');
+            setResetEmail(''); setResetName(''); setResetNewPass(''); setResetConfirm('');
           } else {
             alert('⚠️ ' + (data.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้'));
           }
@@ -235,8 +238,8 @@
                   <i className="fas fa-sign-in-alt" style={{color:'#9146FF'}}></i> เข้าสู่ระบบ
                 </p>
                 <div className="space-y-3 mb-3">
-                  <Field icon="fa-id-card" ph="รหัสนักศึกษา (Student ID)" val={studentId} fn={e=>setStudentId(e.target.value)} />
-                  <Field icon="fa-lock"    ph="รหัสผ่าน (Password)"        val={password}  fn={e=>setPassword(e.target.value)}  type="password" onEnter={handleLogin} />
+                  <Field icon="fa-envelope" ph="อีเมล (Email)" val={email} fn={e=>setEmail(e.target.value)} type="email" />
+                  <Field icon="fa-lock"    ph="รหัสผ่าน (Password)" val={password} fn={e=>setPassword(e.target.value)} type="password" onEnter={handleLogin} />
                 </div>
                 {/* Forgot password link */}
                 <div className="flex justify-end mb-3">
@@ -290,7 +293,8 @@
                 title="ลงทะเบียนนักศึกษาใหม่" icon="fa-user-plus" iconBg="#9146FF"
                 onClose={()=>setShowRegister(false)}
                 onSubmit={handleRegister} submitLabel="ยืนยันการลงทะเบียน" submitIcon="fa-check">
-                <Field icon="fa-id-card" ph="รหัสนักศึกษา *"  val={regId}       fn={e=>setRegId(e.target.value)} />
+                <Field icon="fa-envelope" ph="อีเมล *"           val={regEmail}    fn={e=>setRegEmail(e.target.value)} type="email" />
+                <Field icon="fa-id-card" ph="รหัสนักศึกษา (ไม่บังคับ)" val={regId} fn={e=>setRegId(e.target.value)} />
                 <Field icon="fa-user"    ph="ชื่อ-นามสกุล *"  val={regName}     fn={e=>setRegName(e.target.value)} />
                 {/* University */}
                 <div className="relative">
@@ -329,10 +333,10 @@
                     <span className="font-black" style={{color:'#7C3AED'}}> ชื่อ-นามสกุล</span> ที่ลงทะเบียนไว้
                   </p>
                 </div>
-                <Field icon="fa-id-card"      ph="รหัสนักศึกษา *"              val={resetId}      fn={e=>setResetId(e.target.value)} />
-                <Field icon="fa-user"          ph="ชื่อ-นามสกุล (ตามที่ลงทะเบียน) *" val={resetName}    fn={e=>setResetName(e.target.value)} />
-                <Field icon="fa-lock"          ph="รหัสผ่านใหม่ *"              val={resetNewPass} fn={e=>setResetNewPass(e.target.value)} type="password" />
-                <Field icon="fa-lock"          ph="ยืนยันรหัสผ่านใหม่ *"       val={resetConfirm} fn={e=>setResetConfirm(e.target.value)}  type="password" onEnter={handleReset} />
+                <Field icon="fa-envelope" ph="อีเมล *"                          val={resetEmail}   fn={e=>setResetEmail(e.target.value)}   type="email" />
+                <Field icon="fa-user"     ph="ชื่อ-นามสกุล (ตามที่ลงทะเบียน) *" val={resetName}  fn={e=>setResetName(e.target.value)} />
+                <Field icon="fa-lock"     ph="รหัสผ่านใหม่ *"                  val={resetNewPass} fn={e=>setResetNewPass(e.target.value)} type="password" />
+                <Field icon="fa-lock"     ph="ยืนยันรหัสผ่านใหม่ *"           val={resetConfirm} fn={e=>setResetConfirm(e.target.value)} type="password" onEnter={handleReset} />
               </BottomSheet>
             )}
 
