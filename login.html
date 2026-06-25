@@ -50,11 +50,29 @@
       'สถาบันการพยาบาลศรีสวรินทิรา สภากาชาดไทย',
     ];
 
+    // ── Shared styled input ────────────────────────────────────────────
+    function Field({ icon, ph, val, fn, type='text', onEnter }) {
+      return (
+        <div className="relative">
+          <span className="absolute left-3.5 top-3.5" style={{color:'#9146FF'}}>
+            <i className={`fas ${icon} text-sm`}></i>
+          </span>
+          <input type={type} placeholder={ph} value={val} onChange={fn}
+            onKeyPress={onEnter ? (e=>e.key==='Enter'&&onEnter()) : undefined}
+            className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800"
+            style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
+            onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
+            onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}/>
+        </div>
+      );
+    }
+
     function LoginApp() {
       const [studentId,    setStudentId]    = useState('');
       const [password,     setPassword]     = useState('');
       const [isLoading,    setIsLoading]    = useState(false);
 
+      // Register state
       const [showRegister, setShowRegister] = useState(false);
       const [regId,        setRegId]        = useState('');
       const [regName,      setRegName]      = useState('');
@@ -62,7 +80,14 @@
       const [regPassword,  setRegPassword]  = useState('');
       const [regConfirm,   setRegConfirm]   = useState('');
 
-      // ── Login ──────────────────────────────────────────────────────
+      // Forgot password state
+      const [showReset,    setShowReset]    = useState(false);
+      const [resetId,      setResetId]      = useState('');
+      const [resetName,    setResetName]    = useState('');
+      const [resetNewPass, setResetNewPass] = useState('');
+      const [resetConfirm, setResetConfirm] = useState('');
+
+      // ── Login ────────────────────────────────────────────────────────
       const handleLogin = async () => {
         if (!studentId.trim()) { alert('กรุณากรอกรหัสนักศึกษา'); return; }
         if (!password.trim())  { alert('กรุณากรอกรหัสผ่าน'); return; }
@@ -91,7 +116,7 @@
         }
       };
 
-      // ── Register ───────────────────────────────────────────────────
+      // ── Register ─────────────────────────────────────────────────────
       const handleRegister = async () => {
         if (!regId.trim())         { alert('กรุณากรอกรหัสนักศึกษา'); return; }
         if (!regName.trim())       { alert('กรุณากรอกชื่อ-นามสกุล'); return; }
@@ -120,7 +145,66 @@
         }
       };
 
-      // ── UI ─────────────────────────────────────────────────────────
+      // ── Reset password ───────────────────────────────────────────────
+      const handleReset = async () => {
+        if (!resetId.trim())      { alert('กรุณากรอกรหัสนักศึกษา'); return; }
+        if (!resetName.trim())    { alert('กรุณากรอกชื่อ-นามสกุลที่ลงทะเบียนไว้'); return; }
+        if (!resetNewPass.trim()) { alert('กรุณากรอกรหัสผ่านใหม่'); return; }
+        if (resetNewPass.length < 4) { alert('รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร'); return; }
+        if (resetNewPass !== resetConfirm) { alert('รหัสผ่านใหม่และการยืนยันไม่ตรงกัน'); return; }
+        setIsLoading(true);
+        try {
+          const res  = await fetch(GAS_URL, { method:'POST',
+            body: JSON.stringify({ action:'resetPassword', username:resetId.trim(),
+              student_name:resetName.trim(), new_password:resetNewPass.trim() }) });
+          const data = await res.json();
+          if (data.status === 'success') {
+            alert('✅ รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
+            setShowReset(false);
+            setStudentId(resetId.trim());
+            setPassword(resetNewPass.trim());
+            setResetId(''); setResetName(''); setResetNewPass(''); setResetConfirm('');
+          } else {
+            alert('⚠️ ' + (data.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้'));
+          }
+        } catch (err) {
+          alert('ไม่สามารถเชื่อมต่อระบบได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      // ── Bottom sheet helper ──────────────────────────────────────────
+      const BottomSheet = ({ title, icon, iconBg, onClose, children, onSubmit, submitLabel, submitIcon }) => (
+        <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
+          <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
+            style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
+                <span className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{background: iconBg || '#9146FF'}}>
+                  <i className={`fas ${icon} text-white text-xs`}></i>
+                </span>{title}
+              </h3>
+              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                <i className="fas fa-times text-gray-500 text-xs"></i>
+              </button>
+            </div>
+            <div className="space-y-3 mb-4 overflow-y-auto no-scrollbar" style={{maxHeight:'55vh'}}>
+              {children}
+            </div>
+            <button onClick={onSubmit} disabled={isLoading}
+              className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{background: iconBg || '#9146FF', boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
+              {isLoading
+                ? <><i className="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...</>
+                : <><i className={`fas ${submitIcon}`}></i> {submitLabel}</>}
+            </button>
+          </div>
+        </div>
+      );
+
+      // ── UI ───────────────────────────────────────────────────────────
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
           <div className="relative w-full max-w-md h-full max-h-[900px] overflow-hidden shadow-2xl flex flex-col"
@@ -151,22 +235,16 @@
                   <i className="fas fa-sign-in-alt" style={{color:'#9146FF'}}></i> เข้าสู่ระบบ
                 </p>
                 <div className="space-y-3 mb-3">
-                  {[
-                    {icon:'fa-id-card', ph:'รหัสนักศึกษา (Student ID)', val:studentId, fn:e=>setStudentId(e.target.value), type:'text'},
-                    {icon:'fa-lock',    ph:'รหัสผ่าน (Password)',         val:password,  fn:e=>setPassword(e.target.value),  type:'password'},
-                  ].map((f,i)=>(
-                    <div key={i} className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{color:'#9146FF'}}>
-                        <i className={`fas ${f.icon} text-sm`}></i>
-                      </span>
-                      <input type={f.type} placeholder={f.ph} value={f.val} onChange={f.fn}
-                        onKeyPress={e=>e.key==='Enter'&&handleLogin()}
-                        className="w-full py-3.5 pl-10 pr-4 text-sm font-medium rounded-2xl focus:outline-none text-gray-800"
-                        style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
-                        onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
-                        onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}/>
-                    </div>
-                  ))}
+                  <Field icon="fa-id-card" ph="รหัสนักศึกษา (Student ID)" val={studentId} fn={e=>setStudentId(e.target.value)} />
+                  <Field icon="fa-lock"    ph="รหัสผ่าน (Password)"        val={password}  fn={e=>setPassword(e.target.value)}  type="password" onEnter={handleLogin} />
+                </div>
+                {/* Forgot password link */}
+                <div className="flex justify-end mb-3">
+                  <button onClick={()=>setShowReset(true)} disabled={isLoading}
+                    className="text-xs font-bold flex items-center gap-1"
+                    style={{color:'#9146FF'}}>
+                    <i className="fas fa-key text-[10px]"></i> ลืมรหัสผ่าน?
+                  </button>
                 </div>
                 <button onClick={handleLogin} disabled={isLoading}
                   className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50"
@@ -191,7 +269,7 @@
                 </button>
               </div>
 
-              {/* Version */}
+              {/* Version footer */}
               <div className="flex flex-col items-center gap-1 pt-1 pb-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
@@ -206,85 +284,58 @@
               </div>
             </div>
 
-            {/* Register bottom sheet */}
+            {/* ── Register bottom sheet ── */}
             {showRegister && (
-              <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
-                <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
-                  style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
-                  <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
-                  <div className="flex justify-between items-center mb-5">
-                    <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{background:'#9146FF'}}>
-                        <i className="fas fa-user-plus text-white text-xs"></i>
-                      </span>ลงทะเบียนนักศึกษาใหม่
-                    </h3>
-                    <button onClick={()=>setShowRegister(false)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-                      <i className="fas fa-times text-gray-500 text-xs"></i>
-                    </button>
-                  </div>
-                  <div className="space-y-3 mb-4 overflow-y-auto no-scrollbar" style={{maxHeight:'55vh'}}>
-                    {[
-                      {icon:'fa-id-card', ph:'รหัสนักศึกษา *', val:regId,       fn:e=>setRegId(e.target.value),       type:'text'},
-                      {icon:'fa-user',    ph:'ชื่อ-นามสกุล *', val:regName,     fn:e=>setRegName(e.target.value),     type:'text'},
-                    ].map((f,i)=>(
-                      <div key={i} className="relative">
-                        <span className="absolute left-3.5 top-3.5" style={{color:'#9146FF'}}>
-                          <i className={`fas ${f.icon} text-sm`}></i>
-                        </span>
-                        <input type={f.type} placeholder={f.ph} value={f.val} onChange={f.fn}
-                          className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800"
-                          style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
-                          onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
-                          onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}/>
-                      </div>
-                    ))}
-                    {/* University */}
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-3.5 z-10" style={{color:'#9146FF'}}>
-                        <i className="fas fa-university text-sm"></i>
-                      </span>
-                      <select value={regUniversity} onChange={e=>setRegUniversity(e.target.value)}
-                        className="w-full rounded-2xl py-3 pl-10 pr-8 text-sm font-medium focus:outline-none text-gray-800 appearance-none"
-                        style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
-                        onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
-                        onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}>
-                        <option value="">เลือกมหาวิทยาลัย *</option>
-                        {NURSING_UNIVERSITIES.map(u=>(
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                      </select>
-                      <span className="absolute right-3.5 top-3.5 pointer-events-none" style={{color:'#9146FF'}}>
-                        <i className="fas fa-chevron-down text-xs"></i>
-                      </span>
-                    </div>
-                    {[
-                      {icon:'fa-lock', ph:'รหัสผ่าน *',         val:regPassword, fn:e=>setRegPassword(e.target.value), type:'password'},
-                      {icon:'fa-lock', ph:'ยืนยันรหัสผ่าน *',   val:regConfirm,  fn:e=>setRegConfirm(e.target.value),  type:'password'},
-                    ].map((f,i)=>(
-                      <div key={i} className="relative">
-                        <span className="absolute left-3.5 top-3.5" style={{color:'#9146FF'}}>
-                          <i className={`fas ${f.icon} text-sm`}></i>
-                        </span>
-                        <input type={f.type} placeholder={f.ph} value={f.val} onChange={f.fn}
-                          onKeyPress={i===1?(e=>e.key==='Enter'&&handleRegister()):undefined}
-                          className="w-full rounded-2xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none text-gray-800"
-                          style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
-                          onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
-                          onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}/>
-                      </div>
-                    ))}
-                  </div>
-                  <button onClick={handleRegister} disabled={isLoading}
-                    className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 disabled:opacity-50"
-                    style={{background:'#9146FF',boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
-                    {isLoading
-                      ? <><i className="fas fa-spinner fa-spin"></i> กำลังลงทะเบียน...</>
-                      : <><i className="fas fa-check"></i> ยืนยันการลงทะเบียน</>}
-                  </button>
+              <BottomSheet
+                title="ลงทะเบียนนักศึกษาใหม่" icon="fa-user-plus" iconBg="#9146FF"
+                onClose={()=>setShowRegister(false)}
+                onSubmit={handleRegister} submitLabel="ยืนยันการลงทะเบียน" submitIcon="fa-check">
+                <Field icon="fa-id-card" ph="รหัสนักศึกษา *"  val={regId}       fn={e=>setRegId(e.target.value)} />
+                <Field icon="fa-user"    ph="ชื่อ-นามสกุล *"  val={regName}     fn={e=>setRegName(e.target.value)} />
+                {/* University */}
+                <div className="relative">
+                  <span className="absolute left-3.5 top-3.5 z-10" style={{color:'#9146FF'}}>
+                    <i className="fas fa-university text-sm"></i>
+                  </span>
+                  <select value={regUniversity} onChange={e=>setRegUniversity(e.target.value)}
+                    className="w-full rounded-2xl py-3 pl-10 pr-8 text-sm font-medium focus:outline-none text-gray-800 appearance-none"
+                    style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
+                    onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
+                    onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}>
+                    <option value="">เลือกมหาวิทยาลัย *</option>
+                    {NURSING_UNIVERSITIES.map(u=><option key={u} value={u}>{u}</option>)}
+                  </select>
+                  <span className="absolute right-3.5 top-3.5 pointer-events-none" style={{color:'#9146FF'}}>
+                    <i className="fas fa-chevron-down text-xs"></i>
+                  </span>
                 </div>
-              </div>
+                <Field icon="fa-lock" ph="รหัสผ่าน *"         val={regPassword} fn={e=>setRegPassword(e.target.value)} type="password" />
+                <Field icon="fa-lock" ph="ยืนยันรหัสผ่าน *"   val={regConfirm}  fn={e=>setRegConfirm(e.target.value)}  type="password" onEnter={handleRegister} />
+              </BottomSheet>
             )}
+
+            {/* ── Forgot password bottom sheet ── */}
+            {showReset && (
+              <BottomSheet
+                title="รีเซ็ตรหัสผ่าน" icon="fa-key" iconBg="#7C3AED"
+                onClose={()=>setShowReset(false)}
+                onSubmit={handleReset} submitLabel="ยืนยันรีเซ็ตรหัสผ่าน" submitIcon="fa-check">
+                {/* Info banner */}
+                <div className="flex items-start gap-2 rounded-2xl px-3 py-2.5"
+                  style={{background:'#F5F3FF',border:'1.5px solid #DDD6FE'}}>
+                  <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#7C3AED'}}></i>
+                  <p className="text-xs leading-relaxed text-gray-600">
+                    ยืนยันตัวตนด้วย <span className="font-black" style={{color:'#7C3AED'}}>รหัสนักศึกษา</span> และ
+                    <span className="font-black" style={{color:'#7C3AED'}}> ชื่อ-นามสกุล</span> ที่ลงทะเบียนไว้
+                  </p>
+                </div>
+                <Field icon="fa-id-card"      ph="รหัสนักศึกษา *"              val={resetId}      fn={e=>setResetId(e.target.value)} />
+                <Field icon="fa-user"          ph="ชื่อ-นามสกุล (ตามที่ลงทะเบียน) *" val={resetName}    fn={e=>setResetName(e.target.value)} />
+                <Field icon="fa-lock"          ph="รหัสผ่านใหม่ *"              val={resetNewPass} fn={e=>setResetNewPass(e.target.value)} type="password" />
+                <Field icon="fa-lock"          ph="ยืนยันรหัสผ่านใหม่ *"       val={resetConfirm} fn={e=>setResetConfirm(e.target.value)}  type="password" onEnter={handleReset} />
+              </BottomSheet>
+            )}
+
           </div>
         </div>
       );
