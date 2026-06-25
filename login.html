@@ -50,6 +50,38 @@
       'สถาบันการพยาบาลศรีสวรินทิรา สภากาชาดไทย',
     ];
 
+    // ── Bottom sheet wrapper (must be outside LoginApp to stay stable) ──
+    function BottomSheet({ title, icon, iconBg, onClose, children, onSubmit, submitLabel, submitIcon, isLoading }) {
+      return (
+        <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
+          <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
+            style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
+                <span className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{background: iconBg || '#9146FF'}}>
+                  <i className={`fas ${icon} text-white text-xs`}></i>
+                </span>{title}
+              </h3>
+              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                <i className="fas fa-times text-gray-500 text-xs"></i>
+              </button>
+            </div>
+            <div className="space-y-3 mb-4 overflow-y-auto no-scrollbar" style={{maxHeight:'55vh'}}>
+              {children}
+            </div>
+            <button onClick={onSubmit} disabled={isLoading}
+              className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{background: iconBg || '#9146FF', boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
+              {isLoading
+                ? <><i className="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...</>
+                : <><i className={`fas ${submitIcon}`}></i> {submitLabel}</>}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // ── Shared styled input ────────────────────────────────────────────
     function Field({ icon, ph, val, fn, type='text', onEnter }) {
       return (
@@ -177,44 +209,14 @@
         }
       };
 
-      // ── Bottom sheet helper ──────────────────────────────────────────
-      const BottomSheet = ({ title, icon, iconBg, onClose, children, onSubmit, submitLabel, submitIcon }) => (
-        <div className="absolute inset-0 bg-black/50 z-50 flex flex-col justify-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 flex flex-col animate-slideUp"
-            style={{boxShadow:'0 -8px 40px rgba(0,0,0,0.12)'}}>
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="font-black text-gray-800 text-base flex items-center gap-2">
-                <span className="w-8 h-8 rounded-2xl flex items-center justify-center" style={{background: iconBg || '#9146FF'}}>
-                  <i className={`fas ${icon} text-white text-xs`}></i>
-                </span>{title}
-              </h3>
-              <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-                <i className="fas fa-times text-gray-500 text-xs"></i>
-              </button>
-            </div>
-            <div className="space-y-3 mb-4 overflow-y-auto no-scrollbar" style={{maxHeight:'55vh'}}>
-              {children}
-            </div>
-            <button onClick={onSubmit} disabled={isLoading}
-              className="w-full py-4 rounded-2xl font-black text-white flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{background: iconBg || '#9146FF', boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
-              {isLoading
-                ? <><i className="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...</>
-                : <><i className={`fas ${submitIcon}`}></i> {submitLabel}</>}
-            </button>
-          </div>
-        </div>
-      );
-
       // ── UI ───────────────────────────────────────────────────────────
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
-          <div className="relative w-full max-w-md h-full max-h-[900px] overflow-hidden shadow-2xl flex flex-col"
+          <div className="relative w-full max-w-md h-full max-h-[900px] overflow-hidden shadow-2xl flex flex-col rounded-3xl"
             style={{fontFamily:"'Prompt',sans-serif", background:'#EEE8FF'}}>
 
             {/* Top panel */}
-            <div className="flex flex-col items-center pt-12 pb-6 px-6 flex-none"
+            <div className="flex flex-col items-center pt-12 pb-10 px-6 flex-none"
               style={{background:'#9146FF'}}>
               <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3"
                 style={{background:'#fff', boxShadow:'0 4px 16px rgba(2,132,199,0.25)'}}>
@@ -226,12 +228,13 @@
               </p>
               <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
                 style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE'}}>
-                v3.4.8
+                v3.4.9
               </span>
             </div>
 
             {/* Login card */}
-            <div className="flex-1 px-5 pt-5 pb-5 flex flex-col justify-between overflow-y-auto no-scrollbar">
+            <div className="flex-1 px-5 pt-5 pb-5 flex flex-col justify-between overflow-y-auto no-scrollbar"
+              style={{background:'#EEE8FF', borderTopLeftRadius:'2rem', borderTopRightRadius:'2rem', marginTop:'-2rem'}}>
               <div className="bg-white rounded-3xl p-5 mb-3"
                 style={{boxShadow:'8px 8px 16px rgba(109,40,217,0.15),-8px -8px 16px rgba(255,255,255,0.9)'}}>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -277,7 +280,7 @@
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
                   <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.8</span>
+                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.9</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
                   style={{background:'#F5F3FF',border:'1px solid #DDD6FE'}}>
@@ -291,7 +294,7 @@
             {showRegister && (
               <BottomSheet
                 title="ลงทะเบียนนักศึกษาใหม่" icon="fa-user-plus" iconBg="#9146FF"
-                onClose={()=>setShowRegister(false)}
+                onClose={()=>setShowRegister(false)} isLoading={isLoading}
                 onSubmit={handleRegister} submitLabel="ยืนยันการลงทะเบียน" submitIcon="fa-check">
                 <Field icon="fa-envelope" ph="อีเมล *"           val={regEmail}    fn={e=>setRegEmail(e.target.value)} type="email" />
                 <Field icon="fa-id-card" ph="รหัสนักศึกษา (ไม่บังคับ)" val={regId} fn={e=>setRegId(e.target.value)} />
@@ -322,14 +325,14 @@
             {showReset && (
               <BottomSheet
                 title="รีเซ็ตรหัสผ่าน" icon="fa-key" iconBg="#7C3AED"
-                onClose={()=>setShowReset(false)}
+                onClose={()=>setShowReset(false)} isLoading={isLoading}
                 onSubmit={handleReset} submitLabel="ยืนยันรีเซ็ตรหัสผ่าน" submitIcon="fa-check">
                 {/* Info banner */}
                 <div className="flex items-start gap-2 rounded-2xl px-3 py-2.5"
                   style={{background:'#F5F3FF',border:'1.5px solid #DDD6FE'}}>
                   <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#7C3AED'}}></i>
                   <p className="text-xs leading-relaxed text-gray-600">
-                    ยืนยันตัวตนด้วย <span className="font-black" style={{color:'#7C3AED'}}>รหัสนักศึกษา</span> และ
+                    ยืนยันตัวตนด้วย <span className="font-black" style={{color:'#7C3AED'}}>อีเมล</span> และ
                     <span className="font-black" style={{color:'#7C3AED'}}> ชื่อ-นามสกุล</span> ที่ลงทะเบียนไว้
                   </p>
                 </div>
