@@ -10,6 +10,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
@@ -193,6 +194,49 @@ function App() {
   const toggleSort = (key) => {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc');
     else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  const exportExcel = () => {
+    const XLSX = window.XLSX;
+    if (!XLSX) { alert('กำลังโหลด SheetJS กรุณารอสักครู่แล้วลองใหม่'); return; }
+
+    // ── Sheet 1: Student summary ──────────────────────────────────────────
+    const summaryHeader = ['ชื่อ Username','อีเมล','รหัสนักศึกษา','ครั้งที่ฝึก','Best Score (%)','Avg Score (%)','ล่าสุด'];
+    const summaryRows = filtered.map(s => [
+      s.student_name, s.email, s.student_id,
+      s.session_count, s.best_score, s.avg_score, s.last_active
+    ]);
+    const ws1 = XLSX.utils.aoa_to_sheet([summaryHeader, ...summaryRows]);
+    ws1['!cols'] = [28,32,16,12,14,14,16].map(w => ({ wch: w }));
+
+    // ── Sheet 2: All sessions detail ──────────────────────────────────────
+    const detailHeader = [
+      'ชื่อ Username','อีเมล','รหัสนักศึกษา',
+      'วันที่-เวลา','กรณีศึกษา',
+      'เครื่องมือที่เลือก','เครื่องมือที่ถูก','ผลเครื่องมือ',
+      'คะแนนประเมิน (%)','คะแนนคำแนะนำ (%)','คะแนนรวม (%)','ระยะเวลา'
+    ];
+    const detailRows = [];
+    filtered.forEach(s => {
+      s.sessions.forEach(ses => {
+        detailRows.push([
+          s.student_name, s.email, s.student_id,
+          ses.submitted_at, ses.case_name,
+          ses.chosen_tool, ses.correct_tool, ses.tool_match,
+          ses.assessment_score, ses.intervention_score, ses.total_score, ses.duration
+        ]);
+      });
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet([detailHeader, ...detailRows]);
+    ws2['!cols'] = [24,28,14,20,28,20,20,12,14,14,12,12].map(w => ({ wch: w }));
+
+    // ── Workbook ──────────────────────────────────────────────────────────
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws1, 'สรุปนักศึกษา');
+    XLSX.utils.book_append_sheet(wb, ws2, 'ประวัติการฝึกทั้งหมด');
+
+    const date = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+    XLSX.writeFile(wb, `GeriSim_${auth.university}_${date}.xlsx`);
   };
 
   // ── Derived data ─────────────────────────────────────────────────────────
@@ -497,6 +541,13 @@ function App() {
                 style={{ background:'#F9FAFB' }}>
                 <i className={`fas fa-sync-alt text-xs ${dataLoading ? 'spinner' : ''}`}></i>
               </button>
+              <button onClick={exportExcel} disabled={filtered.length === 0}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-xl text-xs font-bold transition shrink-0 disabled:opacity-40"
+                style={{ background:'#16A34A', color:'#fff', boxShadow:'3px 3px 0px #15803D' }}
+                title="Export to Excel">
+                <i className="fas fa-file-excel text-sm"></i>
+                <span className="hidden sm:inline">Export</span>
+              </button>
             </div>
           </div>
 
@@ -573,16 +624,71 @@ function App() {
                         <tr>
                           <td colSpan={7} className="px-0 py-0">
                             <div className="fade-in" style={{ background:'#F5F7FF', borderTop:'2px solid #C7D2FE' }}>
-                              <div className="px-5 py-3 border-b border-indigo-100">
+                              <div className="px-5 py-3 border-b border-indigo-100 flex items-center justify-between">
                                 <p className="text-[11px] font-black text-indigo-700 uppercase tracking-wider">
                                   <i className="fas fa-history mr-1.5"></i>ประวัติการฝึก — {s.student_name}
                                 </p>
                               </div>
+
+                              {/* ── Score summary by area ── */}
+                              {s.sessions.length > 0 && (() => {
+                                const n = s.sessions.length;
+                                const toolOK    = s.sessions.filter(x => x.tool_match === 'ถูกต้อง').length;
+                                const toolPct   = Math.round((toolOK / n) * 100);
+                                const avgAssess = Math.round(s.sessions.reduce((a,x) => a + (x.assessment_score||0), 0) / n);
+                                const avgInter  = Math.round(s.sessions.reduce((a,x) => a + (x.intervention_score||0), 0) / n);
+                                const avgTot    = Math.round(s.sessions.reduce((a,x) => a + (x.total_score||0), 0) / n);
+                                const areas = [
+                                  { label:'การเลือกเครื่องมือ',  icon:'fa-tools',               score: toolPct,   weight:'30 คะแนน' },
+                                  { label:'การประเมิน',           icon:'fa-clipboard-check',     score: avgAssess, weight:'50 คะแนน' },
+                                  { label:'การวางแผนทางการพยาบาล', icon:'fa-hand-holding-medical', score: avgInter,  weight:'20 คะแนน' },
+                                ];
+                                return (
+                                  <div className="px-5 py-3 border-b border-indigo-100">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">
+                                      <i className="fas fa-chart-pie mr-1 text-indigo-400"></i>คะแนนสรุปแยกตามด้าน (เฉลี่ย {n} ครั้ง)
+                                    </p>
+                                    <div className="grid gap-2" style={{ gridTemplateColumns:'repeat(4,1fr)' }}>
+                                      {areas.map((a, ai) => (
+                                        <div key={ai} className="rounded-xl px-3 py-2.5" style={{ background:'white', border:'1.5px solid #E0E7FF' }}>
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <i className={`fas ${a.icon} text-[9px]`} style={{ color: scoreColor(a.score) }}></i>
+                                            <span className="text-[9px] font-bold text-gray-500 truncate">{a.label}</span>
+                                          </div>
+                                          <div className="flex items-end gap-1">
+                                            <span className="text-lg font-black leading-none" style={{ color: scoreColor(a.score) }}>{a.score}</span>
+                                            <span className="text-[9px] text-gray-400 mb-0.5">%</span>
+                                          </div>
+                                          <div className="w-full bg-gray-100 rounded-full mt-1.5" style={{ height:'4px' }}>
+                                            <div className="score-bar h-full rounded-full" style={{ width:`${a.score}%`, background: scoreColor(a.score) }} />
+                                          </div>
+                                          <span className="text-[8px] text-gray-400 mt-0.5 block">{a.weight}</span>
+                                        </div>
+                                      ))}
+                                      <div className="rounded-xl px-3 py-2.5" style={{ background:'linear-gradient(135deg,#1E3A5F,#2D1B69)', border:'1.5px solid #1E3A5F' }}>
+                                        <div className="flex items-center gap-1.5 mb-1">
+                                          <i className="fas fa-star text-[9px] text-yellow-300"></i>
+                                          <span className="text-[9px] font-bold text-indigo-200">คะแนนรวม</span>
+                                        </div>
+                                        <div className="flex items-end gap-1">
+                                          <span className="text-lg font-black leading-none text-white">{avgTot}</span>
+                                          <span className="text-[9px] text-indigo-300 mb-0.5">%</span>
+                                        </div>
+                                        <div className="w-full rounded-full mt-1.5" style={{ height:'4px', background:'rgba(255,255,255,0.15)' }}>
+                                          <div className="score-bar h-full rounded-full" style={{ width:`${avgTot}%`, background:'#FCD34D' }} />
+                                        </div>
+                                        <span className="text-[8px] text-indigo-300 mt-0.5 block">100 คะแนน</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+
                               <div className="overflow-x-auto">
                                 <table className="w-full text-left">
                                   <thead>
                                     <tr style={{ background:'#EEF2FF' }}>
-                                      {['วันที่','กรณีศึกษา','เครื่องมือที่เลือก','เครื่องมือที่ถูก','ผลเครื่องมือ','คะแนนประเมิน','คะแนนแทรกแซง','คะแนนรวม','ระยะเวลา']
+                                      {['วันที่','กรณีศึกษา','เครื่องมือที่เลือก','เครื่องมือที่ถูก','ผลเครื่องมือ','คะแนนประเมิน','คะแนนวางแผนทางการพยาบาล','คะแนนรวม','ระยะเวลา']
                                         .map(h => (
                                           <th key={h} className="px-4 py-2 text-[9px] font-black text-indigo-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                                         ))}
@@ -629,8 +735,8 @@ function App() {
                                   });
                                   if (latest.intervention_score < 60) issues.push({
                                     icon:'fa-hand-holding-medical', color:'#7C3AED', bg:'#F5F3FF', border:'#DDD6FE',
-                                    label:'คะแนนการให้คำแนะนำต่ำ',
-                                    detail:`ได้ ${latest.intervention_score}% — ควรทบทวนการวางแผนการพยาบาล`
+                                    label:'คะแนนวางแผนทางการพยาบาลต่ำ',
+                                    detail:`ได้ ${latest.intervention_score}% — ควรทบทวนการวางแผนทางการพยาบาล`
                                   });
                                   if (issues.length === 0) return null;
                                   return (
