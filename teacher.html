@@ -541,6 +541,13 @@ function App() {
                 style={{ background:'#F9FAFB' }}>
                 <i className={`fas fa-sync-alt text-xs ${dataLoading ? 'spinner' : ''}`}></i>
               </button>
+              <button onClick={() => window.location.href='record.html'}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-xl text-xs font-bold transition shrink-0"
+                style={{ background:'#1E3A5F', color:'#fff', boxShadow:'3px 3px 0px #162d4a' }}
+                title="เพิ่มกรณีศึกษา">
+                <i className="fas fa-plus text-sm"></i>
+                <span className="hidden sm:inline">เพิ่มกรณีศึกษา</span>
+              </button>
               <button onClick={exportExcel} disabled={filtered.length === 0}
                 className="flex items-center gap-1.5 px-3 h-8 rounded-xl text-xs font-bold transition shrink-0 disabled:opacity-40"
                 style={{ background:'#16A34A', color:'#fff', boxShadow:'3px 3px 0px #15803D' }}
