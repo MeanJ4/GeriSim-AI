@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeriSim AI — ระบบอาจารย์</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; font-family:'Prompt',sans-serif; background:#F1F5F9; }
+    #root { width:100%; height:100%; }
+    .no-scrollbar::-webkit-scrollbar { display:none; }
+    .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation:fadeIn 0.25s ease-out forwards; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .spinner { animation:spin 0.9s linear infinite; }
+    tr.expandable:hover { background:#F8FAFF !important; cursor:pointer; }
+    .score-bar { transition: width 0.6s ease; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvubNbpyZonn6qK3OIZZiKcvOy6dM124pyfa275SvTX8t0PesB2r-oRmAxwR7EX9EUXg/exec';
+const AUTH_KEY = 'gerisim_teacher_auth';
+
+const NURSING_UNIVERSITIES = [
+  'จุฬาลงกรณ์มหาวิทยาลัย','มหาวิทยาลัยเกษตรศาสตร์','มหาวิทยาลัยขอนแก่น',
+  'มหาวิทยาลัยเชียงใหม่','มหาวิทยาลัยทักษิณ','มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี',
+  'มหาวิทยาลัยเทคโนโลยีสุรนารี','มหาวิทยาลัยธรรมศาสตร์','มหาวิทยาลัยนครพนม',
+  'มหาวิทยาลัยนราธิวาสราชนครินทร์','มหาวิทยาลัยนเรศวร','มหาวิทยาลัยนวมินทราธิราช',
+  'มหาวิทยาลัยบูรพา','มหาวิทยาลัยพะเยา','มหาวิทยาลัยมหาสารคาม',
+  'มหาวิทยาลัยมหิดล (คณะพยาบาลศาสตร์ ศิริราช)','มหาวิทยาลัยมหิดล (โรงเรียนพยาบาลรามาธิบดี)',
+  'มหาวิทยาลัยแม่ฟ้าหลวง','มหาวิทยาลัยราชภัฏกำแพงเพชร','มหาวิทยาลัยราชภัฏชัยภูมิ',
+  'มหาวิทยาลัยราชภัฏเชียงราย','มหาวิทยาลัยราชภัฏธนบุรี','มหาวิทยาลัยราชภัฏนครปฐม',
+  'มหาวิทยาลัยราชภัฏนครราชสีมา','มหาวิทยาลัยราชภัฏบุรีรัมย์','มหาวิทยาลัยราชภัฏพิบูลสงคราม',
+  'มหาวิทยาลัยราชภัฏเพชรบุรี','มหาวิทยาลัยราชภัฏเพชรบูรณ์','มหาวิทยาลัยราชภัฏร้อยเอ็ด',
+  'มหาวิทยาลัยราชภัฏรำไพพรรณี','มหาวิทยาลัยราชภัฏสวนสุนันทา','มหาวิทยาลัยราชภัฏสุราษฎร์ธานี',
+  'มหาวิทยาลัยราชภัฏอุดรธานี','มหาวิทยาลัยราชภัฏอุบลราชธานี','มหาวิทยาลัยวลัยลักษณ์',
+  'มหาวิทยาลัยศรีนครินทรวิโรฒ','มหาวิทยาลัยสงขลานครินทร์ (วิทยาเขตหาดใหญ่)',
+  'มหาวิทยาลัยสงขลานครินทร์ (วิทยาเขตปัตตานี)','มหาวิทยาลัยสวนดุสิต',
+  'มหาวิทยาลัยสุโขทัยธรรมาธิราช','มหาวิทยาลัยอุบลราชธานี',
+  'ราชวิทยาลัยจุฬาภรณ์','วิทยาลัยพยาบาลกองทัพบก','วิทยาลัยพยาบาลกองทัพเรือ',
+  'วิทยาลัยพยาบาลตำรวจ','วิทยาลัยพยาบาลทหารอากาศ',
+  'สถาบันการพยาบาลศรีสวรินทิรา สภากาชาดไทย',
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const post = (body) =>
+  fetch(GAS_URL, { method:'POST', body: JSON.stringify(body) }).then(r => r.json());
+
+const scoreColor = (s) =>
+  s >= 80 ? '#16A34A' : s >= 60 ? '#2563EB' : s >= 40 ? '#D97706' : '#DC2626';
+
+const ScorePill = ({ score }) => (
+  <span className="inline-block px-2 py-0.5 rounded-lg text-xs font-black text-white"
+    style={{ background: scoreColor(score) }}>
+    {score}%
+  </span>
+);
+
+const ScoreBar = ({ score, color }) => (
+  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+    <div className="score-bar h-full rounded-full" style={{ width:`${score}%`, background: color || scoreColor(score) }} />
+  </div>
+);
+
+// ── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+  const [page,      setPage]      = useState('login');  // login | register | dashboard
+  const [auth,      setAuth]      = useState(null);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState('');
+  const [students,  setStudents]  = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [search,    setSearch]    = useState('');
+  const [expanded,  setExpanded]  = useState(null);  // email of expanded row
+  const [sortKey,   setSortKey]   = useState('best_score');
+  const [sortDir,   setSortDir]   = useState('desc');
+  const [tab,       setTab]       = useState('login');  // login | register | reset (on auth page)
+  const [regPassword, setRegPassword] = useState('');
+
+  // Restore session
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(AUTH_KEY);
+      if (saved) {
+        const a = JSON.parse(saved);
+        setAuth(a);
+        setPage('dashboard');
+      }
+    } catch {}
+  }, []);
+
+  // Load data when entering dashboard
+  useEffect(() => {
+    if (page === 'dashboard' && auth) loadData();
+  }, [page, auth]);
+
+  const loadData = async () => {
+    setDataLoading(true);
+    try {
+      const res = await post({ action:'teacher_data', university: auth.university });
+      if (res.status === 'success') setStudents(res.students || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    const fd = new FormData(e.target);
+    try {
+      const res = await post({ action:'teacher_login', email: fd.get('email'), password: fd.get('password') });
+      if (res.status === 'success') {
+        const a = { teacher_name: res.teacher_name, email: res.email, university: res.university };
+        sessionStorage.setItem(AUTH_KEY, JSON.stringify(a));
+        setAuth(a); setPage('dashboard');
+      } else {
+        setError(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      }
+    } catch { setError('ไม่สามารถติดต่อเซิร์ฟเวอร์ได้'); }
+    setLoading(false);
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    const fd = new FormData(e.target);
+    if (fd.get('password') !== fd.get('confirm')) {
+      setError('รหัสผ่านไม่ตรงกัน'); setLoading(false); return;
+    }
+    try {
+      const res = await post({
+        action:'teacher_register',
+        email: fd.get('email'),
+        password: fd.get('password'),
+        teacher_name: fd.get('name'),
+        university: fd.get('university')
+      });
+      if (res.status === 'success') {
+        setError(''); setRegPassword(''); setTab('login');
+        alert('ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ');
+      } else {
+        setError(res.message || 'ลงทะเบียนไม่สำเร็จ');
+      }
+    } catch { setError('ไม่สามารถติดต่อเซิร์ฟเวอร์ได้'); }
+    setLoading(false);
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    const fd = new FormData(e.target);
+    if (fd.get('new_password') !== fd.get('confirm')) {
+      setError('รหัสผ่านไม่ตรงกัน'); setLoading(false); return;
+    }
+    try {
+      const res = await post({
+        action: 'teacher_resetPassword',
+        email: fd.get('email'),
+        teacher_name: fd.get('teacher_name'),
+        new_password: fd.get('new_password'),
+      });
+      if (res.status === 'success') {
+        setError(''); setRegPassword(''); setTab('login');
+        alert('รีเซ็ตรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่');
+      } else {
+        setError(res.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
+      }
+    } catch { setError('ไม่สามารถติดต่อเซิร์ฟเวอร์ได้'); }
+    setLoading(false);
+  };
+
+  const logout = () => {
+    sessionStorage.removeItem(AUTH_KEY);
+    setAuth(null); setStudents([]); setPage('login');
+  };
+
+  const toggleSort = (key) => {
+    if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    else { setSortKey(key); setSortDir('desc'); }
+  };
+
+  // ── Derived data ─────────────────────────────────────────────────────────
+  const filtered = students
+    .filter(s => !search || s.student_name.includes(search) || s.student_id.includes(search) || s.email.includes(search))
+    .sort((a, b) => {
+      const av = a[sortKey] ?? 0, bv = b[sortKey] ?? 0;
+      return sortDir === 'desc' ? (bv > av ? 1 : -1) : (av > bv ? 1 : -1);
+    });
+
+  const totalSessions = students.reduce((s,st) => s + st.session_count, 0);
+  const avgScore      = students.length ? Math.round(students.reduce((s,st) => s + st.avg_score, 0) / students.length) : 0;
+  const topStudent    = students.reduce((best,s) => (!best || s.best_score > best.best_score) ? s : best, null);
+
+  // ── Auth page ─────────────────────────────────────────────────────────────
+  if (page !== 'dashboard') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4"
+        style={{ background:'linear-gradient(135deg,#1E3A5F 0%,#2D1B69 100%)' }}>
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3"
+              style={{ background:'rgba(255,255,255,0.15)', border:'2px solid rgba(255,255,255,0.25)' }}>
+              <i className="fas fa-chalkboard-teacher text-white text-2xl"></i>
+            </div>
+            <h1 className="text-2xl font-black text-white">GeriSim AI</h1>
+            <p className="text-sm font-medium mt-1" style={{ color:'rgba(255,255,255,0.6)' }}>ระบบดูแลผลการเรียนรู้ — สำหรับอาจารย์</p>
+          </div>
+
+          {/* ── Main card ── */}
+          <div className="bg-white rounded-3xl shadow-2xl p-6 mb-3">
+            {error && (
+              <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium text-red-700 fade-in"
+                style={{ background:'#FEF2F2', border:'1.5px solid #FECACA' }}>
+                <i className="fas fa-exclamation-circle mr-2"></i>{error}
+              </div>
+            )}
+
+            {tab === 'login' && (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">อีเมล์ส่วนตัว หรือ อีเมล์มหาวิทยาลัย</label>
+                  <input name="email" type="email" required placeholder="teacher@university.ac.th"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">รหัสผ่าน</label>
+                  <input name="password" type="password" required placeholder="รหัสผ่าน"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                {/* Forgot password — same style as student login */}
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => { setTab('reset'); setError(''); }}
+                    className="text-xs font-bold flex items-center gap-1"
+                    style={{ color:'#1E3A5F' }}>
+                    <i className="fas fa-key text-[10px]"></i> ลืมรหัสผ่าน?
+                  </button>
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 transition"
+                  style={{ background:'#1E3A5F', boxShadow:'6px 6px 14px rgba(30,58,95,0.45),-4px -4px 10px rgba(255,255,255,0.12)' }}>
+                  {loading
+                    ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
+                    : <><i className="fas fa-arrow-right"></i> เข้าสู่ระบบ</>}
+                </button>
+              </form>
+            )}
+
+            {tab === 'register' && (
+              <form onSubmit={handleRegister} className="space-y-3">
+                <button type="button" onClick={() => { setTab('login'); setError(''); setRegPassword(''); }}
+                  className="flex items-center gap-1.5 text-xs font-bold mb-2"
+                  style={{ color:'#1E3A5F' }}>
+                  <i className="fas fa-arrow-left text-[10px]"></i> กลับ
+                </button>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Username (English)</label>
+                  <input name="name" type="text" required placeholder="e.g. Meenakan"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onInput={e => { e.target.value = e.target.value.replace(/[^A-Za-z\s.\-']/g, ''); }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">อีเมล์ส่วนตัว หรือ อีเมล์มหาวิทยาลัย</label>
+                  <input name="email" type="email" required placeholder="teacher@university.ac.th"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">รหัสผ่าน</label>
+                  <input name="password" type="password" required placeholder="อย่างน้อย 8 ตัวอักษร"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    value={regPassword}
+                    onChange={e => setRegPassword(e.target.value)}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                  {regPassword.length > 0 && (() => {
+                    const lenOk = regPassword.length >= 8;
+                    const hasNum = /[0-9]/.test(regPassword);
+                    const hasLet = /[a-zA-Z]/.test(regPassword);
+                    const row = (ok, label) => (
+                      <div key={label} className="flex items-center gap-1.5">
+                        <i className={`fas ${ok ? 'fa-check-circle' : 'fa-times-circle'} text-xs`}
+                          style={{ color: ok ? '#16a34a' : '#dc2626' }}></i>
+                        <span className="text-xs" style={{ color: ok ? '#16a34a' : '#6b7280' }}>{label}</span>
+                      </div>
+                    );
+                    return (
+                      <div className="mt-2 space-y-1 px-1">
+                        {row(lenOk,  'อย่างน้อย 8 ตัวอักษร')}
+                        {row(hasLet, 'มีตัวอักษร a–z / A–Z')}
+                        {row(hasNum, 'มีตัวเลข 0–9')}
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">ยืนยันรหัสผ่าน</label>
+                  <input name="confirm" type="password" required placeholder="พิมพ์รหัสผ่านอีกครั้ง"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">สังกัดมหาวิทยาลัย</label>
+                  <select name="university" required defaultValue=""
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition bg-white appearance-none"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'}>
+                    <option value="" disabled>เลือกมหาวิทยาลัย *</option>
+                    {NURSING_UNIVERSITIES.map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 transition"
+                  style={{ background:'#1E3A5F', boxShadow:'6px 6px 14px rgba(30,58,95,0.45),-4px -4px 10px rgba(255,255,255,0.12)' }}>
+                  {loading
+                    ? <><i className="fas fa-spinner fa-spin"></i> กำลังบันทึก...</>
+                    : <><i className="fas fa-check"></i> ยืนยันการลงทะเบียน</>}
+                </button>
+              </form>
+            )}
+
+            {tab === 'reset' && (
+              <form onSubmit={handleReset} className="space-y-3">
+                <button type="button" onClick={() => { setTab('login'); setError(''); setRegPassword(''); }}
+                  className="flex items-center gap-1.5 text-xs font-bold mb-2"
+                  style={{ color:'#1E3A5F' }}>
+                  <i className="fas fa-arrow-left text-[10px]"></i> กลับ
+                </button>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  กรอกอีเมลและชื่อ-นามสกุลที่ลงทะเบียนไว้ เพื่อตั้งรหัสผ่านใหม่
+                </p>
+                {[
+                  { name:'email', label:'อีเมล์ส่วนตัว หรือ อีเมล์มหาวิทยาลัย', type:'email', placeholder:'teacher@university.ac.th' },
+                  { name:'new_password', label:'รหัสผ่านใหม่',  type:'password', placeholder:'อย่างน้อย 8 ตัวอักษร' },
+                  { name:'confirm',      label:'ยืนยันรหัสผ่านใหม่', type:'password', placeholder:'พิมพ์รหัสผ่านอีกครั้ง' },
+                ].map(f => (
+                  <div key={f.name}>
+                    <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">{f.label}</label>
+                    <input name={f.name} type={f.type} required placeholder={f.placeholder}
+                      className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                      style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                      onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                      onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                  </div>
+                ))}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Username (ยืนยันตัวตน — English)</label>
+                  <input name="teacher_name" type="text" required placeholder="e.g. Meenakan"
+                    className="w-full px-4 py-3 rounded-2xl border-2 text-sm font-medium outline-none transition"
+                    style={{ fontFamily:'Prompt,sans-serif', borderColor:'#E5E7EB' }}
+                    onInput={e => { e.target.value = e.target.value.replace(/[^A-Za-z\s.\-']/g, ''); }}
+                    onFocus={e => e.target.style.borderColor='#1E3A5F'}
+                    onBlur={e => e.target.style.borderColor='#E5E7EB'} />
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 transition"
+                  style={{ background:'#1E3A5F', boxShadow:'6px 6px 14px rgba(30,58,95,0.45),-4px -4px 10px rgba(255,255,255,0.12)' }}>
+                  {loading
+                    ? <><i className="fas fa-spinner fa-spin"></i> กำลังดำเนินการ...</>
+                    : <><i className="fas fa-key"></i> ตั้งรหัสผ่านใหม่</>}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* ── Register card (shown only on login tab) — same as student format ── */}
+          {tab === 'login' && (
+            <div className="bg-white rounded-3xl px-5 py-4 flex items-center justify-between mb-3"
+              style={{ boxShadow:'6px 6px 12px rgba(30,58,95,0.12),-6px -6px 12px rgba(255,255,255,0.15)' }}>
+              <div>
+                <p className="text-xs font-bold text-gray-700">ยังไม่มีบัญชีอาจารย์?</p>
+                <p className="text-[10px] text-gray-400">สมัครบัญชีใหม่</p>
+              </div>
+              <button onClick={() => { setTab('register'); setError(''); setRegPassword(''); }}
+                className="px-4 py-2.5 rounded-2xl font-bold text-sm"
+                style={{ background:'#EBF0FA', color:'#1E3A5F', boxShadow:'5px 5px 10px rgba(30,58,95,0.15),-5px -5px 10px rgba(255,255,255,0.9)' }}>
+                <i className="fas fa-user-plus mr-1.5"></i>ลงทะเบียน
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  const SortIcon = ({ k }) => {
+    if (sortKey !== k) return <i className="fas fa-sort text-gray-300 ml-1 text-[10px]"></i>;
+    return <i className={`fas fa-sort-${sortDir==='desc'?'down':'up'} ml-1 text-[10px]`} style={{color:'#1E3A5F'}}></i>;
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background:'#F1F5F9' }}>
+
+      {/* ── Top navbar ── */}
+      <header className="sticky top-0 z-30 px-6 py-3 flex items-center justify-between shadow-sm"
+        style={{ background:'#1E3A5F' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background:'rgba(255,255,255,0.15)' }}>
+            <i className="fas fa-chalkboard-teacher text-white text-sm"></i>
+          </div>
+          <div>
+            <p className="text-white font-black text-sm leading-none">GeriSim AI</p>
+            <p className="text-[10px] font-medium leading-none mt-0.5" style={{ color:'rgba(255,255,255,0.55)' }}>Teacher Portal</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-white text-xs font-bold leading-none">{auth.teacher_name}</p>
+            <p className="text-[10px] leading-none mt-0.5" style={{ color:'rgba(255,255,255,0.55)' }}>{auth.university}</p>
+          </div>
+          <button onClick={logout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition"
+            style={{ background:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.8)' }}>
+            <i className="fas fa-sign-out-alt"></i> ออกจากระบบ
+          </button>
+        </div>
+      </header>
+
+      <div className="flex-1 p-4 lg:p-6 max-w-7xl mx-auto w-full">
+
+        {/* ── Summary cards ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {[
+            { icon:'fa-users',       label:'นักศึกษาทั้งหมด',  value: students.length,  unit:'คน',    color:'#1E3A5F', bg:'#EFF6FF' },
+            { icon:'fa-clipboard',   label:'ครั้งฝึกทั้งหมด',  value: totalSessions,    unit:'ครั้ง',  color:'#7C3AED', bg:'#F5F3FF' },
+            { icon:'fa-chart-bar',   label:'คะแนนเฉลี่ย',      value: avgScore,         unit:'%',     color:'#D97706', bg:'#FFFBEB' },
+            { icon:'fa-trophy',      label:'ผู้นำตาราง',        value: topStudent?.student_name?.split(' ')[0] || '—', unit:'', color:'#16A34A', bg:'#F0FDF4' },
+          ].map((c,i) => (
+            <div key={i} className="rounded-2xl p-4 flex items-center gap-3 bg-white shadow-sm">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: c.bg }}>
+                <i className={`fas ${c.icon} text-base`} style={{ color: c.color }}></i>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide leading-none">{c.label}</p>
+                <p className="text-xl font-black leading-tight mt-0.5 truncate" style={{ color: c.color }}>
+                  {c.value}<span className="text-xs font-bold text-gray-400 ml-0.5">{c.unit}</span>
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Table card ── */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* Search bar + refresh */}
+          <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <h2 className="text-sm font-black text-gray-700">
+              <i className="fas fa-users mr-2 text-indigo-400"></i>รายชื่อนักศึกษา
+              <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-indigo-400">{filtered.length}</span>
+            </h2>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-56">
+                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                <input value={search} onChange={e=>setSearch(e.target.value)}
+                  placeholder="ค้นหาชื่อ / รหัสนักศึกษา..."
+                  className="w-full pl-8 pr-3 py-2 rounded-xl border border-gray-100 text-xs font-medium outline-none"
+                  style={{ fontFamily:'Prompt,sans-serif', background:'#F9FAFB' }} />
+              </div>
+              <button onClick={loadData} disabled={dataLoading}
+                className="w-8 h-8 rounded-xl flex items-center justify-center border border-gray-100 text-gray-400 hover:text-indigo-500 transition shrink-0"
+                style={{ background:'#F9FAFB' }}>
+                <i className={`fas fa-sync-alt text-xs ${dataLoading ? 'spinner' : ''}`}></i>
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          {dataLoading ? (
+            <div className="flex items-center justify-center py-20 text-gray-400">
+              <i className="fas fa-circle-notch spinner text-2xl mr-3 text-indigo-300"></i>
+              <span className="text-sm font-medium">กำลังโหลดข้อมูล...</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-300">
+              <i className="fas fa-inbox text-4xl mb-3"></i>
+              <p className="text-sm font-medium">{search ? 'ไม่พบนักศึกษาที่ค้นหา' : 'ยังไม่มีข้อมูลนักศึกษา'}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr style={{ background:'#F8FAFF' }}>
+                    {[
+                      { key:'student_name',  label:'ชื่อ-สกุล' },
+                      { key:'student_id',    label:'รหัส' },
+                      { key:'session_count', label:'ครั้งที่ฝึก' },
+                      { key:'best_score',    label:'Best' },
+                      { key:'avg_score',     label:'Avg' },
+                      { key:'last_active',   label:'ล่าสุด' },
+                    ].map(h => (
+                      <th key={h.key} onClick={() => toggleSort(h.key)}
+                        className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider cursor-pointer hover:text-indigo-600 select-none whitespace-nowrap">
+                        {h.label}<SortIcon k={h.key} />
+                      </th>
+                    ))}
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">รายละเอียด</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filtered.map((s, idx) => (
+                    <React.Fragment key={s.email}>
+                      <tr className="expandable transition-colors" style={{ background: expanded===s.email ? '#EEF2FF' : 'white' }}
+                        onClick={() => setExpanded(expanded===s.email ? null : s.email)}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+                              style={{ background: ['#1E3A5F','#7C3AED','#D97706','#16A34A','#DC2626'][idx % 5] }}>
+                              {s.student_name?.[0] || '?'}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-gray-800 leading-none">{s.student_name}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5">{s.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-medium text-gray-500">{s.student_id || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600">
+                            <i className="fas fa-layer-group text-[9px]"></i>{s.session_count}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3"><ScorePill score={s.best_score} /></td>
+                        <td className="px-4 py-3">
+                          <div className="w-24">
+                            <span className="text-xs font-bold" style={{ color: scoreColor(s.avg_score) }}>{s.avg_score}%</span>
+                            <ScoreBar score={s.avg_score} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-400">{s.last_active}</td>
+                        <td className="px-4 py-3">
+                          <i className={`fas fa-chevron-${expanded===s.email ? 'up' : 'down'} text-xs text-indigo-300`}></i>
+                        </td>
+                      </tr>
+
+                      {/* Expanded session rows */}
+                      {expanded === s.email && (
+                        <tr>
+                          <td colSpan={7} className="px-0 py-0">
+                            <div className="fade-in" style={{ background:'#F5F7FF', borderTop:'2px solid #C7D2FE' }}>
+                              <div className="px-5 py-3 border-b border-indigo-100">
+                                <p className="text-[11px] font-black text-indigo-700 uppercase tracking-wider">
+                                  <i className="fas fa-history mr-1.5"></i>ประวัติการฝึก — {s.student_name}
+                                </p>
+                              </div>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                  <thead>
+                                    <tr style={{ background:'#EEF2FF' }}>
+                                      {['วันที่','กรณีศึกษา','เครื่องมือที่เลือก','เครื่องมือที่ถูก','ผลเครื่องมือ','คะแนนประเมิน','คะแนนแทรกแซง','คะแนนรวม','ระยะเวลา']
+                                        .map(h => (
+                                          <th key={h} className="px-4 py-2 text-[9px] font-black text-indigo-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                                        ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-indigo-50">
+                                    {s.sessions.length === 0 ? (
+                                      <tr><td colSpan={9} className="px-4 py-4 text-xs text-gray-400 text-center">ยังไม่มีข้อมูล</td></tr>
+                                    ) : s.sessions.map((ses, si) => (
+                                      <tr key={si} style={{ background: si%2===0 ? 'white' : '#F9FAFB' }}>
+                                        <td className="px-4 py-2 text-[10px] text-gray-500 whitespace-nowrap">{ses.submitted_at}</td>
+                                        <td className="px-4 py-2 text-[10px] font-medium text-gray-700 max-w-[160px] truncate">{ses.case_name}</td>
+                                        <td className="px-4 py-2 text-[10px] text-gray-600">{ses.chosen_tool}</td>
+                                        <td className="px-4 py-2 text-[10px] text-gray-600">{ses.correct_tool}</td>
+                                        <td className="px-4 py-2">
+                                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${ses.tool_match==='ถูกต้อง' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {ses.tool_match}
+                                          </span>
+                                        </td>
+                                        <td className="px-4 py-2"><ScorePill score={ses.assessment_score} /></td>
+                                        <td className="px-4 py-2"><ScorePill score={ses.intervention_score} /></td>
+                                        <td className="px-4 py-2">
+                                          <span className="font-black text-xs" style={{ color: scoreColor(ses.total_score) }}>{ses.total_score}%</span>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] text-gray-400">{ses.duration}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+
+                                {/* Error report for latest session */}
+                                {s.sessions.length > 0 && (() => {
+                                  const latest = s.sessions[0];
+                                  const issues = [];
+                                  if (latest.tool_match === 'ผิด') issues.push({
+                                    icon:'fa-tools', color:'#DC2626', bg:'#FEF2F2', border:'#FECACA',
+                                    label:'เครื่องมือไม่ถูกต้อง',
+                                    detail:`เลือก: "${latest.chosen_tool}" → ที่ถูกต้อง: "${latest.correct_tool}"`
+                                  });
+                                  if (latest.assessment_score < 60) issues.push({
+                                    icon:'fa-clipboard-check', color:'#D97706', bg:'#FFFBEB', border:'#FDE68A',
+                                    label:'คะแนนประเมินต่ำ',
+                                    detail:`ได้ ${latest.assessment_score}% — ควรทบทวนเกณฑ์การประเมิน`
+                                  });
+                                  if (latest.intervention_score < 60) issues.push({
+                                    icon:'fa-hand-holding-medical', color:'#7C3AED', bg:'#F5F3FF', border:'#DDD6FE',
+                                    label:'คะแนนการให้คำแนะนำต่ำ',
+                                    detail:`ได้ ${latest.intervention_score}% — ควรทบทวนการวางแผนการพยาบาล`
+                                  });
+                                  if (issues.length === 0) return null;
+                                  return (
+                                    <div className="px-5 py-3 space-y-2 border-t border-indigo-50">
+                                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">
+                                        <i className="fas fa-exclamation-triangle mr-1 text-amber-400"></i>
+                                        จุดที่ควรพัฒนา (ครั้งล่าสุด)
+                                      </p>
+                                      {issues.map((iss, ii) => (
+                                        <div key={ii} className="flex items-start gap-2 px-3 py-2 rounded-xl text-xs"
+                                          style={{ background: iss.bg, border:`1.5px solid ${iss.border}` }}>
+                                          <i className={`fas ${iss.icon} mt-0.5 shrink-0`} style={{ color: iss.color }}></i>
+                                          <div>
+                                            <span className="font-bold" style={{ color: iss.color }}>{iss.label}: </span>
+                                            <span className="text-gray-600">{iss.detail}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <p className="text-center text-[10px] text-gray-400 mt-6 font-medium">
+          GeriSim AI Teacher Portal — ข้อมูลอัปเดตจาก Google Sheets แบบ Real-time
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
