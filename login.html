@@ -22,6 +22,9 @@
 
     /* ── Login → Home transition overlay ── */
     @keyframes tFadeIn  { from{opacity:0} to{opacity:1} }
+    @media (min-width:1024px) {
+      .lg-no-overlap { margin-top:0 !important; border-top-left-radius:0 !important; border-top-right-radius:0 !important; }
+    }
     @keyframes tFadeOut { from{opacity:1} to{opacity:0} }
     @keyframes tPulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
     @keyframes tDotWave { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-8px);opacity:1} }
@@ -391,160 +394,204 @@
 
       // ── UI ───────────────────────────────────────────────────────────
       return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900">
-          <div className="relative w-full max-w-md h-full max-h-[900px] overflow-hidden shadow-2xl flex flex-col rounded-3xl"
-            style={{fontFamily:"'Prompt',sans-serif", background:'#EEE8FF'}}>
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 lg:p-6">
+          <div className="relative w-full max-w-md lg:max-w-4xl h-full max-h-[900px] lg:max-h-[660px] overflow-hidden shadow-2xl flex flex-col lg:flex-row rounded-none lg:rounded-3xl"
+            style={{fontFamily:"'Prompt',sans-serif"}}>
 
-            {/* Top panel */}
-            <div className="flex flex-col items-center pt-12 pb-10 px-6 flex-none"
-              style={{background:'#9146FF'}}>
-              <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3"
-                style={{background:'#fff', boxShadow:'0 4px 16px rgba(2,132,199,0.25)'}}>
-                <i className="fas fa-person-cane text-3xl" style={{color:'#9146FF'}}></i>
+            {/* ── LEFT PANEL (desktop only) ── */}
+            <div className="hidden lg:flex w-[42%] flex-col items-center justify-center px-10 py-12 flex-none"
+              style={{background:'linear-gradient(160deg,#4c1d95 0%,#7c3aed 55%,#9146FF 100%)'}}>
+              <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5"
+                style={{background:'rgba(255,255,255,0.15)',border:'2px solid rgba(255,255,255,0.3)'}}>
+                <i className="fas fa-person-cane text-4xl text-white"></i>
               </div>
-              <h1 className="text-3xl font-black text-white tracking-tight mb-1">GeriSim AI</h1>
-              <p className="text-[11px] text-center font-medium leading-relaxed" style={{color:'#DDD6FE'}}>
-                ฝึกสมรรถนะการประเมินสุขภาพผู้สูงอายุ
+              <h1 className="text-4xl font-black text-white tracking-tight mb-2">GeriSim AI</h1>
+              <p className="text-sm text-center leading-relaxed mb-8" style={{color:'#DDD6FE'}}>
+                ระบบจำลองผู้สูงอายุเพื่อฝึกสมรรถนะ<br/>การประเมินสุขภาพสำหรับนักศึกษาพยาบาล
               </p>
-              <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
-                style={{background:'rgba(255,255,255,0.15)', color:'#EDE9FE'}}>
-                v3.4.9
-              </span>
+              <div className="w-full space-y-3">
+                {[
+                  {icon:'fa-robot',     text:'AI ผู้สูงอายุจำลองที่สมจริง'},
+                  {icon:'fa-chart-line',text:'วัดประสิทธิภาพการใช้งาน'},
+                  {icon:'fa-trophy',    text:'ระบบ Badge และ Leaderboard'},
+                  {icon:'fa-hospital',  text:'รองรับทุกมหาวิทยาลัยพยาบาล'},
+                ].map((f,i)=>(
+                  <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                    style={{background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.15)'}}>
+                    <i className={`fas ${f.icon} w-5 text-center`} style={{color:'rgba(255,255,255,0.8)'}}></i>
+                    <span className="text-sm font-medium" style={{color:'rgba(255,255,255,0.9)'}}>{f.text}</span>
+                  </div>
+                ))}
+              </div>
+              <span className="text-xs font-semibold mt-8" style={{color:'#C4B5FD'}}>v3.4.9</span>
             </div>
 
-            {/* Login card */}
-            <div className="flex-1 px-5 pt-5 pb-5 flex flex-col justify-between overflow-y-auto no-scrollbar"
-              style={{background:'#EEE8FF', borderTopLeftRadius:'2rem', borderTopRightRadius:'2rem', marginTop:'-2rem'}}>
-              <div className="bg-white rounded-3xl p-5 mb-3"
-                style={{boxShadow:'8px 8px 16px rgba(109,40,217,0.15),-8px -8px 16px rgba(255,255,255,0.9)'}}>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <i className="fas fa-sign-in-alt" style={{color:'#9146FF'}}></i> เข้าสู่ระบบ
-                </p>
-                <div className="space-y-3 mb-3">
-                  <Field icon="fa-envelope" ph="อีเมล (Email)" val={email} fn={e=>setEmail(e.target.value)} type="email" />
-                  <Field icon="fa-lock"    ph="รหัสผ่าน (Password)" val={password} fn={e=>setPassword(e.target.value)} type="password" onEnter={handleLogin} />
+            {/* ── RIGHT PANEL ── */}
+            <div className="relative flex-1 flex flex-col overflow-hidden" style={{background:'#EEE8FF'}}>
+
+              {/* Top panel (mobile only) */}
+              <div className="lg:hidden flex flex-col items-center pt-12 pb-10 px-6 flex-none"
+                style={{background:'#9146FF'}}>
+                <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-3"
+                  style={{background:'#fff',boxShadow:'0 4px 16px rgba(2,132,199,0.25)'}}>
+                  <i className="fas fa-person-cane text-3xl" style={{color:'#9146FF'}}></i>
                 </div>
-                {/* Forgot password link */}
-                <div className="flex justify-end mb-3">
-                  <button onClick={()=>setShowReset(true)} disabled={isLoading}
-                    className="text-xs font-bold flex items-center gap-1"
-                    style={{color:'#9146FF'}}>
-                    <i className="fas fa-key text-[10px]"></i> ลืมรหัสผ่าน?
+                <h1 className="text-3xl font-black text-white tracking-tight mb-1">GeriSim AI</h1>
+                <p className="text-[11px] text-center font-medium leading-relaxed" style={{color:'#DDD6FE'}}>
+                  ฝึกสมรรถนะการประเมินสุขภาพผู้สูงอายุ
+                </p>
+                <span className="text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full"
+                  style={{background:'rgba(255,255,255,0.15)',color:'#EDE9FE'}}>
+                  v3.4.9
+                </span>
+              </div>
+
+              {/* Desktop header */}
+              <div className="hidden lg:flex items-center gap-3 px-8 pt-7 pb-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-none"
+                  style={{background:'#9146FF'}}>
+                  <i className="fas fa-sign-in-alt text-white text-sm"></i>
+                </div>
+                <div>
+                  <p className="font-black text-gray-800 text-base leading-tight">เข้าสู่ระบบ</p>
+                  <p className="text-xs text-gray-400">ป้อนข้อมูลบัญชีของคุณเพื่อเริ่มการฝึก</p>
+                </div>
+              </div>
+
+              {/* Login card area */}
+              <div className="flex-1 px-5 lg:px-8 pt-5 pb-5 flex flex-col justify-between overflow-y-auto no-scrollbar lg-no-overlap"
+                style={{background:'#EEE8FF',borderTopLeftRadius:'2rem',borderTopRightRadius:'2rem',marginTop:'-2rem'}}>
+                <div className="bg-white rounded-3xl p-5 mb-3"
+                  style={{boxShadow:'8px 8px 16px rgba(109,40,217,0.15),-8px -8px 16px rgba(255,255,255,0.9)'}}>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <i className="fas fa-sign-in-alt" style={{color:'#9146FF'}}></i> เข้าสู่ระบบ
+                  </p>
+                  <div className="space-y-3 mb-3">
+                    <Field icon="fa-envelope" ph="อีเมล (Email)" val={email} fn={e=>setEmail(e.target.value)} type="email" />
+                    <Field icon="fa-lock"    ph="รหัสผ่าน (Password)" val={password} fn={e=>setPassword(e.target.value)} type="password" onEnter={handleLogin} />
+                  </div>
+                  {/* Forgot password link */}
+                  <div className="flex justify-end mb-3">
+                    <button onClick={()=>setShowReset(true)} disabled={isLoading}
+                      className="text-xs font-bold flex items-center gap-1"
+                      style={{color:'#9146FF'}}>
+                      <i className="fas fa-key text-[10px]"></i> ลืมรหัสผ่าน?
+                    </button>
+                  </div>
+                  <button onClick={handleLogin} disabled={isLoading}
+                    className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50"
+                    style={{background:'#9146FF',boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
+                    {isLoading
+                      ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
+                      : <><i className="fas fa-arrow-right"></i> เข้าสู่ระบบ</>}
                   </button>
                 </div>
-                <button onClick={handleLogin} disabled={isLoading}
-                  className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{background:'#9146FF',boxShadow:'6px 6px 14px rgba(80,20,180,0.55),-4px -4px 10px rgba(255,255,255,0.18)'}}>
-                  {isLoading
-                    ? <><i className="fas fa-spinner fa-spin"></i> กำลังเข้าสู่ระบบ...</>
-                    : <><i className="fas fa-arrow-right"></i> เข้าสู่ระบบ</>}
-                </button>
-              </div>
 
-              {/* Register link */}
-              <div className="bg-white rounded-3xl px-5 py-4 flex items-center justify-between mb-3"
-                style={{boxShadow:'6px 6px 12px rgba(109,40,217,0.12),-6px -6px 12px rgba(255,255,255,0.9)'}}>
-                <div>
-                  <p className="text-xs font-bold text-gray-700">ยังไม่มีบัญชี?</p>
-                  <p className="text-[10px] text-gray-400">สมัครสมาชิกใหม่</p>
+                {/* Register link */}
+                <div className="bg-white rounded-3xl px-5 py-4 flex items-center justify-between mb-3"
+                  style={{boxShadow:'6px 6px 12px rgba(109,40,217,0.12),-6px -6px 12px rgba(255,255,255,0.9)'}}>
+                  <div>
+                    <p className="text-xs font-bold text-gray-700">ยังไม่มีบัญชี?</p>
+                    <p className="text-[10px] text-gray-400">สมัครสมาชิกใหม่</p>
+                  </div>
+                  <button onClick={()=>setShowRegister(true)} disabled={isLoading}
+                    className="px-4 py-2.5 rounded-2xl font-bold text-sm"
+                    style={{background:'#EEE8FF',color:'#9146FF',boxShadow:'5px 5px 10px rgba(109,40,217,0.18),-5px -5px 10px rgba(255,255,255,0.9)'}}>
+                    <i className="fas fa-user-plus mr-1.5"></i>ลงทะเบียน
+                  </button>
                 </div>
-                <button onClick={()=>setShowRegister(true)} disabled={isLoading}
-                  className="px-4 py-2.5 rounded-2xl font-bold text-sm"
-                  style={{background:'#EEE8FF',color:'#9146FF',boxShadow:'5px 5px 10px rgba(109,40,217,0.18),-5px -5px 10px rgba(255,255,255,0.9)'}}>
-                  <i className="fas fa-user-plus mr-1.5"></i>ลงทะเบียน
-                </button>
-              </div>
 
-              {/* Version footer */}
-              <div className="flex flex-col items-center gap-1 pt-1 pb-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
-                  <span className="text-[10px] text-gray-300">·</span>
-                  <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.9</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-                  style={{background:'#F5F3FF',border:'1px solid #DDD6FE'}}>
-                  <i className="fas fa-trophy text-[8px]" style={{color:'#F59E0B'}}></i>
-                  <span className="text-[9px] font-bold" style={{color:'#7C3AED'}}>ใหม่: ระบบประสิทธิภาพการใช้งาน (Efficiency)</span>
+                {/* Version footer */}
+                <div className="flex flex-col items-center gap-1 pt-1 pb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-gray-400 font-medium">GeriSim AI</span>
+                    <span className="text-[10px] text-gray-300">·</span>
+                    <span className="text-[10px] font-bold" style={{color:'#9146FF'}}>v3.4.9</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                    style={{background:'#F5F3FF',border:'1px solid #DDD6FE'}}>
+                    <i className="fas fa-trophy text-[8px]" style={{color:'#F59E0B'}}></i>
+                    <span className="text-[9px] font-bold" style={{color:'#7C3AED'}}>ใหม่: ระบบประสิทธิภาพการใช้งาน (Efficiency)</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* ── Register bottom sheet ── */}
-            {showRegister && (
-              <BottomSheet
-                title="ลงทะเบียนนักศึกษาใหม่" icon="fa-user-plus" iconBg="#9146FF"
-                onClose={()=>setShowRegister(false)} isLoading={isLoading}
-                onSubmit={handleRegister} submitLabel="ยืนยันการลงทะเบียน" submitIcon="fa-check">
-                <Field icon="fa-envelope" ph="อีเมล *"           val={regEmail}    fn={e=>setRegEmail(e.target.value)} type="email" />
-                <Field icon="fa-id-card" ph="รหัสนักศึกษา (ไม่บังคับ)" val={regId} fn={e=>setRegId(e.target.value)} />
-                <Field icon="fa-user"    ph="ชื่อ-นามสกุล *"  val={regName}     fn={e=>setRegName(e.target.value)} />
-                {/* University */}
-                <div className="relative">
-                  <span className="absolute left-3.5 top-3.5 z-10" style={{color:'#9146FF'}}>
-                    <i className="fas fa-university text-sm"></i>
-                  </span>
-                  <select value={regUniversity} onChange={e=>setRegUniversity(e.target.value)}
-                    className="w-full rounded-2xl py-3 pl-10 pr-8 text-sm font-medium focus:outline-none text-gray-800 appearance-none"
-                    style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
-                    onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
-                    onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}>
-                    <option value="">เลือกมหาวิทยาลัย *</option>
-                    {NURSING_UNIVERSITIES.map(u=><option key={u} value={u}>{u}</option>)}
-                  </select>
-                  <span className="absolute right-3.5 top-3.5 pointer-events-none" style={{color:'#9146FF'}}>
-                    <i className="fas fa-chevron-down text-xs"></i>
-                  </span>
-                </div>
-                <Field icon="fa-lock" ph="รหัสผ่าน *"         val={regPassword} fn={e=>setRegPassword(e.target.value)} type="password" />
-                {regPassword.length > 0 && (()=>{
-                  const p = regPassword;
-                  const lenOk  = p.length >= 8;
-                  const hasNum = /[0-9]/.test(p);
-                  const hasLet = /[a-zA-Z]/.test(p);
-                  const allOk  = lenOk && hasNum && hasLet;
-                  const row = (ok, label) => (
-                    <div key={label} className="flex items-center gap-1.5">
-                      <i className={`fas ${ok ? 'fa-check-circle' : 'fa-times-circle'} text-xs`}
-                        style={{color: ok ? '#16a34a' : '#dc2626'}}></i>
-                      <span className="text-xs" style={{color: ok ? '#16a34a' : '#6b7280'}}>{label}</span>
-                    </div>
-                  );
-                  return (
-                    <div className="rounded-xl px-3 py-2.5 flex flex-col gap-1"
-                      style={{background: allOk ? '#f0fdf4' : '#fafafa', border: `1.5px solid ${allOk ? '#86efac' : '#e5e7eb'}`}}>
-                      {row(lenOk,  'อย่างน้อย 8 ตัวอักษร')}
-                      {row(hasLet, 'มีตัวอักษรภาษาอังกฤษ (a–z, A–Z)')}
-                      {row(hasNum, 'มีตัวเลขอย่างน้อย 1 ตัว (0–9)')}
-                    </div>
-                  );
-                })()}
-                <Field icon="fa-lock" ph="ยืนยันรหัสผ่าน *"   val={regConfirm}  fn={e=>setRegConfirm(e.target.value)}  type="password" onEnter={handleRegister} />
-              </BottomSheet>
-            )}
+              {/* ── Register bottom sheet ── */}
+              {showRegister && (
+                <BottomSheet
+                  title="ลงทะเบียนนักศึกษาใหม่" icon="fa-user-plus" iconBg="#9146FF"
+                  onClose={()=>setShowRegister(false)} isLoading={isLoading}
+                  onSubmit={handleRegister} submitLabel="ยืนยันการลงทะเบียน" submitIcon="fa-check">
+                  <Field icon="fa-envelope" ph="อีเมล *"           val={regEmail}    fn={e=>setRegEmail(e.target.value)} type="email" />
+                  <Field icon="fa-id-card" ph="รหัสนักศึกษา (ไม่บังคับ)" val={regId} fn={e=>setRegId(e.target.value)} />
+                  <Field icon="fa-user"    ph="ชื่อ-นามสกุล *"  val={regName}     fn={e=>setRegName(e.target.value)} />
+                  {/* University */}
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-3.5 z-10" style={{color:'#9146FF'}}>
+                      <i className="fas fa-university text-sm"></i>
+                    </span>
+                    <select value={regUniversity} onChange={e=>setRegUniversity(e.target.value)}
+                      className="w-full rounded-2xl py-3 pl-10 pr-8 text-sm font-medium focus:outline-none text-gray-800 appearance-none"
+                      style={{background:'#fff',border:'1.5px solid #E5E7EB'}}
+                      onFocus={e=>{e.target.style.border='1.5px solid #9146FF'}}
+                      onBlur={e=>{e.target.style.border='1.5px solid #E5E7EB'}}>
+                      <option value="">เลือกมหาวิทยาลัย *</option>
+                      {NURSING_UNIVERSITIES.map(u=><option key={u} value={u}>{u}</option>)}
+                    </select>
+                    <span className="absolute right-3.5 top-3.5 pointer-events-none" style={{color:'#9146FF'}}>
+                      <i className="fas fa-chevron-down text-xs"></i>
+                    </span>
+                  </div>
+                  <Field icon="fa-lock" ph="รหัสผ่าน *"         val={regPassword} fn={e=>setRegPassword(e.target.value)} type="password" />
+                  {regPassword.length > 0 && (()=>{
+                    const p = regPassword;
+                    const lenOk  = p.length >= 8;
+                    const hasNum = /[0-9]/.test(p);
+                    const hasLet = /[a-zA-Z]/.test(p);
+                    const allOk  = lenOk && hasNum && hasLet;
+                    const row = (ok, label) => (
+                      <div key={label} className="flex items-center gap-1.5">
+                        <i className={`fas ${ok ? 'fa-check-circle' : 'fa-times-circle'} text-xs`}
+                          style={{color: ok ? '#16a34a' : '#dc2626'}}></i>
+                        <span className="text-xs" style={{color: ok ? '#16a34a' : '#6b7280'}}>{label}</span>
+                      </div>
+                    );
+                    return (
+                      <div className="rounded-xl px-3 py-2.5 flex flex-col gap-1"
+                        style={{background: allOk ? '#f0fdf4' : '#fafafa', border: `1.5px solid ${allOk ? '#86efac' : '#e5e7eb'}`}}>
+                        {row(lenOk,  'อย่างน้อย 8 ตัวอักษร')}
+                        {row(hasLet, 'มีตัวอักษรภาษาอังกฤษ (a–z, A–Z)')}
+                        {row(hasNum, 'มีตัวเลขอย่างน้อย 1 ตัว (0–9)')}
+                      </div>
+                    );
+                  })()}
+                  <Field icon="fa-lock" ph="ยืนยันรหัสผ่าน *"   val={regConfirm}  fn={e=>setRegConfirm(e.target.value)}  type="password" onEnter={handleRegister} />
+                </BottomSheet>
+              )}
 
-            {/* ── Forgot password bottom sheet ── */}
-            {showReset && (
-              <BottomSheet
-                title="รีเซ็ตรหัสผ่าน" icon="fa-key" iconBg="#7C3AED"
-                onClose={()=>setShowReset(false)} isLoading={isLoading}
-                onSubmit={handleReset} submitLabel="ยืนยันรีเซ็ตรหัสผ่าน" submitIcon="fa-check">
-                {/* Info banner */}
-                <div className="flex items-start gap-2 rounded-2xl px-3 py-2.5"
-                  style={{background:'#F5F3FF',border:'1.5px solid #DDD6FE'}}>
-                  <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#7C3AED'}}></i>
-                  <p className="text-xs leading-relaxed text-gray-600">
-                    ยืนยันตัวตนด้วย <span className="font-black" style={{color:'#7C3AED'}}>อีเมล</span> และ
-                    <span className="font-black" style={{color:'#7C3AED'}}> ชื่อ-นามสกุล</span> ที่ลงทะเบียนไว้
-                  </p>
-                </div>
-                <Field icon="fa-envelope" ph="อีเมล *"                          val={resetEmail}   fn={e=>setResetEmail(e.target.value)}   type="email" />
-                <Field icon="fa-user"     ph="ชื่อ-นามสกุล (ตามที่ลงทะเบียน) *" val={resetName}  fn={e=>setResetName(e.target.value)} />
-                <Field icon="fa-lock"     ph="รหัสผ่านใหม่ *"                  val={resetNewPass} fn={e=>setResetNewPass(e.target.value)} type="password" />
-                <Field icon="fa-lock"     ph="ยืนยันรหัสผ่านใหม่ *"           val={resetConfirm} fn={e=>setResetConfirm(e.target.value)} type="password" onEnter={handleReset} />
-              </BottomSheet>
-            )}
+              {/* ── Forgot password bottom sheet ── */}
+              {showReset && (
+                <BottomSheet
+                  title="รีเซ็ตรหัสผ่าน" icon="fa-key" iconBg="#7C3AED"
+                  onClose={()=>setShowReset(false)} isLoading={isLoading}
+                  onSubmit={handleReset} submitLabel="ยืนยันรีเซ็ตรหัสผ่าน" submitIcon="fa-check">
+                  {/* Info banner */}
+                  <div className="flex items-start gap-2 rounded-2xl px-3 py-2.5"
+                    style={{background:'#F5F3FF',border:'1.5px solid #DDD6FE'}}>
+                    <i className="fas fa-info-circle text-xs mt-0.5 shrink-0" style={{color:'#7C3AED'}}></i>
+                    <p className="text-xs leading-relaxed text-gray-600">
+                      ยืนยันตัวตนด้วย <span className="font-black" style={{color:'#7C3AED'}}>อีเมล</span> และ
+                      <span className="font-black" style={{color:'#7C3AED'}}> ชื่อ-นามสกุล</span> ที่ลงทะเบียนไว้
+                    </p>
+                  </div>
+                  <Field icon="fa-envelope" ph="อีเมล *"                          val={resetEmail}   fn={e=>setResetEmail(e.target.value)}   type="email" />
+                  <Field icon="fa-user"     ph="ชื่อ-นามสกุล (ตามที่ลงทะเบียน) *" val={resetName}  fn={e=>setResetName(e.target.value)} />
+                  <Field icon="fa-lock"     ph="รหัสผ่านใหม่ *"                  val={resetNewPass} fn={e=>setResetNewPass(e.target.value)} type="password" />
+                  <Field icon="fa-lock"     ph="ยืนยันรหัสผ่านใหม่ *"           val={resetConfirm} fn={e=>setResetConfirm(e.target.value)} type="password" onEnter={handleReset} />
+                </BottomSheet>
+              )}
 
+            </div>{/* end RIGHT PANEL */}
           </div>
         </div>
       );
