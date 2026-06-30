@@ -93,10 +93,136 @@ const StatCard = ({ icon, label, value, unit, color, bg }) => (
   </div>
 );
 
+// ── Database / System architecture diagram (stored for admin verification) ──
+const ARCH_DIAGRAM_SVG = `
+<svg viewBox="0 0 1000 880" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Prompt, sans-serif" role="img" aria-label="GeriSim-AI Database System Architecture">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <text x="500" y="30" text-anchor="middle" font-size="22" font-weight="800" fill="#1E3A5F">GeriSim-AI — สถาปัตยกรรมระบบฐานข้อมูล</text>
+  <text x="500" y="50" text-anchor="middle" font-size="12" fill="#64748B">Database and System Architecture · เอกสารสำหรับการตรวจสอบ (verification)</text>
+
+  <text x="30" y="82" font-size="12" font-weight="700" fill="#2563EB">1 · ชั้นผู้ใช้งาน (Client / Presentation)</text>
+  <g font-family="Prompt, sans-serif">
+    <rect x="30"  y="92" width="220" height="54" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <rect x="270" y="92" width="220" height="54" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <rect x="510" y="92" width="220" height="54" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <rect x="750" y="92" width="220" height="54" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <text x="140" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A5F">index.html</text>
+    <text x="140" y="134" text-anchor="middle" font-size="11" fill="#64748B">นักศึกษา (Student App)</text>
+    <text x="380" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A5F">teacher.html</text>
+    <text x="380" y="134" text-anchor="middle" font-size="11" fill="#64748B">อาจารย์ + Admin</text>
+    <text x="620" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A5F">record.html</text>
+    <text x="620" y="134" text-anchor="middle" font-size="11" fill="#64748B">บันทึกกรณีศึกษา (Expert)</text>
+    <text x="860" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1E3A5F">login · home.html</text>
+    <text x="860" y="134" text-anchor="middle" font-size="11" fill="#64748B">เข้าสู่ระบบ / หน้าหลัก</text>
+  </g>
+
+  <line x1="335" y1="146" x2="335" y2="194" stroke="#475569" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="343" y="172" font-size="10" fill="#475569">HTTPS POST · JSON</text>
+
+  <text x="30" y="186" font-size="12" font-weight="700" fill="#1E3A5F">2 · ชั้นประมวลผล และบริการ AI (Application / API)</text>
+  <rect x="30" y="196" width="610" height="128" fill="#F8FAFF" stroke="#C7D2FE"/>
+  <text x="44" y="217" font-size="13" font-weight="700" fill="#1E3A5F">Google Apps Script Web App — code.gs</text>
+  <text x="44" y="234" font-size="11" fill="#64748B">doPost(e) · ตัวจัดเส้นทางคำสั่ง (action router)</text>
+  <text x="44" y="258" font-size="11" fill="#334155">Auth: register · login · resetPassword · teacher_login / register</text>
+  <text x="44" y="278" font-size="11" fill="#334155">Data: getCase · save · history · profile · submitCase · listCases</text>
+  <text x="44" y="298" font-size="11" fill="#334155">Insight: leaderboard · teacher_data · admin_stats · badges</text>
+  <text x="44" y="317" font-size="11" font-weight="700" fill="#B45309">ความปลอดภัย: SHA-256 hash · Rate-limit · sanitize()</text>
+
+  <rect x="670" y="196" width="300" height="128" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="684" y="217" font-size="13" font-weight="700" fill="#6D28D9">AI Service — Fallback chain</text>
+  <text x="684" y="242" font-size="11" fill="#334155">1) Gemini 2.0 Flash</text>
+  <text x="684" y="264" font-size="11" fill="#334155">2) OpenRouter · GPT-4o</text>
+  <text x="684" y="286" font-size="11" fill="#334155">3) Qwen (9arm gateway)</text>
+  <text x="684" y="310" font-size="11" fill="#64748B">เรียกใช้โดย action: chat</text>
+  <line x1="640" y1="260" x2="668" y2="260" stroke="#475569" stroke-width="1.5" marker-end="url(#arw)"/>
+
+  <line x1="335" y1="324" x2="335" y2="396" stroke="#475569" stroke-width="1.5" marker-end="url(#arw)"/>
+  <text x="343" y="364" font-size="10" fill="#475569">read / write (SpreadsheetApp)</text>
+
+  <text x="30" y="390" font-size="12" font-weight="700" fill="#16A34A">3 · ชั้นจัดเก็บข้อมูล (Database — Google Sheets)</text>
+  <rect x="30" y="398" width="940" height="430" fill="#F0FDF4" stroke="#BBF7D0"/>
+  <text x="44" y="420" font-size="13" font-weight="700" fill="#15803D">Google Spreadsheet — Gerisim_AI_Dataset_DB</text>
+
+  <g font-family="Prompt, sans-serif">
+    <rect x="50" y="432" width="270" height="28" fill="#1E3A5F"/>
+    <text x="60"  y="451" font-size="13" font-weight="700" fill="#FFFFFF">Account_DB</text>
+    <text x="310" y="451" text-anchor="end" font-size="10" fill="#CBD5E1">นักศึกษา</text>
+    <rect x="50" y="460" width="270" height="150" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="64" y="480" font-size="12" fill="#334155"><tspan font-weight="700" fill="#1E3A5F">PK</tspan><tspan dx="6">email</tspan></text>
+    <text x="64" y="502" font-size="12" fill="#334155">password (SHA-256)</text>
+    <text x="64" y="524" font-size="12" fill="#334155">student_name</text>
+    <text x="64" y="546" font-size="12" fill="#334155">university</text>
+    <text x="64" y="568" font-size="12" fill="#334155">student_id</text>
+    <text x="64" y="590" font-size="12" fill="#334155">gold · silver · bronze</text>
+
+    <rect x="50" y="662" width="270" height="28" fill="#0EA5E9"/>
+    <text x="60"  y="681" font-size="13" font-weight="700" fill="#FFFFFF">Teacher_DB</text>
+    <text x="310" y="681" text-anchor="end" font-size="10" fill="#E0F2FE">อาจารย์</text>
+    <rect x="50" y="690" width="270" height="100" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="64" y="710" font-size="12" fill="#334155"><tspan font-weight="700" fill="#1E3A5F">PK</tspan><tspan dx="6">email</tspan></text>
+    <text x="64" y="732" font-size="12" fill="#334155">password (SHA-256)</text>
+    <text x="64" y="754" font-size="12" fill="#334155">teacher_name</text>
+    <text x="64" y="776" font-size="12" fill="#334155">university</text>
+
+    <rect x="375" y="442" width="260" height="28" fill="#16A34A"/>
+    <text x="385" y="461" font-size="13" font-weight="700" fill="#FFFFFF">Answer_DB</text>
+    <text x="625" y="461" text-anchor="end" font-size="10" fill="#DCFCE7">Session log</text>
+    <rect x="375" y="470" width="260" height="180" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="389" y="490" font-size="12" fill="#334155"><tspan font-weight="700" fill="#1E3A5F">PK</tspan><tspan dx="6">session_id</tspan></text>
+    <text x="389" y="512" font-size="12" fill="#334155"><tspan font-weight="700" fill="#DC2626">FK</tspan><tspan dx="6">student_id</tspan></text>
+    <text x="389" y="534" font-size="12" fill="#334155"><tspan font-weight="700" fill="#DC2626">FK</tspan><tspan dx="6">case_id</tspan></text>
+    <text x="389" y="556" font-size="12" fill="#334155">chosen_tool / correct_tool</text>
+    <text x="389" y="578" font-size="12" fill="#334155">assessment / intervention</text>
+    <text x="389" y="600" font-size="12" fill="#334155">total_score</text>
+    <text x="389" y="622" font-size="12" fill="#334155">duration · q1–q15</text>
+
+    <rect x="375" y="690" width="260" height="28" fill="#D97706"/>
+    <text x="385" y="709" font-size="13" font-weight="700" fill="#FFFFFF">Badge_DB</text>
+    <text x="625" y="709" text-anchor="end" font-size="10" fill="#FEF3C7">เหรียญรางวัล</text>
+    <rect x="375" y="718" width="260" height="84" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="389" y="738" font-size="12" fill="#334155">awarded_at · week_start</text>
+    <text x="389" y="760" font-size="12" fill="#334155"><tspan font-weight="700" fill="#DC2626">FK</tspan><tspan dx="6">email</tspan></text>
+    <text x="389" y="782" font-size="12" fill="#334155">medal · score</text>
+
+    <rect x="690" y="442" width="260" height="28" fill="#7C3AED"/>
+    <text x="700" y="461" font-size="13" font-weight="700" fill="#FFFFFF">Proposition_DB</text>
+    <text x="940" y="461" text-anchor="end" font-size="10" fill="#EDE9FE">กรณีศึกษา</text>
+    <rect x="690" y="470" width="260" height="180" fill="#FFFFFF" stroke="#CBD5E1"/>
+    <text x="704" y="490" font-size="12" fill="#334155"><tspan font-weight="700" fill="#1E3A5F">PK</tspan><tspan dx="6">case_id</tspan></text>
+    <text x="704" y="512" font-size="12" fill="#334155">patient profile (51 cols)</text>
+    <text x="704" y="534" font-size="12" fill="#334155">q1–q15 (AI persona)</text>
+    <text x="704" y="556" font-size="12" fill="#334155">correct_tool</text>
+    <text x="704" y="578" font-size="12" fill="#334155">score_min / score_max</text>
+    <text x="704" y="600" font-size="12" fill="#334155">expected_interventions</text>
+    <text x="704" y="622" font-size="12" fill="#334155">system_prompt</text>
+  </g>
+
+  <g stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,3" fill="none">
+    <line x1="320" y1="524" x2="375" y2="512"/>
+    <line x1="635" y1="534" x2="690" y2="512"/>
+    <line x1="375" y1="760" x2="320" y2="568"/>
+    <line x1="185" y1="610" x2="185" y2="662"/>
+  </g>
+  <g font-size="9" fill="#64748B" font-family="Prompt, sans-serif">
+    <text x="332" y="508">student_id</text>
+    <text x="640" y="506">case_id</text>
+    <text x="328" y="690">email</text>
+    <text x="190" y="640">university</text>
+  </g>
+
+  <text x="30" y="852" font-size="11" fill="#475569"><tspan font-weight="700" fill="#1E3A5F">PK</tspan> = Primary Key   <tspan font-weight="700" fill="#DC2626">FK</tspan> = Foreign Key (อ้างอิง)   เส้นประ = ความสัมพันธ์ระหว่างตาราง</text>
+</svg>`;
+
 function AdminPanel({ onClose }) {
   const [authed,  setAuthed]  = useState(false);
   const [pw,      setPw]      = useState('');
   const [stats,   setStats]   = useState(null);
+  const [view,    setView]    = useState('overview');  // overview | architecture
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const pwRef = useRef('');
@@ -198,6 +324,23 @@ function AdminPanel({ onClose }) {
         </div>
       </header>
 
+      {/* ── Tabs ── */}
+      <div className="px-4 lg:px-6 pt-3 max-w-7xl mx-auto w-full flex gap-2">
+        {[
+          { k:'overview',     icon:'fa-chart-pie', label:'ภาพรวมการใช้งาน' },
+          { k:'architecture', icon:'fa-sitemap',   label:'สถาปัตยกรรมระบบฐานข้อมูล' },
+        ].map(t => (
+          <button key={t.k} onClick={() => setView(t.k)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-t-xl text-xs font-bold transition"
+            style={ view===t.k
+              ? { background:'#fff', color:'#1E3A5F', boxShadow:'0 -2px 6px rgba(0,0,0,0.04)' }
+              : { background:'rgba(255,255,255,0.5)', color:'#64748B' } }>
+            <i className={`fas ${t.icon}`}></i> {t.label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'overview' && (
       <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full">
 
         {/* ── Summary cards ── */}
@@ -294,6 +437,31 @@ function AdminPanel({ onClose }) {
           GeriSim AI — แดชบอร์ดผู้ดูแลระบบ · ข้อมูลรวมจากทุกมหาวิทยาลัยแบบ Real-time
         </p>
       </div>
+      )}
+
+      {view === 'architecture' && (
+      <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full">
+        <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+            <h3 className="text-sm font-black text-gray-700">
+              <i className="fas fa-sitemap mr-2 text-indigo-400"></i>สถาปัตยกรรมระบบฐานข้อมูล GeriSim-AI
+            </h3>
+            <span className="text-[10px] font-bold px-2 py-1 rounded-lg" style={{ background:'#F0FDF4', color:'#15803D' }}>
+              <i className="fas fa-shield-halved mr-1"></i>เอกสารยืนยันสถาปัตยกรรม (verification)
+            </span>
+          </div>
+          <p className="text-[11px] text-gray-400 mb-3">
+            แผนผังแสดงชั้นผู้ใช้งาน · ชั้น API (Google Apps Script) · บริการ AI และโครงสร้างตารางฐานข้อมูลพร้อมความสัมพันธ์ (PK / FK)
+          </p>
+          <div className="overflow-x-auto border border-gray-100 rounded-xl p-2" style={{ background:'#FCFDFF' }}>
+            <div style={{ minWidth:'760px' }} dangerouslySetInnerHTML={{ __html: ARCH_DIAGRAM_SVG }} />
+          </div>
+        </div>
+        <p className="text-center text-[10px] text-gray-400 mt-6 mb-2 font-medium">
+          GeriSim AI — สถาปัตยกรรมระบบ จัดเก็บในระบบผู้ดูแลเพื่อการตรวจสอบ
+        </p>
+      </div>
+      )}
     </div>
   );
 }
