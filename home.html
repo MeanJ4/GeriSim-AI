@@ -201,7 +201,7 @@
             role  : m.role === 'assistant' ? 'model' : 'user',
             parts : [{ text: m.content }]
           }));
-          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 1500, topP: 0.9 } };
+          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 3000, topP: 0.9 } };
           if (systemMsg) req.systemInstruction = { parts: [{ text: systemMsg.content }] };
           return req;
         };
