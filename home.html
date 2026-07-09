@@ -246,10 +246,19 @@
 
               const json = await res.json();
               // Gemini native response shape differs from OpenAI
-              let text = provider.name === 'Gemini'
+              const rawContent = provider.name === 'Gemini'
                 ? (json?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
                 : (json?.choices?.[0]?.message?.content || '').trim();
-              text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+              let text = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+              // Qwen3 thinking models sometimes put all output inside <think> — extract it as fallback
+              if (!text && rawContent) {
+                const m = rawContent.match(/<think>([\s\S]*?)<\/think>/i);
+                if (m) {
+                  const inner = m[1].trim();
+                  const lines = inner.split('\n').map(l => l.trim()).filter(Boolean);
+                  text = lines[lines.length - 1] || '';
+                }
+              }
               if (text) {
                 console.log(`[GeriSim] Used provider: ${provider.name}`);
                 return { text, log };
@@ -1865,7 +1874,7 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
                 } catch (gasErr) {
                   console.error('[GeriSim] GAS fallback also failed:', gasErr.message);
                   setChatLog(prev => [...prev, {
-                    text   : `[ระบบ: AI ไม่ตอบสนอง — ${gasErr.message}]`,
+                    text   : 'ระบบ: AI ไม่ตอบสนองชั่วคราว กรุณาลองใหม่อีกครั้ง',
                     sender : 'system'
                   }]);
                   reply = generateInCharacterFallback(activePatient);
