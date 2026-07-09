@@ -177,19 +177,20 @@
 
         // AI_CHAIN: browser-direct providers only (no secret keys in client code).
         // OpenRouter (GPT-4o) is held server-side in GAS and used as the GAS fallback.
+        const OR_KEY = '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';
+        const GEMINI_KEY = 'AQ.Ab8RN6JE5_T8z95N_1vBKJB4yut1RUxFKghcTi4oh556_A6hJg';
         const AI_CHAIN = [
+          // Gemini first — fastest, most reliable for Thai
           {
-            name  : 'Qwen',
-            url   : 'https://gateway.9arm.co/v1/chat/completions',
-            key   : 'sk-eZUCIqUoggLU57ahNAt1DA',
-            model : 'qwen2.5-72b-instruct'
+            name    : 'Gemini',
+            url     : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+            model   : 'gemini-2.5-flash',
+            gemini  : true,
           },
-          {
-            name  : 'Gemini',
-            // Native REST endpoint — accepts SA OAuth2 tokens
-            url   : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-latest:generateContent',
-            model : 'gemini-2.0-flash-latest'
-          },
+          // Free OpenRouter models — CORS supported, fallback only
+          { name:'Nemotron',  url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'nvidia/nemotron-3-super-120b-a12b:free' },
+          { name:'Qwen3Free', url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'qwen/qwen3-next-80b-a3b-instruct:free' },
+          { name:'Gemma4',    url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'google/gemma-4-31b-it:free' },
         ];
 
         // Convert OpenAI-style messages[] to Gemini native format
@@ -200,7 +201,7 @@
             role  : m.role === 'assistant' ? 'model' : 'user',
             parts : [{ text: m.content }]
           }));
-          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 600, topP: 0.9 } };
+          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 1500, topP: 0.9 } };
           if (systemMsg) req.systemInstruction = { parts: [{ text: systemMsg.content }] };
           return req;
         };
@@ -219,11 +220,10 @@
           for (const provider of AI_CHAIN) {
             try {
               let res;
-              if (provider.name === 'Gemini') {
-                const token = await getGeminiToken();
+              if (provider.gemini) {
                 res = await fetchWithTimeout(provider.url, {
                   method  : 'POST',
-                  headers : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  headers : { 'Content-Type': 'application/json', 'X-goog-api-key': GEMINI_KEY },
                   body    : JSON.stringify(toGeminiNative(messages)),
                 });
               } else {
