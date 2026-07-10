@@ -178,7 +178,7 @@
         // AI_CHAIN: browser-direct providers only (no secret keys in client code).
         // OpenRouter (GPT-4o) is held server-side in GAS and used as the GAS fallback.
         const OR_KEY = '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';
-        const GEMINI_KEY = 'AQ.Ab8RN6JppxzC3k9_EcMQdWerPkhH71vMvMEE4Fu80Ep-BE9rqw';
+        const GEMINI_KEY = 'AQ.Ab8RN6K8AmtAAzOoDiFaiH7mh6YgqxqTtPRTSHFtD0DF-IPg6A';
         const AI_CHAIN = [
           // Gemini first — fastest, most reliable for Thai
           {
@@ -189,7 +189,6 @@
           },
           // Free OpenRouter models — CORS supported, fallback only
           { name:'Nemotron',  url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'nvidia/nemotron-3-super-120b-a12b:free' },
-          { name:'Qwen3Free', url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'qwen/qwen3-next-80b-a3b-instruct:free' },
           { name:'Gemma4',    url:'https://openrouter.ai/api/v1/chat/completions', key:OR_KEY, model:'google/gemma-4-31b-it:free' },
         ];
 
