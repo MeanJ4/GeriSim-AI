@@ -178,13 +178,13 @@
         // AI_CHAIN: browser-direct providers only (no secret keys in client code).
         // OpenRouter (GPT-4o) is held server-side in GAS and used as the GAS fallback.
         const OR_KEY = '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';
-        const GEMINI_KEY = 'AQ.Ab8RN6K8AmtAAzOoDiFaiH7mh6YgqxqTtPRTSHFtD0DF-IPg6A';
+        const GEMINI_KEY = 'AQ.Ab8RN6KJF6PFQPEHvFvuTDJkYoCbnDdFkWKY_lJYvB_YS_qT3A';
         const AI_CHAIN = [
           // Gemini first — fastest, most reliable for Thai
           {
             name    : 'Gemini',
-            url     : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-            model   : 'gemini-2.5-flash',
+            url     : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
+            model   : 'gemini-3.5-flash',
             gemini  : true,
           },
           // Free OpenRouter models — CORS supported, fallback only
@@ -198,7 +198,7 @@
             role  : m.role === 'assistant' ? 'model' : 'user',
             parts : [{ text: m.content }]
           }));
-          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 3000, topP: 0.9 } };
+          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 500, topP: 0.9, thinkingConfig: { thinkingBudget: 0 } } };
           if (systemMsg) req.systemInstruction = { parts: [{ text: systemMsg.content }] };
           return req;
         };
