@@ -110,168 +110,41 @@
 
         // University list lives in login.html — not needed here.
 
-        // ============================================================
-        // AI PROVIDER CHAIN — browser-direct fallback (Gemini → Qwen)
-        // Gemini uses service-account OAuth2 JWT flow (no API key needed).
-        // ============================================================
-
-        // Service account — used to mint short-lived Gemini access tokens
+        // All AI chat calls go through GAS — no AI credentials in browser.
+        // SA credentials below are used ONLY for Text-to-Speech (Gemini audio API).
         const GEMINI_SA = {
-          client_email : 'gerisim-ai-dataset-db@gen-lang-client-0909422950.iam.gserviceaccount.com',
-          private_key  : '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC9n2W2JL7j6iRr\nRke+Y/C9dhci7cqy9abTdIMdb4mmmeaCB4gHaTIdm9nSi37WpZJqNkMcub23X+DM\nowRPjaUN06UuF1H3Hqlg34Q3stiLxV8Nw3kHISOvCr+QHDl0Cjy/ZdmMZqrdDfb2\njDEnBELBUQghLXGMlrgqtPXcsY0IJPSyuMAjxTFfa3YLZWoE0kmJ52S5q53Lw19Z\nesDhEalJ1vvmota1879Ij3uPSyvHOj746ZS4zJopTrw4bVzYetOWdjPJKvGtGYGZ\nPb/2I5NXuDag3WhGyEkdxt68SM8HoM2AQz54k6itDfWdeiB72Cer817XH7v0yY6z\nxXcJpVppAgMBAAECggEABQ0UrsYqTpRrXW8tFJGBdW6KnbvTWTKJe9r/7h4NPuKd\nHQwZz8a51seSxRTBr3KQJKOm5II/Hz4e1Rynjf3yLlzbqs9kt845iVLS6Q/qzEhY\n6JszI2E629wPr8VMs35dUWTjZ2XJueM4F6ey3Hz00UT5EDcvbeUK6VpSLUuOe+/C\nUbNjaooFfVf9YYK9pTFeYV8I37gUVJ//eGNP/lXB3jzUbEH3ziKAZIaqhwcHESZD\njeg5tDQ9Ihbc1Efkd/A428z1IB07YIiWw441gXAhqDr0r+pciFDP8BuHKyImwUec\nVS3E4or4qAz6YhTxl7zj5sZvmI2NaJ2duZglO+xUDQKBgQDpxBFk/aRRFdtqH3lp\nOc9/n4OQPaC+TWi4T39xjFh87IVkS4+DCYrWo5Vd0LCeK1lFyqpW+79UHgavLcE/\no90O6BWTfyOAYwV0qRMU0KpmljjJ4d3/egvYtseLILMk3MUOIX2JNfxszUXamjDs\nLvx2djB1KtJLj2BrxR0Sw9GrpQKBgQDPqH3pn0OEGydPtOnRN6ui1kacwpWD/uks\npX2U9tX1aUcVcsPWdoK2tXcxn28rhCXKtO7m3RCYz9r/fjGO6hgiTwOOWgiwta6H\n4EvygLN817KKpKsZEu1Ok5TcXUBoqk9STK8K487RjjqkexTBFiBpAFWS03iFTfsk\nS2QeUIXIdQKBgGLLExLcQwJlu1oJPTVkUjY8gsyFzxY9/sDOEC07w/Xfu6wcZuVZ\nNgzqC2kfllTyOwNM2Fp0gHKbUfXc32v246i2GtBADg/nSVn5TnAgk7NRT2S6iSi8\nOp9297PruOoeR0Vmj/haEXkl85ykR4K5hMbHwkjyNPfr+zLwlg3lJgplAoGAblxv\nvo+kBDuiItxVP5nEoCAdGwbXC3WYWuAA5ABjKbAv1RhPOFV3lr7OgBLptEjhBOAv\n74YhYfVlwE9C619CQEmZ7DexUqjb/t6XvmPkAD9qZgCp5gOHFzGb9Zmht3579ZNH\nnBQCQKDETdIT76Jgyy0gTY4SCVauWFWw+eN1llkCgYEA26z/RZo8zupbmi2l/lHb\nGNY5GuTVVMwN04Po6aFeG/BtIJsuoMK/vYwByB+a10zsxr3UW4nFVEP4gAyVZ9Vr\nVqzkc4g6YddC+nj/vhEIvYJFW7rSdM/kHGfacrDZSCZ0GLM4fW+pBwWEBJ4gsDXW\nyJRuaHeVV3aOmvI6Nab1Z1c=\n-----END PRIVATE KEY-----\n',
+          client_email : 'agent-platform-administrator@gerisim.iam.gserviceaccount.com',
+          private_key  : '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCZwIgHBvJkghn2\nj/AZQXNBnSR+0CXLcMP1Xyo2Q8xXnYIpKKfjwXaeQvqbuoTh6FpjvCxtW+laQ7Sc\npZ0iWriUwiUvvZwXIOk62RmSJ97nPd4InpEHZT+EFjtgwAzyENdU/1bu4DQHNzDR\nYKoXMNaS9tlcRMaqTahvea6+biJP/vOveE+yhcYZT1B5DD7Zjb+K3W0ogQO3Jnew\nBPGe+o3SxOefjM/KW31xNN3ud1zd/zIg4qlbySWQRCDR2yaOPV84fRSbMNX2Zpi0\nV5ckovCcMV6r8o+CrL2sakGow2ih6x4LjCoXjkTZlPLPtL5epT7BwsMIapmgTIhZ\n6viytishAgMBAAECggEAA6PwVpQBj4uY7TaOEI+FINA9aNEhaXVQ9vd89agmG5uW\npTZFsB/csNlosxDr6DhI4lpWZhQYYME4UrKNR37M1rUYdb6CVnX6jric5Vn7Qifz\n4LnuKLXjBrPi7dbrQYygeBZEAPO7GKID7muwuEwJQxVcGvYkCuyL+sB3mLG9b03a\ncn25v0h5fcPRhfqG4GM105KkrUHGjcREWTLQ+4KcXKm0Z2lQj+vbUSmXSfPViAgc\nymAxQ33oCxUaoh4lYgAuWF1TRH9MWbeGzO8ZmLuAF5dxPVK7NnA5A0yRa4rAoDXW\naQEEJF+Ob3Ab1mbI6oEZLAD8Ps6bqBM+gBQ+Ngo2QQKBgQDI6YlHEGJko/NfbmC0\ncBJDfbs3ivEkjBm863ojudJp6faH9tS3OzzXv8yB48ksmz/4DWg35HL8WvSx/E5q\n/uz8P/6wY76S+HLPEi7l6CeWD4mfr07Ss2/ib7vZxHYUF11GIRIN5C30O8CwjLY0\nB04tVYMbg/PAP8/YdHRZ9psk4QKBgQDD6LiGmRmYt7To/xJy/nwX/duFfJL9vShF\ns19r1CNpv3++y9wKMAiMFlaI0Nxqgon32sz8mvWUusTYsr6qDudnP1gsCjCuoKgd\nzK2L4X7qCibVQFED/tboZpkjloxVp+PislRY5mgoPS+Qo+N6W4tws5yn6EzjhhZr\nQ3nxpX2OQQKBgDu7EpEKEfaRt507l4yNdSCTlMFikWaoME62Q02zxRav9BdgDsWa\n2u/ZmddT/U9BqLb6ZW2YgYb9E5qGxFmTCKnF7NZMETBopNljMoYvivVWEThkSi7i\nIfVT+qk3e1Nlztk2o8N1fyQJT7QtYU3+jgN0VNItXJ5fWk+j76N/aYiBAoGBAIya\nrjUMFK7iylifGOKnevDNJYx8iBLMe+bqggWlz3TKGCkbruUw7DF+psSzAj7/SX41\n7wEtRixkj3rnbqgm4jXb5LBW7/GlJIOerr/CK5BVkOFks8CmWh+Z4zcDidzADnJZ\nguf7Fa4rm8O3nD/pC/7rKffoZaa2ScjaON8R4zcBAoGAIbmL6ykMOtvxJiOflS2D\nV2WsZ1w0nOMVYJd3YldthfIw2lr/MkaJLDGz9cRugfBEipI3loRtxnf7bxrsB7L8\nGV9G7eY69pqJbOk8x6XV9d6X8Gi6npvVxcHkBLC7DdpXBKGaLasOy/afYcFIWxdb\nrs1Cq+gy0VEkrfBFx3j61II=\n-----END PRIVATE KEY-----\n',
           token_uri    : 'https://oauth2.googleapis.com/token',
           scope        : 'https://www.googleapis.com/auth/generative-language'
         };
-
-        // Cache: { token, expiry }
         let _saToken = null;
-
         const getGeminiToken = async () => {
           if (_saToken && Date.now() < _saToken.expiry) return _saToken.token;
-
-          const b64url = obj =>
-            btoa(JSON.stringify(obj)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-
+          const b64url = obj => btoa(JSON.stringify(obj)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
           const now = Math.floor(Date.now() / 1000);
           const header  = b64url({ alg: 'RS256', typ: 'JWT' });
-          const payload = b64url({
-            iss  : GEMINI_SA.client_email,
-            scope: GEMINI_SA.scope,
-            aud  : GEMINI_SA.token_uri,
-            iat  : now,
-            exp  : now + 3600
-          });
+          const payload = b64url({ iss: GEMINI_SA.client_email, scope: GEMINI_SA.scope, aud: GEMINI_SA.token_uri, iat: now, exp: now + 3600 });
           const unsigned = `${header}.${payload}`;
-
-          // Import PKCS8 private key
           const pem = GEMINI_SA.private_key.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
           const der = Uint8Array.from(atob(pem), c => c.charCodeAt(0));
-          const cryptoKey = await crypto.subtle.importKey(
-            'pkcs8', der.buffer,
-            { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-            false, ['sign']
-          );
-
-          // Sign and assemble JWT
-          const sigBuf = await crypto.subtle.sign(
-            'RSASSA-PKCS1-v1_5', cryptoKey,
-            new TextEncoder().encode(unsigned)
-          );
-          const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf)))
-            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+          const cryptoKey = await crypto.subtle.importKey('pkcs8', der.buffer, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+          const sigBuf = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, new TextEncoder().encode(unsigned));
+          const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
           const jwt = `${unsigned}.${sig}`;
-
-          // Exchange JWT for access token
-          const res = await fetch(GEMINI_SA.token_uri, {
-            method : 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body   : `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
-          });
+          const res = await fetch(GEMINI_SA.token_uri, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}` });
           const data = await res.json();
           if (!data.access_token) throw new Error('SA token failed: ' + JSON.stringify(data));
-
           _saToken = { token: data.access_token, expiry: Date.now() + (data.expires_in - 60) * 1000 };
-          console.log('[GeriSim] Gemini SA token refreshed');
           return _saToken.token;
         };
 
-        // AI_CHAIN: browser-direct providers only (no secret keys in client code).
-        // OpenRouter (GPT-4o) is held server-side in GAS and used as the GAS fallback.
-        const OR_KEY = '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';
-        const GEMINI_KEY = 'AQ.Ab8RN6KJF6PFQPEHvFvuTDJkYoCbnDdFkWKY_lJYvB_YS_qT3A';
-        const AI_CHAIN = [
-          // Gemini first — fastest, most reliable for Thai
-          {
-            name    : 'Gemini',
-            url     : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
-            model   : 'gemini-3.5-flash',
-            gemini  : true,
-          },
-          // Free OpenRouter models — CORS supported, fallback only
-        ];
-
-        // Convert OpenAI-style messages[] to Gemini native format
-        const toGeminiNative = (messages) => {
-          const systemMsg = messages.find(m => m.role === 'system');
-          const turns = messages.filter(m => m.role !== 'system');
-          const contents = turns.map(m => ({
-            role  : m.role === 'assistant' ? 'model' : 'user',
-            parts : [{ text: m.content }]
-          }));
-          const req = { contents, generationConfig: { temperature: 0.82, maxOutputTokens: 500, topP: 0.9, thinkingConfig: { thinkingBudget: 0 } } };
-          if (systemMsg) req.systemInstruction = { parts: [{ text: systemMsg.content }] };
-          return req;
-        };
-
-        // Fetch with hard timeout — rejects if provider doesn't respond within ms.
-        const fetchWithTimeout = (url, opts, ms = 5000) => {
+        // Fetch with hard timeout
+        const fetchWithTimeout = (url, opts, ms = 15000) => {
           const ctrl = new AbortController();
           const timer = setTimeout(() => ctrl.abort(), ms);
           return fetch(url, { ...opts, signal: ctrl.signal })
             .finally(() => clearTimeout(timer));
-        };
-
-        // Call AI providers in order (Qwen → Gemini); returns { text, log[] } or throws with log[].
-        const callAIChain = async (messages) => {
-          const log = [];
-          for (const provider of AI_CHAIN) {
-            try {
-              let res;
-              if (provider.gemini) {
-                res = await fetchWithTimeout(provider.url, {
-                  method  : 'POST',
-                  headers : { 'Content-Type': 'application/json', 'X-goog-api-key': GEMINI_KEY },
-                  body    : JSON.stringify(toGeminiNative(messages)),
-                });
-              } else {
-                const body = { model: provider.model, messages, temperature: 0.82, max_tokens: 600, top_p: 0.9 };
-                if (provider.name === 'Qwen') body.enable_thinking = false;
-                res = await fetchWithTimeout(provider.url, {
-                  method  : 'POST',
-                  headers : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${provider.key}` },
-                  body    : JSON.stringify(body),
-                });
-              }
-
-              if (!res.ok) {
-                const errBody = await res.text().catch(() => '');
-                const msg = `${provider.name}: HTTP ${res.status} — ${errBody.substring(0, 120)}`;
-                log.push(msg);
-                console.warn('[GeriSim]', msg);
-                continue;
-              }
-
-              const json = await res.json();
-              // Gemini native response shape differs from OpenAI
-              const rawContent = provider.name === 'Gemini'
-                ? (json?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim()
-                : (json?.choices?.[0]?.message?.content || '').trim();
-              let text = rawContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-              // Qwen3 thinking models sometimes put all output inside <think> — extract it as fallback
-              if (!text && rawContent) {
-                const m = rawContent.match(/<think>([\s\S]*?)<\/think>/i);
-                if (m) {
-                  const inner = m[1].trim();
-                  const lines = inner.split('\n').map(l => l.trim()).filter(Boolean);
-                  text = lines[lines.length - 1] || '';
-                }
-              }
-              if (text) {
-                console.log(`[GeriSim] Used provider: ${provider.name}`);
-                return { text, log };
-              }
-              const emptyMsg = `${provider.name}: empty reply`;
-              log.push(emptyMsg);
-              console.warn('[GeriSim]', emptyMsg);
-            } catch (err) {
-              const errMsg = `${provider.name}: ${err.message}`;
-              log.push(errMsg);
-              console.warn('[GeriSim]', errMsg);
-            }
-          }
-          const err = new Error('ALL_PROVIDERS_FAILED');
-          err.log = log;
-          throw err;
         };
 
         // ============================================================
@@ -1847,34 +1720,26 @@ ${bg || 'ผู้สูงอายุชาวไทย อายุประ�
               let reply;
               let isRealReply = true;
               try {
-                const result = await callAIChain(messages);
-                reply = result.text;
-              } catch (aiErr) {
-                // All browser-direct providers failed — try GAS (has OpenRouter/GPT-4o server-side)
-                console.warn('[GeriSim] Direct providers failed, trying GAS:', (aiErr.log || []).join(' | '));
-                try {
-                  const gasRes = await fetchWithTimeout(GAS_URL, {
-                    method : 'POST',
-                    // Send only thaiPrompt — GAS adds its own englishFrame to avoid duplication
-                    body   : JSON.stringify({
-                      action       : 'chat',
-                      message      : messageText,
-                      systemPrompt : thaiPrompt,
-                      gender       : activePatient.gender || '',
-                      history      : chatTurnsRef.current.slice(-8)
-                    })
-                  });
-                  const gasJson = await gasRes.json();
-                  if (gasJson.status === 'success' && gasJson.reply && !gasJson.reply.startsWith('GEMINI_ERROR:')) {
-                    reply = gasJson.reply;
-                  } else {
-                    throw new Error(gasJson.message || gasJson.reply || 'GAS chat failed');
-                  }
-                } catch (gasErr) {
-                  console.error('[GeriSim] GAS fallback also failed:', gasErr.message);
-                  reply = generateInCharacterFallback(activePatient);
-                  isRealReply = false;
+                const gasRes = await fetchWithTimeout(GAS_URL, {
+                  method : 'POST',
+                  body   : JSON.stringify({
+                    action       : 'chat',
+                    message      : messageText,
+                    systemPrompt : thaiPrompt,
+                    gender       : activePatient.gender || '',
+                    history      : chatTurnsRef.current.slice(-6)
+                  })
+                });
+                const gasJson = await gasRes.json();
+                if (gasJson.status === 'success' && gasJson.reply && !gasJson.reply.startsWith('GEMINI_ERROR:')) {
+                  reply = gasJson.reply;
+                } else {
+                  throw new Error(gasJson.message || gasJson.reply || 'GAS chat failed');
                 }
+              } catch (gasErr) {
+                console.error('[GeriSim] GAS failed:', gasErr.message);
+                reply = generateInCharacterFallback(activePatient);
+                isRealReply = false;
               }
 
               setAvatarMood(detectMood(reply));
